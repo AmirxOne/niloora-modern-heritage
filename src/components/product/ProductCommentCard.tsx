@@ -1,0 +1,50 @@
+import { BadgeCheck } from "@/components/icons";
+import type { ProductComment } from "@/lib/types";
+import { StarRating } from "@/components/product/StarRating";
+import { fa } from "@/lib/i18n/fa";
+import { ICON_VARIANT, iconSizes } from "@/lib/icons";
+
+function formatCommentDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("fa-IR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+interface ProductCommentCardProps {
+  comment: ProductComment;
+}
+
+export function ProductCommentCard({ comment }: ProductCommentCardProps) {
+  const initial = comment.authorName.trim().charAt(0) || "؟";
+
+  return (
+    <article className="product-comment-card">
+      <header className="product-comment-card-header">
+        <div className="product-comment-author">
+          <span className="product-comment-avatar" aria-hidden>
+            {initial}
+          </span>
+          <div>
+            <div className="product-comment-name-row">
+              <p className="product-comment-name">{comment.authorName}</p>
+              <span className="product-comment-verified">
+                <BadgeCheck size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />
+                {fa.product.verifiedBuyer}
+              </span>
+            </div>
+            <p className="product-comment-date">{formatCommentDate(comment.createdAt)}</p>
+          </div>
+        </div>
+        <div className="product-comment-rating-block">
+          <StarRating value={comment.rating} size="sm" />
+          <span className="product-comment-rating-value">
+            {comment.rating.toLocaleString("fa-IR")} / ۵
+          </span>
+        </div>
+      </header>
+      <p className="product-comment-body">{comment.body}</p>
+    </article>
+  );
+}

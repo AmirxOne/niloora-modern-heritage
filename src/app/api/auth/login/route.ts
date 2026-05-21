@@ -1,0 +1,36 @@
+import { compare } from "bcryptjs";
+import { normalizeIranPhone } from "@/lib/auth/phone";
+import { prisma } from "@/lib/server/prisma";
+import { badRequest, ok, unauthorized, serverError } from "@/lib/server/http";
+import { handleRouteError } from "@/lib/server/route-errors";
+import { createSession, setSessionCookie } from "@/lib/server/auth/session";
+import { toSessionUser } from "@/lib/server/auth/dto";
+
+type Body = {
+  phone?: string;
+  password?: string;
+};
+
+export async function POST(request: Request) {
+  try {
+    const body = (await request.json()) as Body;
+    const phone = normalizeIranPhone(body.phone ?? "");
+    const password = body.password ?? "";
+    if (!phone || !password) {
+      return badRequest("Invalid login payload");
+    }
+
+    const user = await prisma.user.findUnique({ where: { phone } });
+    if (!user) return unauthorized("invalid_credentials");
+
+    const isValid = await compare(password, user.passwordHash);
+    if (!isValid) return unauthorized("invalid_credentials");
+
+    const sessionToken = await createSession(user.id);
+    await setSessionCookie(sessionToken);
+
+    return ok({ user: toSessionUser(user) });
+  } catch (error) {
+    return handleRouteError(error, { route: "/api/auth/login" });
+  }
+}
