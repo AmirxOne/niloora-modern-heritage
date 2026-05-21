@@ -136,14 +136,14 @@ Typical flow:
 - Build with `npm run build` and serve with `npm run start`
 - Ensure `NEXT_PUBLIC_SITE_URL` matches the production domain
 
-## AI Handover Docs
+## Documentation Map
 
-For fast onboarding of another developer/agent:
+For faster onboarding of new team members:
 
-1. `PROJECT_AI_GUIDE.md`
-2. `src/app/api/README.md`
-3. `src/lib/README.md`
-4. `src/components/README.md`
+1. `README.md` (project overview and setup)
+2. `src/app/api/README.md` (API routes and server handlers)
+3. `src/lib/README.md` (business logic and utilities)
+4. `src/components/README.md` (UI and component organization)
 
 ## Security
 
