@@ -73,7 +73,7 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
                 onClick={goPrev}
                 aria-label={fa.product.galleryPrev}
               >
-                <ChevronRight size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
+                <ChevronLeft size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
               </button>
               <button
                 type="button"
@@ -81,7 +81,7 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
                 onClick={goNext}
                 aria-label={fa.product.galleryNext}
               >
-                <ChevronLeft size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
+                <ChevronRight size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
               </button>
               <p className="product-gallery-counter" aria-live="polite">
                 {fa.product.galleryCounter(activeIndex + 1, total)}

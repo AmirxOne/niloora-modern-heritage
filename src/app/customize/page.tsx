@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { buildQuoteRequestTitle } from "@/lib/customizer/quote-summary";
 import { useCustomizer } from "@/lib/hooks/useCustomizer";
 import { useApp } from "@/lib/context/AppContext";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
 import { CustomizerWizard } from "@/components/customizer/CustomizerWizard";
 import { CompatibilityNotice } from "@/components/customizer/CompatibilityNotice";
@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { TextBox } from "@/components/inputs";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Share } from "@/components/icons";
+import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import type { WizardStepId } from "@/lib/customizer/wizard";
 
 export default function CustomizePage() {
@@ -140,9 +142,9 @@ export default function CustomizePage() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
-                    className="mt-1 block text-xl font-bold text-turquoise-light"
+                    className="mt-1 block text-xl font-bold text-price-sale"
                   >
-                    {formatPrice(price)}
+                    <TomanPrice amount={price} size="md" />
                   </motion.span>
                 </AnimatePresence>
               </motion.div>
@@ -185,7 +187,8 @@ export default function CustomizePage() {
                   <Button onClick={() => setSaveModalOpen(true)} variant="outline" className="flex-1">
                     {fa.customize.saveDesign}
                   </Button>
-                  <Button onClick={handleShare} variant="ghost" className="flex-1">
+                  <Button onClick={handleShare} variant="ghost" className="flex-1 gap-2">
+                    <Share size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
                     {fa.customize.shareDesign}
                   </Button>
                   <Button
@@ -237,7 +240,7 @@ export default function CustomizePage() {
         <div className="space-y-4 p-6">
           <p className="text-sm leading-7 text-silver">{fa.customize.wizard.quoteHint}</p>
           <p className="text-sm text-ivory">
-            {fa.customize.wizard.estimatedPrice}: <strong>{formatPrice(price)}</strong>
+            {fa.customize.wizard.estimatedPrice}: <strong><TomanPrice amount={price} size="xs" /></strong>
           </p>
           <TextBox
             label={fa.customize.wizard.quoteModalNoteLabel}

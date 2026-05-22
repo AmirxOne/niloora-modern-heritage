@@ -124,6 +124,7 @@ export const fa = {
       "ذخیره و اشتراک‌گذاری طرح",
     ],
     enterAtelier: "شروع طراحی اختصاصی",
+    atelierFootnote: "ورود به استودیو رایگان است — طرح را ذخیره کنید یا مستقیم به سبد اضافه کنید.",
     heritageEyebrow: "هویت برند",
     heritageTitle: "صنعت ایرانی، بیان معاصر",
     heritageSubtitle:
@@ -637,6 +638,8 @@ export const fa = {
     eyebrow: "پروفایل",
     title: "میز کار من",
     royalPatron: "عضویت ویژه ابراهیم آذری",
+    roleAdmin: "مدیر گالری",
+    roleUser: "عضو",
     memberSince: (year: string) => `عضو از سال ${year}`,
     savedDesigns: "طرح‌های ذخیره‌شده",
     noDesigns: "هنوز طرحی ثبت نشده است",
@@ -656,6 +659,7 @@ export const fa = {
     orderItems: (n: number) => `${n.toLocaleString("fa-IR")} قلم`,
     orderTotal: "جمع سفارش",
     orderBahakahi: (amount: string) => `${amount} بهاکاهی در این سفارش`,
+    orderBahakahiSuffix: "بهاکاهی در این سفارش",
     orderShippingTitle: "نشانی ارسال",
     orderShippingNote: "یادداشت",
     orderShippingMethod: "روش ارسال",
@@ -1111,6 +1115,8 @@ export const fa = {
     /** برچسب کوتاه روی کارت محصول */
     cardTag: (n: number) => `${n.toLocaleString("fa-IR")}٪`,
     productSaved: (amount: string) => `${amount} بهاکاهی از این اثر`,
+    /** ادامهٔ متن بعد از قیمت — برای نمایش با کامپوننت TomanPrice */
+    productSavedSuffix: "بهاکاهی از این اثر",
     fromProducts: "بهاکاهی اختصاصی آثار",
     siteWide: (n: number) => `بهاکاهی جشنوارهٔ گالری (${n.toLocaleString("fa-IR")}٪)`,
     fromCode: (label: string) => `بهاکاهی کد: ${label}`,

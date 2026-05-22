@@ -49,6 +49,13 @@ const config: Config = {
           light: "#9B4040",
           bg: "#FDF0F0",
         },
+        bahakahi: {
+          DEFAULT: "#b91c1c",
+          bg: "#fff0f0",
+        },
+        price: {
+          sale: "#2f2a24",
+        },
         lapis: {
           DEFAULT: "#2C4A5E",
           light: "#3D6280",

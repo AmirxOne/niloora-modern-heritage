@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft } from "@/components/icons";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +36,11 @@ export function AccountResourceRow({
       <div className="account-resource-body">
         <p className="account-resource-title">{title}</p>
         {subtitle ? <p className="account-resource-subtitle">{subtitle}</p> : null}
-        {price != null ? <p className="account-resource-price">{formatPrice(price)}</p> : null}
+        {price != null ? (
+          <p className="account-resource-price">
+            <TomanPrice amount={price} size="xs" />
+          </p>
+        ) : null}
       </div>
       {trailing ?? (
         <ChevronLeft

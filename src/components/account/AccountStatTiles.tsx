@@ -8,7 +8,7 @@ import {
   Wallet,
 } from "@/components/icons";
 import type { IconComponent } from "@/lib/icons";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -40,9 +40,9 @@ export function AccountStatTiles({
   stats: AccountStats;
   onTileClick?: (section: string) => void;
 }) {
-  const values: Record<string, string> = {
+  const values: Record<string, string | null> = {
     orderCount: stats.orderCount.toLocaleString("fa-IR"),
-    totalSpent: formatPrice(stats.totalSpent),
+    totalSpent: null,
     wishlistCount: stats.wishlistCount.toLocaleString("fa-IR"),
     savedDesignsCount: stats.savedDesignsCount.toLocaleString("fa-IR"),
     cartItemsCount: stats.cartItemsCount.toLocaleString("fa-IR"),
@@ -66,7 +66,13 @@ export function AccountStatTiles({
               <Icon size={iconSizes.sm} variant={ICON_VARIANT} />
             </span>
             <p className="account-stat-tile-label">{tile.label}</p>
-            <p className="account-stat-tile-value">{values[tile.id]}</p>
+            <p className={cn("account-stat-tile-value", tile.id === "totalSpent" && "text-price-sale")}>
+              {tile.id === "totalSpent" ? (
+                <TomanPrice amount={stats.totalSpent} size="xs" />
+              ) : (
+                values[tile.id]
+              )}
+            </p>
           </Tag>
         );
       })}

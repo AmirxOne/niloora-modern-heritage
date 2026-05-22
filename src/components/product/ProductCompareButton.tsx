@@ -51,14 +51,14 @@ export function ProductCompareButton({
         type="button"
         onClick={() => compareList.toggle(productId)}
         className={cn(
-          "product-detail-actions-compare",
+          "product-detail-actions-compare product-detail-actions-btn",
           active && "product-detail-actions-compare--active",
           className
         )}
         aria-pressed={active}
       >
-        <Compare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-        {active ? fa.product.compared : fa.product.compare}
+        <Compare size={iconSizes.sm} variant={ICON_VARIANT} className="shrink-0" aria-hidden />
+        <span>{active ? fa.product.compared : fa.product.compare}</span>
       </Button>
     );
   }

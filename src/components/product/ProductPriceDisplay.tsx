@@ -2,8 +2,9 @@
 
 import type { Product } from "@/lib/types";
 import { getProductPricing } from "@/lib/pricing";
-import { formatPrice, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { fa } from "@/lib/i18n/fa";
+import { StackedTomanPrice, TomanPrice, TomanPriceWithSuffix } from "@/components/commerce/TomanPrice";
 
 interface ProductPriceDisplayProps {
   product: Pick<Product, "price" | "listPrice" | "discountPercent">;
@@ -12,13 +13,9 @@ interface ProductPriceDisplayProps {
   showBadge?: boolean;
   /** برچسب فشردهٔ درصد بهاکاهی کنار قیمت (کارت محصول) */
   showBahakahiPercent?: boolean;
+  /** چیدمان عمودی: قیمت قبلی بالا (بدون تومان)، قیمت جدید پایین */
+  layout?: "inline" | "stack";
 }
-
-const sizeClasses = {
-  sm: { sale: "text-lg", list: "text-sm" },
-  md: { sale: "text-2xl", list: "text-base" },
-  lg: { sale: "text-3xl", list: "text-xl" },
-};
 
 export function ProductPriceDisplay({
   product,
@@ -26,32 +23,47 @@ export function ProductPriceDisplay({
   className,
   showBadge = true,
   showBahakahiPercent = false,
+  layout = "inline",
 }: ProductPriceDisplayProps) {
   const pricing = getProductPricing(product);
-  const sizes = sizeClasses[size];
+  const isStack = layout === "stack";
 
   return (
-    <div className={cn("product-price-display", className)}>
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className={cn("font-display font-semibold text-gold-dark", sizes.sale)}>
-          {formatPrice(pricing.salePrice)}
-        </span>
-        {pricing.hasProductFurooh ? (
-          <span className={cn("text-silver line-through decoration-gold/40", sizes.list)}>
-            {formatPrice(pricing.listPrice)}
-          </span>
-        ) : null}
-        {pricing.hasProductFurooh && showBahakahiPercent ? (
+    <div className={cn("product-price-display", isStack && "product-price-display--stack", className)}>
+      <div
+        className={cn(
+          isStack ? "product-price-display-stack-wrap" : "flex flex-wrap items-baseline gap-x-2 gap-y-1"
+        )}
+      >
+        {isStack ? (
+          <StackedTomanPrice
+            listPrice={pricing.listPrice}
+            salePrice={pricing.salePrice}
+            size={size}
+            hasListPrice={pricing.hasProductFurooh}
+          />
+        ) : (
+          <>
+            {pricing.hasProductFurooh ? (
+              <TomanPrice amount={pricing.listPrice} size={size} variant="list" />
+            ) : null}
+            <TomanPrice amount={pricing.salePrice} size={size} />
+          </>
+        )}
+        {!isStack && pricing.hasProductFurooh && showBahakahiPercent ? (
           <span className="product-price-bahakahi-pill">
             {fa.bahakahi.percentOff(pricing.furoohPercent)}
           </span>
         ) : null}
       </div>
       {pricing.hasProductFurooh && showBadge ? (
-        <p className="mt-2 text-xs discount-text">
-          <span className="furooh-badge">{fa.bahakahi.percentOff(pricing.furoohPercent)}</span>
-          <span className="mx-2 text-gold/30">·</span>
-          {fa.bahakahi.productSaved(formatPrice(pricing.productFurooh))}
+        <p className="product-price-discount-row mt-5 text-xs discount-text">
+          <span className="furooh-badge shrink-0">{fa.bahakahi.percentOff(pricing.furoohPercent)}</span>
+          <TomanPriceWithSuffix
+            amount={pricing.productFurooh}
+            suffix={fa.bahakahi.productSavedSuffix}
+            size="xs"
+          />
         </p>
       ) : null}
     </div>

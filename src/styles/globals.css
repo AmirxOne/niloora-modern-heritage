@@ -21,6 +21,11 @@
     --color-accent-bg:    #fdf8ee;
     --color-error:        #6b2d2d;
     --color-error-bg:     #fdf0f0;
+    /* بهاکاهی / تخفیف — سراسری پروژه */
+    --bahakahi-fg: #b91c1c;
+    --bahakahi-bg: #fff0f0;
+    --color-price-sale: #2f2a24;
+    --discount-red: var(--bahakahi-fg);
     /* ━━━━ spacing (مضرب 8px) ━━━━ */
     --space-1: 0.5rem;   /* 8px  */
     --space-2: 1rem;     /* 16px */
@@ -38,7 +43,6 @@
     --shadow-modal: none;
     /* ━━━━ پس‌زمینه اتمسفری ━━━━ */
     --atmosphere-gold: rgba(184, 134, 11, 0.04);
-    --discount-red: #6b2d2d;
   }
 
   @media (min-width: 768px) {
@@ -252,7 +256,8 @@
   /* ——— صفحه اصلی — غنی‌سازی ——— */
 
   .home-promo-strip {
-    @apply border-y border-gold/15 bg-gradient-to-l from-gold/10 via-matte-elevated to-turquoise/10;
+    border-block: 1px solid var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
   }
 
   .sales-trust-strip {
@@ -309,6 +314,90 @@
 
   .sales-trust-strip--dense .sales-trust-strip-icon svg {
     @apply h-[18px] w-[18px];
+  }
+
+  .customizer-cta-section {
+    @apply heritage-section py-10 md:py-14;
+  }
+
+  .customizer-cta-panel {
+    @apply relative overflow-hidden rounded-heritage-xl border border-gold/15 bg-gradient-to-br from-white via-matte-elevated to-parchment/50 p-6 shadow-hojreh md:p-9 lg:p-11;
+  }
+
+  .customizer-cta-panel-glow {
+    @apply pointer-events-none absolute -top-20 start-0 h-56 w-56 rounded-full bg-turquoise/10 blur-3xl;
+  }
+
+  .customizer-cta-watermark {
+    @apply pointer-events-none absolute -bottom-6 -start-3 h-28 w-28 text-gold/10 md:h-32 md:w-32;
+  }
+
+  .customizer-cta-grid {
+    @apply relative grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-stretch lg:gap-10;
+  }
+
+  .customizer-cta-main {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .customizer-cta-title {
+    @apply mt-3 font-display text-[1.85rem] font-semibold leading-[1.2] text-ivory md:text-4xl lg:text-[2.65rem];
+  }
+
+  .customizer-cta-title-accent {
+    @apply text-gradient-gold;
+  }
+
+  .customizer-cta-subtitle {
+    @apply mt-4 max-w-xl text-sm leading-relaxed text-silver md:mt-5 md:text-base;
+  }
+
+  .customizer-cta-footer {
+    @apply mt-8 flex flex-col gap-4 border-t border-gold/10 pt-7 md:mt-auto md:pt-8;
+  }
+
+  .customizer-cta-link {
+    @apply inline-flex w-fit;
+  }
+
+  .customizer-cta-button {
+    @apply gap-2 ps-7 pe-6;
+  }
+
+  .customizer-cta-button-icon {
+    @apply shrink-0 transition-transform duration-300;
+  }
+
+  .customizer-cta-link:hover .customizer-cta-button-icon {
+    @apply -translate-x-0.5;
+  }
+
+  .customizer-cta-footnote {
+    @apply max-w-md text-[11px] leading-relaxed text-silver md:text-xs;
+  }
+
+  .customizer-cta-features {
+    @apply grid gap-3 sm:grid-cols-3 lg:grid-cols-1 lg:gap-3.5;
+  }
+
+  .customizer-cta-feature {
+    @apply relative flex min-h-[5.5rem] flex-col gap-3 rounded-heritage border border-gold/10 bg-white/75 p-4 shadow-heritage backdrop-blur-sm sm:min-h-0 lg:flex-row lg:items-center lg:gap-4;
+  }
+
+  .customizer-cta-feature-step {
+    @apply absolute top-3 end-3 font-display text-[10px] font-semibold tracking-widest text-gold/45 lg:static lg:order-1 lg:w-7 lg:shrink-0 lg:text-xs;
+  }
+
+  .customizer-cta-feature-icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gold/20 bg-gold/10 text-gold-dark lg:order-2;
+  }
+
+  .customizer-cta-feature-icon svg {
+    @apply h-5 w-5;
+  }
+
+  .customizer-cta-feature-text {
+    @apply text-sm leading-snug text-ivory lg:order-3 lg:min-w-0 lg:flex-1;
   }
 
   .heritage-hero {
@@ -1444,7 +1533,7 @@
   }
 
   .shop-price-range-value-amount {
-    @apply mt-0.5 block truncate text-[11px] font-medium leading-tight text-ivory tabular-nums;
+    @apply mt-0.5 block truncate text-[11px] font-medium leading-tight text-price-sale tabular-nums;
     direction: ltr;
     text-align: left;
   }
@@ -1523,7 +1612,7 @@
   }
 
   .shop-price-range-bounds span {
-    @apply min-w-0 truncate tabular-nums;
+    @apply min-w-0 truncate tabular-nums text-price-sale;
     direction: ltr;
   }
 
@@ -1627,9 +1716,10 @@
   }
 
   .shop-product-card-discount-tag {
-    @apply inline-flex items-center justify-center rounded-full border-0 px-2.5 text-[11px] font-semibold leading-none tracking-tight shadow-none;
-    color: #b91c1c;
-    background: #fff0f0;
+    @apply inline-flex items-center justify-center rounded-full border px-2.5 text-[11px] font-semibold leading-none tracking-tight shadow-none;
+    color: var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
+    border-color: var(--bahakahi-fg);
     height: 20px;
     min-height: 20px;
     padding-top: 0;
@@ -1773,7 +1863,7 @@
   }
 
   .recently-viewed-strip__price {
-    @apply text-xs text-silver;
+    @apply text-xs text-price-sale;
   }
 
   .compare-page__header {
@@ -1847,9 +1937,10 @@
   }
 
   .product-price-bahakahi-pill {
-    @apply inline-flex shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium leading-none text-ivory;
-    border: 1px solid color-mix(in srgb, var(--discount-red) 30%, transparent);
-    background: color-mix(in srgb, var(--discount-red) 12%, transparent);
+    @apply inline-flex shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium leading-none;
+    color: var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
+    border: 1px solid var(--bahakahi-fg);
   }
 
   .shop-product-card-status {
@@ -1914,7 +2005,7 @@
     margin: 0;
     font-size: 1.08rem;
     font-weight: 700;
-    color: #2f2a24;
+    color: var(--color-price-sale);
     line-height: 1.1;
     display: inline-flex;
     align-items: flex-end;
@@ -2090,7 +2181,7 @@
   .shop-product-card-discount-countdown {
     margin: 0.3rem 0 0;
     font-size: 0.72rem;
-    color: #b91c1c;
+    color: var(--bahakahi-fg);
     text-align: left;
     align-self: flex-start;
     margin-inline-start: auto;
@@ -2099,13 +2190,13 @@
   .product-detail-discount-countdown {
     margin-top: 0.5rem;
     font-size: 0.82rem;
-    color: #6d6458;
+    color: var(--bahakahi-fg);
   }
 
   .discount-countdown__time {
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-    color: #b91c1c;
+    color: var(--bahakahi-fg);
   }
 
   .shop-empty-state {
@@ -2284,12 +2375,12 @@
   }
 
   .cart-furooh-summary-row--gain {
-    color: var(--discount-red);
+    color: var(--bahakahi-fg);
   }
 
   .cart-furooh-summary-row--gain .discount-amount {
     @apply font-medium;
-    color: var(--discount-red);
+    color: var(--bahakahi-fg);
   }
 
   .cart-furooh-summary-row--payable {
@@ -2298,18 +2389,18 @@
 
   .cart-furooh-total {
     @apply rounded-heritage px-4 py-3 text-center;
-    border: 1px solid color-mix(in srgb, var(--discount-red) 28%, transparent);
-    background: color-mix(in srgb, var(--discount-red) 8%, transparent);
+    border: 1px solid var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
   }
 
   .cart-furooh-total-label {
     @apply text-[11px] font-medium tracking-wide;
-    color: var(--discount-red);
+    color: var(--bahakahi-fg);
   }
 
   .cart-furooh-total-amount {
     @apply mt-1 font-display text-2xl font-semibold;
-    color: var(--discount-red);
+    color: var(--bahakahi-fg);
   }
 
   .cart-furooh-total-hint {
@@ -2339,8 +2430,8 @@
 
   .promo-code-input:focus {
     @apply ring-2 outline-none;
-    border-color: color-mix(in srgb, var(--discount-red) 45%, transparent);
-    --tw-ring-color: color-mix(in srgb, var(--discount-red) 22%, transparent);
+    border-color: var(--bahakahi-fg);
+    --tw-ring-color: color-mix(in srgb, var(--bahakahi-fg) 22%, transparent);
   }
 
   .promo-code-remove {
@@ -2353,46 +2444,82 @@
 
   .promo-code-success {
     @apply mt-2 text-xs;
-    color: var(--discount-red);
+    color: var(--bahakahi-fg);
   }
 
   .promo-code-error {
     @apply mt-2 text-xs;
-    color: var(--discount-red);
+    color: var(--color-error);
   }
 
   .furooh-badge {
     @apply inline-flex rounded-full px-2 py-0.5 font-medium;
-    border: 1px solid color-mix(in srgb, var(--discount-red) 35%, transparent);
-    background: color-mix(in srgb, var(--discount-red) 10%, transparent);
-    color: var(--discount-red);
+    border: 1px solid var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
+    color: var(--bahakahi-fg);
   }
 
   .discount-text {
-    color: var(--discount-red);
+    color: var(--bahakahi-fg);
   }
 
   .product-price-display {
     @apply leading-tight;
+  }
+
+  .product-price-toman {
     direction: ltr;
-    text-align: left;
+  }
+
+  .product-price-display-stack-wrap {
+    @apply flex justify-end;
+  }
+
+  .product-price-display--stack {
+    @apply w-full self-stretch;
+  }
+
+  .product-price-discount-row {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .product-price-stack {
+    display: inline-grid;
+    grid-template-columns: auto min-content;
+    column-gap: 0.375rem;
+    row-gap: 0;
+    align-items: baseline;
+  }
+
+  .product-price-stack-currency-spacer {
+    visibility: hidden;
+  }
+
+  .product-price-stack-currency {
+    align-self: end;
+  }
+
+  .product-price-stack-amount {
+    text-align: end;
+    white-space: nowrap;
   }
 
   .site-wide-banner {
-    @apply mb-8 flex flex-wrap items-center gap-4 rounded-heritage-lg bg-gradient-to-l via-matte-elevated to-parchment/40 px-5 py-4 shadow-heritage;
-    border: 1px solid color-mix(in srgb, var(--discount-red) 25%, transparent);
-    background-image: linear-gradient(
-      to left,
-      color-mix(in srgb, var(--discount-red) 10%, transparent),
-      transparent 55%
-    );
+    @apply mb-8 flex flex-wrap items-center gap-4 rounded-heritage-lg px-5 py-4 shadow-heritage;
+    border: 1px solid var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
   }
 
   .site-wide-banner-badge {
     @apply shrink-0 rounded-full px-3 py-1 text-xs font-semibold tracking-wide;
-    border: 1px solid color-mix(in srgb, var(--discount-red) 35%, transparent);
-    background: color-mix(in srgb, var(--discount-red) 12%, transparent);
-    color: var(--discount-red);
+    border: 1px solid var(--bahakahi-fg);
+    background: var(--bahakahi-bg);
+    color: var(--bahakahi-fg);
   }
 
   .site-wide-banner-title {
@@ -2458,7 +2585,7 @@
   }
 
   .product-detail-price {
-    @apply mt-5;
+    @apply mt-5 flex flex-col items-end;
   }
 
   .product-detail-description {
@@ -2510,15 +2637,23 @@
   }
 
   .product-detail-actions {
-    @apply mt-10 flex flex-col gap-3 sm:flex-row sm:items-stretch;
+    @apply mt-10 flex flex-col gap-3;
+  }
+
+  .product-detail-actions-secondary {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
+  }
+
+  .product-detail-actions-btn {
+    @apply h-auto min-h-12 w-full whitespace-normal px-4 py-3 text-center leading-snug sm:px-5;
   }
 
   .product-detail-actions-primary {
-    @apply w-full sm:flex-1;
+    @apply w-full;
   }
 
   .product-detail-actions-wishlist {
-    @apply w-full gap-2 sm:w-auto;
+    @apply w-full gap-2;
   }
 
   .product-detail-actions-wishlist--active {
@@ -2526,7 +2661,7 @@
   }
 
   .product-detail-actions-compare {
-    @apply w-full gap-2 sm:w-auto;
+    @apply w-full gap-2;
   }
 
   .product-detail-checkout-hint {
@@ -2625,11 +2760,11 @@
   }
 
   .product-media-actions-btn {
-    @apply flex h-10 w-10 items-center justify-center rounded-full border border-parchment/20 bg-stone-950/45 text-ivory backdrop-blur-sm transition-colors hover:border-gold/40 hover:bg-stone-950/60;
+    @apply flex h-10 w-10 items-center justify-center rounded-full border border-white/55 bg-stone-950/35 text-white backdrop-blur-sm transition-colors hover:border-white/80 hover:bg-stone-950/50;
   }
 
   .product-media-actions-btn--active {
-    @apply border-gold/50 bg-stone-950/55;
+    @apply border-gold/75 bg-stone-950/45;
   }
 
   .product-media-actions-toast {
@@ -3089,7 +3224,7 @@
   }
 
   .order-history-line-total {
-    @apply shrink-0 text-sm font-medium text-gold-dark;
+    @apply shrink-0 text-sm font-medium text-price-sale;
   }
 
   .order-history-card-footer {
@@ -3262,7 +3397,7 @@
   }
 
   .customize-studio-header-price-value {
-    @apply font-display text-2xl text-gold md:text-3xl;
+    @apply font-display text-2xl text-price-sale md:text-3xl;
   }
 
   .customize-studio-grid {
@@ -3531,7 +3666,7 @@
   }
 
   .customize-preview-price {
-    @apply font-display text-2xl text-gold;
+    @apply font-display text-2xl text-price-sale;
   }
 
   .customize-preview-actions {
@@ -3772,7 +3907,7 @@
   }
 
   .customizer-review-estimate strong {
-    @apply font-display text-lg text-gold;
+    @apply font-display text-lg text-price-sale;
   }
 
   .customizer-review-quote-hint {
@@ -3980,7 +4115,7 @@
   }
 
   .account-shell {
-    @apply grid gap-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[22rem_minmax(0,1fr)];
+    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[22rem_minmax(0,1fr)];
   }
 
   .account-shell-sidebar {
@@ -4127,7 +4262,7 @@
   }
 
   .account-highlight-value {
-    @apply mt-0.5 font-display text-2xl text-ivory;
+    @apply mt-0.5 font-display text-2xl text-price-sale;
   }
 
   .account-highlight-hint {
@@ -4235,7 +4370,7 @@
   }
 
   .account-resource-price {
-    @apply mt-1 text-sm text-gold-dark;
+    @apply mt-1 text-sm text-price-sale;
   }
 
   .account-design-row .account-resource-row {
@@ -4512,7 +4647,7 @@
   }
 
   .order-receipt-totals-row--discount {
-    @apply text-turquoise-dark;
+    color: var(--bahakahi-fg);
   }
 
   .order-receipt-totals-row--muted {
@@ -4524,7 +4659,7 @@
   }
 
   .order-receipt-totals-row--paid span:last-child {
-    @apply font-display text-xl font-semibold text-gold-dark;
+    @apply font-display text-xl font-semibold text-price-sale;
   }
 
   .order-receipt-footer {
@@ -4638,7 +4773,7 @@
   }
 
   .admin-product-list-price {
-    @apply mt-1 text-sm text-gold-dark;
+    @apply mt-1 text-sm text-price-sale;
   }
 
   .admin-products-form-pane {

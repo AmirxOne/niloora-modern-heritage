@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/lib/context/AppContext";
 import { useCartPricing } from "@/lib/hooks/useCartPricing";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { CartFuroohSummary } from "@/components/cart/CartFuroohSummary";
 import { CartLineItem } from "@/components/cart/CartLineItem";
 import { PromoCodeInput } from "@/components/cart/PromoCodeInput";
@@ -228,15 +228,18 @@ export function CartPageContent() {
                   <p className="font-medium text-ivory">پرداخت امن زرین‌پال</p>
                   <p className="mt-2 leading-relaxed text-silver">
                     {fa.cart.grandTotal}:{" "}
-                    <span className="font-semibold text-gold-dark">
-                      {formatPrice(shippingQuote.ready ? grandTotal : pricing.payable)}
+                    <span className="font-semibold text-price-sale">
+                      <TomanPrice
+                        amount={shippingQuote.ready ? grandTotal : pricing.payable}
+                        size="sm"
+                      />
                     </span>
                   </p>
                   {shippingQuote.ready ? (
                     <p className="mt-1 text-xs text-silver">
                       {fa.cart.shippingCostLabel}:{" "}
                       {shippingQuote.cost > 0
-                        ? formatPrice(shippingQuote.cost)
+                        ? <TomanPrice amount={shippingQuote.cost} size="xs" />
                         : fa.dashboard.orderShippingCostFree}
                       {shippingQuote.zoneLabel
                         ? ` · ${fa.cart.shippingZoneHint(shippingQuote.zoneLabel)}`
@@ -263,8 +266,8 @@ export function CartPageContent() {
                       {item.name}
                       <span className="text-gold/50"> ×{item.quantity.toLocaleString("fa-IR")}</span>
                     </span>
-                    <span className="shrink-0 font-medium text-ivory">
-                      {formatPrice(item.price * item.quantity)}
+                    <span className="shrink-0 font-medium text-price-sale">
+                      <TomanPrice amount={item.price * item.quantity} size="xs" />
                     </span>
                   </li>
                 ))}
@@ -279,9 +282,7 @@ export function CartPageContent() {
               ) : pricing.totalFurooh === 0 ? (
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm text-silver">{fa.cart.total}</span>
-                  <span className="font-display text-2xl font-semibold text-gold-dark">
-                    {formatPrice(pricing.payable)}
-                  </span>
+                  <TomanPrice amount={pricing.payable} size="md" />
                 </div>
               ) : null}
 

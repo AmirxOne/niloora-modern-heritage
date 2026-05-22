@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useApp } from "@/lib/context/AppContext";
 import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { fa } from "@/lib/i18n/fa";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 
 export function RecentlyViewedStrip({
   excludeProductId,
@@ -42,7 +42,9 @@ export function RecentlyViewedStrip({
               </span>
               <span className="recently-viewed-strip__meta">
                 <span className="recently-viewed-strip__name">{product.name}</span>
-                <span className="recently-viewed-strip__price">{formatPrice(product.price)}</span>
+                <span className="recently-viewed-strip__price">
+                  <TomanPrice amount={product.price} size="xs" />
+                </span>
               </span>
             </Link>
           </li>

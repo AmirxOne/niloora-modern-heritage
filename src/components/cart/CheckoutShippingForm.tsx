@@ -11,7 +11,7 @@ import {
   type CheckoutShippingInput,
 } from "@/lib/checkout/shipping";
 import { computeShippingCost } from "@/lib/orders/shipping-cost";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { TextBox, TextAreaBox, SelectBox } from "@/components/inputs";
 import { fa } from "@/lib/i18n/fa";
 
@@ -285,10 +285,10 @@ export function CheckoutShippingForm({ profile, onStateReady, disabled }: Checko
                 />
                 <span className="font-medium text-ivory">{method.label}</span>
                 <span className="mt-1 block text-xs text-silver">{method.eta}</span>
-                <span className="mt-2 block text-sm text-gold-dark">
+                <span className="mt-2 block text-sm text-price-sale">
                   {methodQuote.ready
                     ? methodQuote.cost > 0
-                      ? formatPrice(methodQuote.cost)
+                      ? <TomanPrice amount={methodQuote.cost} size="xs" />
                       : fa.dashboard.orderShippingCostFree
                     : "—"}
                 </span>

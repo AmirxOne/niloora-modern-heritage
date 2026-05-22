@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { buildOrderReceipt, type OrderReceiptBreakdown } from "@/lib/orders/order-receipt";
 import type { Order } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
 import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 
@@ -27,16 +27,17 @@ function ReceiptTotals({ receipt }: { receipt: OrderReceiptBreakdown }) {
       {receipt.listSubtotal > receipt.itemsSubtotal ? (
         <div className="order-receipt-totals-row">
           <span>{fa.receipt.listSubtotal}</span>
-          <span className="text-silver line-through decoration-gold/30">
-            {formatPrice(receipt.listSubtotal)}
-          </span>
+          <TomanPrice amount={receipt.listSubtotal} size="xs" variant="list" />
         </div>
       ) : null}
 
       {receipt.discountTotal > 0 ? (
         <div className="order-receipt-totals-row order-receipt-totals-row--discount">
           <span>{fa.receipt.discount}</span>
-          <span>−{formatPrice(receipt.discountTotal)}</span>
+          <span className="inline-flex items-baseline gap-x-0.5">
+            <span aria-hidden>−</span>
+            <TomanPrice amount={receipt.discountTotal} size="xs" />
+          </span>
         </div>
       ) : null}
 
@@ -49,7 +50,7 @@ function ReceiptTotals({ receipt }: { receipt: OrderReceiptBreakdown }) {
 
       <div className="order-receipt-totals-row">
         <span>{fa.receipt.itemsSubtotal}</span>
-        <span>{formatPrice(receipt.itemsSubtotal)}</span>
+        <TomanPrice amount={receipt.itemsSubtotal} size="xs" />
       </div>
 
       <div className="order-receipt-totals-row">
@@ -58,15 +59,17 @@ function ReceiptTotals({ receipt }: { receipt: OrderReceiptBreakdown }) {
           {receipt.shippingMethodLabel ? ` (${receipt.shippingMethodLabel})` : ""}
         </span>
         <span>
-          {receipt.shippingCost > 0
-            ? formatPrice(receipt.shippingCost)
-            : fa.dashboard.orderShippingCostFree}
+          {receipt.shippingCost > 0 ? (
+            <TomanPrice amount={receipt.shippingCost} size="xs" />
+          ) : (
+            fa.dashboard.orderShippingCostFree
+          )}
         </span>
       </div>
 
       <div className="order-receipt-totals-row order-receipt-totals-row--paid">
         <span>{fa.receipt.paidTotal}</span>
-        <span>{formatPrice(receipt.paidTotal)}</span>
+        <TomanPrice amount={receipt.paidTotal} size="sm" />
       </div>
     </div>
   );
@@ -140,16 +143,16 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
                 <td>
                   {line.listPrice && line.listPrice > line.unitPrice ? (
                     <span className="order-receipt-unit-prices">
-                      <span className="text-silver line-through text-xs">
-                        {formatPrice(line.listPrice)}
-                      </span>
-                      <span>{formatPrice(line.unitPrice)}</span>
+                      <TomanPrice amount={line.listPrice} size="xs" variant="list" />
+                      <TomanPrice amount={line.unitPrice} size="xs" />
                     </span>
                   ) : (
-                    formatPrice(line.unitPrice)
+                    <TomanPrice amount={line.unitPrice} size="xs" />
                   )}
                 </td>
-                <td className="font-medium text-gold-dark">{formatPrice(line.lineTotal)}</td>
+                <td>
+                  <TomanPrice amount={line.lineTotal} size="xs" />
+                </td>
               </tr>
             ))}
           </tbody>

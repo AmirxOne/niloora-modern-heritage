@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Heart } from "@/components/icons";
 import { ProductPriceDisplay } from "@/components/product/ProductPriceDisplay";
@@ -11,7 +10,6 @@ import type { Product } from "@/lib/types";
 import type { ProductPagePayload } from "@/lib/server/products/product-page";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductBreadcrumb } from "@/components/product/ProductBreadcrumb";
-import { ProductOptions } from "@/components/product/ProductOptions";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -107,14 +105,12 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
               <div className="sk h-3 w-11/12" />
               <div className="sk h-3 w-9/12" />
             </div>
-            <div className="product-detail-section space-y-3">
-              <div className="sk h-4 w-32" />
-              <div className="sk h-10 w-full" />
-              <div className="sk h-10 w-full" />
-            </div>
             <div className="product-detail-actions">
-              <div className="sk h-12 flex-1 rounded-heritage-pill" />
-              <div className="sk h-12 flex-1 rounded-heritage-pill" />
+              <div className="sk h-12 w-full rounded-heritage-pill" />
+              <div className="product-detail-actions-secondary">
+                <div className="sk h-12 w-full rounded-heritage-pill" />
+                <div className="sk h-12 w-full rounded-heritage-pill" />
+              </div>
             </div>
           </div>
         </div>
@@ -161,7 +157,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                 <ProductSalesCount productId={product.id} />
               </div>
               <div className="product-detail-price">
-                <ProductPriceDisplay product={product} size="lg" />
+                <ProductPriceDisplay product={product} size="lg" layout="stack" />
                 <DiscountCountdown
                   productId={product.id}
                   endsAt={product.discountEndsAt}
@@ -188,58 +184,47 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
               <ProductAvailabilityPanel availability={product.availability} />
             </section>
 
-            <section className="product-detail-section" aria-labelledby="product-options-heading">
-              <h2 id="product-options-heading" className="product-detail-section-title">
-                {fa.product.selectMetal}
-              </h2>
-              <ProductOptions
-                defaultMetal={product.metal}
-                defaultStone={product.stone}
-              />
-            </section>
-
             <div className="product-detail-actions">
               <Button
                 size="lg"
-                className="product-detail-actions-primary"
+                className="product-detail-actions-primary product-detail-actions-btn"
                 disabled={!canBuy}
                 onClick={() => cart.addProduct(product.id)}
               >
-                {canBuy ? status.addToCartLabel : fa.commerce.quickAddSoldOut}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className={cn(
-                  "product-detail-actions-wishlist",
-                  wished && "product-detail-actions-wishlist--active"
+                {canBuy ? (
+                  <>
+                    <span className="md:hidden">{fa.product.addToCart}</span>
+                    <span className="hidden md:inline">{status.addToCartLabel}</span>
+                  </>
+                ) : (
+                  fa.commerce.quickAddSoldOut
                 )}
-                onClick={() => wishlist.toggle(product.id)}
-                aria-pressed={wished}
-              >
-                <Heart
-                  size={iconSizes.sm}
-                  variant={ICON_VARIANT}
-                  className={wished ? "fill-gold text-gold" : undefined}
-                  fill={wished ? "currentColor" : "none"}
-                  aria-hidden
-                />
-                {wished ? fa.product.wishlisted : fa.product.wishlist}
               </Button>
-              <ProductCompareButton productId={product.id} variant="detail" />
+              <div className="product-detail-actions-secondary">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className={cn(
+                    "product-detail-actions-wishlist product-detail-actions-btn",
+                    wished && "product-detail-actions-wishlist--active"
+                  )}
+                  onClick={() => wishlist.toggle(product.id)}
+                  aria-pressed={wished}
+                >
+                  <Heart
+                    size={iconSizes.sm}
+                    variant={ICON_VARIANT}
+                    className={cn("shrink-0", wished && "fill-gold text-gold")}
+                    fill={wished ? "currentColor" : "none"}
+                    aria-hidden
+                  />
+                  <span>{wished ? fa.product.wishlisted : fa.product.wishlist}</span>
+                </Button>
+                <ProductCompareButton productId={product.id} variant="detail" />
+              </div>
             </div>
 
             <p className="product-detail-checkout-hint">{fa.commerce.productCheckoutHint}</p>
-
-            <p className="product-detail-wishlist-link">
-              <Link href="/account" className="auth-inline-link">
-                {fa.nav.wishlist}
-              </Link>
-              {" · "}
-              <Link href="/compare" className="auth-inline-link">
-                {fa.nav.compare}
-              </Link>
-            </p>
           </div>
         </div>
 

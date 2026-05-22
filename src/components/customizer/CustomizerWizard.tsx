@@ -28,7 +28,8 @@ import { ToggleChoice } from "@/components/customizer/wizard/ToggleChoice";
 import { WizardTimeline } from "@/components/customizer/wizard/WizardTimeline";
 import { Button } from "@/components/ui/Button";
 import { pickSiteImageByKey } from "@/lib/images";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { ChevronLeft, ChevronRight } from "@/components/icons";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 
@@ -416,7 +417,7 @@ export function CustomizerWizard({
               {estimateTotal != null ? (
                 <p className="customizer-review-estimate">
                   <span>{fa.customize.wizard.estimatedPrice}</span>
-                  <strong>{formatPrice(estimateTotal)}</strong>
+                  <strong><TomanPrice amount={estimateTotal} size="xs" /></strong>
                 </p>
               ) : null}
               <p className="customizer-review-quote-hint">{fa.customize.wizard.quoteHint}</p>

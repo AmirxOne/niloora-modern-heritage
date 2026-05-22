@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { getShankModel } from "@/lib/customizer/catalog";
 import type { CustomizerQuoteRequest, CustomizerQuoteStatus } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -68,12 +68,12 @@ function QuoteCard({ quote, index }: { quote: CustomizerQuoteRequest; index: num
         </div>
         <div>
           <dt>{fa.dashboard.quoteSpecEstimate}</dt>
-          <dd>{formatPrice(quote.estimateTotal)}</dd>
+          <dd><TomanPrice amount={quote.estimateTotal} size="xs" /></dd>
         </div>
         {quote.quotedTotal != null ? (
           <div>
             <dt>{fa.dashboard.quoteSpecFinal}</dt>
-            <dd className="text-gold">{formatPrice(quote.quotedTotal)}</dd>
+            <dd><TomanPrice amount={quote.quotedTotal} size="xs" /></dd>
           </div>
         ) : null}
       </dl>

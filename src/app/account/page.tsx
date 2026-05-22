@@ -385,10 +385,7 @@ export default function AccountPage() {
     }
 
     return (
-      <AccountSectionContainer
-        title="خلاصه حساب"
-        subtitle="نمای کلی حساب، سفارش‌ها و وضعیت شخصی شما"
-      >
+      <AccountSectionContainer>
         {account.stats ? (
           <AccountOverviewPanel stats={account.stats} onNavigate={navigate} />
         ) : (
@@ -410,14 +407,6 @@ export default function AccountPage() {
       <PageTransition>
         <div className="account-page pb-24 pt-6 md:pt-8">
           <div className="site-container space-y-8">
-            <header className="account-page-header">
-              <span className="heritage-eyebrow">{fa.dashboard.eyebrow}</span>
-              <h1 className="account-page-title">{fa.dashboard.title}</h1>
-              <p className="account-page-lead">
-                مدیریت پروفایل، سفارش‌ها و علاقه‌مندی‌های شما در یک پنل یکپارچه
-              </p>
-            </header>
-
             <AccountShell
               sidebar={
                 <div className="account-sidebar-stack">
@@ -427,6 +416,7 @@ export default function AccountPage() {
                         name: activeUser.name,
                         phone: activeUser.phone,
                         tier: activeUser.tier ?? "royal",
+                        role: activeUser.role ?? "user",
                         memberSince,
                       }}
                     />

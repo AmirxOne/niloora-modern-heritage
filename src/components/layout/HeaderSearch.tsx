@@ -12,7 +12,7 @@ import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { TextBox } from "@/components/inputs";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 
 const quickLinks = [
   { href: "/shop", label: fa.nav.collection },
@@ -212,8 +212,8 @@ export function HeaderSearch({ open, onClose }: HeaderSearchProps) {
                                 <span className="block truncate text-sm font-medium text-ivory">
                                   {product.namePersian || product.name}
                                 </span>
-                                <span className="block truncate text-xs text-silver">
-                                  {formatPrice(product.price)}
+                                <span className="block truncate">
+                                  <TomanPrice amount={product.price} size="xs" />
                                 </span>
                               </span>
                             </Link>

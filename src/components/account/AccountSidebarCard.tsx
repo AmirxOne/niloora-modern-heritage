@@ -11,6 +11,7 @@ type AccountUser = {
   name: string;
   phone: string;
   tier: "gold" | "platinum" | "royal";
+  role?: "user" | "admin";
   memberSince: string;
 };
 
@@ -36,6 +37,8 @@ function initialsFromName(name: string): string {
 export function AccountSidebarCard({ user }: { user: AccountUser }) {
   const displayName = user.name.trim() || formatIranPhoneDisplay(user.phone);
   const initials = initialsFromName(displayName);
+  const role = user.role ?? "user";
+  const roleLabel = role === "admin" ? fa.dashboard.roleAdmin : fa.dashboard.roleUser;
 
   return (
     <section className={cn("account-sidebar-card", tierStyles[user.tier])}>
@@ -53,10 +56,18 @@ export function AccountSidebarCard({ user }: { user: AccountUser }) {
           </div>
         </div>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-gold/10 pt-4">
-          <Badge variant="gold" className="gap-1.5 normal-case tracking-normal">
-            <Crown size={12} variant={ICON_VARIANT} aria-hidden />
-            {`${fa.dashboard.royalPatron} · ${tierLabel[user.tier]}`}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="gold" className="gap-1.5 normal-case tracking-normal">
+              <Crown size={12} variant={ICON_VARIANT} aria-hidden />
+              {`${fa.dashboard.royalPatron} · ${tierLabel[user.tier]}`}
+            </Badge>
+            <Badge
+              variant={role === "admin" ? "turquoise" : "default"}
+              className="normal-case tracking-normal"
+            >
+              {roleLabel}
+            </Badge>
+          </div>
           <span className="text-xs text-silver">{fa.dashboard.memberSince(user.memberSince)}</span>
         </div>
       </div>

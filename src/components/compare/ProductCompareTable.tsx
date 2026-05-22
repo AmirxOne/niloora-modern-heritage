@@ -9,7 +9,7 @@ import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabili
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { Button } from "@/components/ui/Button";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 
 type CompareRow = {
   key: string;
@@ -34,7 +34,7 @@ function buildRows(products: Product[]): CompareRow[] {
     if (key === fa.compare.rowPrice) {
       return {
         key,
-        values: products.map((p) => formatPrice(p.price)),
+        values: products.map((p) => String(p.price)),
       };
     }
     if (key === fa.compare.rowAvailability) {
@@ -109,6 +109,8 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
                       availability={products[index]!.availability}
                       short
                     />
+                  ) : row.key === fa.compare.rowPrice ? (
+                    <TomanPrice amount={products[index]!.price} size="xs" />
                   ) : (
                     value
                   )}

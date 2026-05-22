@@ -19,7 +19,6 @@ export {
   Crown,
   Diamonds as Gem,
   Element4 as LayoutDashboard,
-  Export,
   Heart,
   I3DRotate as Rotate3d,
   Location as MapPin,
@@ -41,8 +40,8 @@ export {
   Refresh2,
   SearchNormal as Search,
   Setting4 as SlidersHorizontal,
-  Share as Share2,
-  Share,
+  /** آیکن واحد اشتراک‌گذاری در کل پروژه */
+  Export as Share,
   ShieldTick as ShieldCheck,
   Shop as Store,
   ShoppingBag,

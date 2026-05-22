@@ -1,6 +1,5 @@
 import { HeroSection } from "@/components/sections/HeroSection";
 import { SalesTrustStrip } from "@/components/commerce/SalesTrustStrip";
-import { HomePromoStrip } from "@/components/sections/HomePromoStrip";
 import { HomeProductBannerSlider } from "@/components/sections/HomeProductBannerSlider";
 import { FeaturedCollections } from "@/components/sections/FeaturedCollections";
 import { BestSellers } from "@/components/sections/BestSellers";
@@ -15,7 +14,6 @@ export default function HomePage() {
     <HomeDataProvider>
       <HeroSection />
       <SalesTrustStrip variant="dense" />
-      <HomePromoStrip />
       <HomeProductBannerSlider />
       <FeaturedCollections />
       <BestSellers />

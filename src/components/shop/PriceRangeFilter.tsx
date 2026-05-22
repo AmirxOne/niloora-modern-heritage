@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fa } from "@/lib/i18n/fa";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 
 interface PriceRangeFilterProps {
   min: number;
@@ -148,11 +148,11 @@ export function PriceRangeFilter({ min, max, ceiling, onChange }: PriceRangeFilt
       <div className="shop-price-range-values">
         <div className="shop-price-range-value">
           <span className="shop-price-range-value-label">{fa.shop.priceFrom}</span>
-          <span className="shop-price-range-value-amount">{formatPrice(displayMin)}</span>
+          <span className="shop-price-range-value-amount"><TomanPrice amount={displayMin} size="xs" /></span>
         </div>
         <div className="shop-price-range-value">
           <span className="shop-price-range-value-label">{fa.shop.priceTo}</span>
-          <span className="shop-price-range-value-amount">{formatPrice(displayMax)}</span>
+          <span className="shop-price-range-value-amount"><TomanPrice amount={displayMax} size="xs" /></span>
         </div>
       </div>
 
@@ -209,8 +209,8 @@ export function PriceRangeFilter({ min, max, ceiling, onChange }: PriceRangeFilt
       </div>
 
       <div className="shop-price-range-bounds" dir="rtl">
-        <span>{formatPrice(0)}</span>
-        <span>{formatPrice(ceiling)}</span>
+        <span><TomanPrice amount={0} size="xs" /></span>
+        <span><TomanPrice amount={ceiling} size="xs" /></span>
       </div>
     </div>
   );

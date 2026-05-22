@@ -21,15 +21,17 @@ export function DiscountCountdown({ endsAt, className }: Props) {
     () => resolveDiscountEndsAt({ productEndsAt: endsAt, config }),
     [config, endsAt]
   );
-  const [now, setNow] = useState(() => Date.now());
+  /** null until mounted — avoids SSR/client clock drift hydration mismatch */
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
     if (!resolvedEndsAt) return;
+    setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [resolvedEndsAt]);
 
-  if (!resolvedEndsAt) return null;
+  if (!resolvedEndsAt || now === null) return null;
   const remaining = getDiscountRemaining(resolvedEndsAt, now);
   if (remaining.expired) return null;
 

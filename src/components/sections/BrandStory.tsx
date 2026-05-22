@@ -18,7 +18,7 @@ export function BrandStory() {
         <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-10">
           <ScrollReveal direction="end">
             <div className="heritage-frame">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[0.875rem]">
+              <div className="relative aspect-square overflow-hidden rounded-[0.875rem]">
                 <Image
                   src={SITE_IMAGE_2}
                   alt="صنعتگر در حال ساخت جواهر"

@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Minus, Plus } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice, TomanPriceWithSuffix } from "@/components/commerce/TomanPrice";
 import { getProductStatusConfig } from "@/lib/product-status";
 import type { CartItem, ProductAvailability } from "@/lib/types";
 import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabilityBadge";
@@ -55,16 +55,20 @@ export function CartLineItem({ item, onDecrease, onIncrease, onRemove }: CartLin
               <h3 className="cart-line-title">{item.name}</h3>
             )}
             <p className="cart-line-unit">
-              {formatPrice(item.price)}
+              <TomanPrice amount={item.price} size="xs" />
               {item.listPrice != null && item.listPrice > item.price ? (
-                <span className="ms-2 text-xs text-silver line-through decoration-gold/30">
-                  {formatPrice(item.listPrice)}
+                <span className="ms-2 inline-flex">
+                  <TomanPrice amount={item.listPrice} size="xs" variant="list" />
                 </span>
               ) : null}
             </p>
             {lineFurooh > 0 ? (
               <p className="mt-1 text-[11px] discount-text">
-                {fa.bahakahi.productSaved(formatPrice(lineFurooh))}
+                <TomanPriceWithSuffix
+                  amount={lineFurooh}
+                  suffix={fa.bahakahi.productSavedSuffix}
+                  size="xs"
+                />
               </p>
             ) : null}
             {availability ? (
@@ -76,7 +80,7 @@ export function CartLineItem({ item, onDecrease, onIncrease, onRemove }: CartLin
               </div>
             ) : null}
           </div>
-          <p className="font-display text-lg font-semibold text-gold-dark">{formatPrice(lineTotal)}</p>
+          <TomanPrice amount={lineTotal} size="sm" />
         </div>
 
         <div className="cart-line-actions">

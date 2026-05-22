@@ -116,9 +116,6 @@ export function ProductComments({ productId }: ProductCommentsProps) {
             {fa.product.commentsTitle}
           </h2>
           <p className="product-reviews-subtitle">{fa.product.commentsSubtitle}</p>
-          {approved.length > 0 ? (
-            <p className="product-reviews-count">{fa.product.commentsCount(approved.length)}</p>
-          ) : null}
         </div>
         <OrnamentalDivider className="max-w-[10rem] justify-start" />
       </header>

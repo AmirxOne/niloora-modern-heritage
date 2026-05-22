@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Heart, Share2 } from "@/components/icons";
+import { Heart, Share } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
@@ -58,7 +58,7 @@ export function ProductMediaActions({
           onClick={handleShare}
           aria-label={fa.product.shareAria}
         >
-          <Share2 size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+          <Share size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
           <span className="sr-only">{fa.product.share}</span>
         </button>
         <button
@@ -74,7 +74,7 @@ export function ProductMediaActions({
           <Heart
             size={iconSizes.sm}
             variant={ICON_VARIANT}
-            className={wished ? "fill-gold text-gold" : "text-ivory"}
+            className={wished ? "fill-gold text-gold" : "text-white"}
             fill={wished ? "currentColor" : "none"}
             aria-hidden
           />

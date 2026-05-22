@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { orderHasReceipt, orderReceiptPath } from "@/lib/orders/order-receipt";
 import type { Order } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -79,9 +79,11 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
             </span>
             <span>
               {fa.dashboard.orderShippingCost}:{" "}
-              {order.shipping.cost > 0
-                ? formatPrice(order.shipping.cost)
-                : fa.dashboard.orderShippingCostFree}
+              {order.shipping.cost > 0 ? (
+                <TomanPrice amount={order.shipping.cost} size="xs" />
+              ) : (
+                fa.dashboard.orderShippingCostFree
+              )}
             </span>
           </div>
           {order.shipping.orderNote ? (
@@ -120,10 +122,12 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
                 <p className="order-history-item-name">{item.name}</p>
               )}
               <p className="order-history-item-meta">
-                {fa.dashboard.orderItems(item.quantity)} · {formatPrice(item.price)}
+                {fa.dashboard.orderItems(item.quantity)} · <TomanPrice amount={item.price} size="xs" />
               </p>
             </div>
-            <p className="order-history-line-total">{formatPrice(item.price * item.quantity)}</p>
+            <p className="order-history-line-total">
+              <TomanPrice amount={item.price * item.quantity} size="xs" />
+            </p>
           </li>
         ))}
       </ul>
@@ -135,7 +139,11 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
           </span>
           {order.totalFurooh != null && order.totalFurooh > 0 ? (
             <p className="mt-1 text-xs discount-text">
-              {fa.dashboard.orderBahakahi(formatPrice(order.totalFurooh))}
+              <TomanPriceWithSuffix
+                amount={order.totalFurooh}
+                suffix={fa.dashboard.orderBahakahiSuffix}
+                size="xs"
+              />
             </p>
           ) : null}
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
@@ -155,7 +163,7 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
             </Link>
           </div>
         </div>
-        <span className="font-display text-xl font-semibold text-gold-dark">{formatPrice(order.total)}</span>
+        <TomanPrice amount={order.total} size="md" />
       </footer>
     </motion.article>
   );

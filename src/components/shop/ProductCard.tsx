@@ -8,12 +8,12 @@ import { getProductPricing } from "@/lib/pricing";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabilityBadge";
-import { Heart, Export, Gem, PenTool, Category, Sparkles } from "@/components/icons";
+import { Heart, Share, Gem, PenTool, Category, Sparkles } from "@/components/icons";
 import { ProductCompareButton } from "@/components/product/ProductCompareButton";
 import { PreOwnedBadge } from "@/components/pre-owned/PreOwnedBadge";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
-import { cn } from "@/lib/utils";
+import { cn, formatTomanAmount } from "@/lib/utils";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 
 interface ProductCardProps {
@@ -68,10 +68,6 @@ export function ProductCard({
   const isSold = product.availability === "sold";
   const pricing = getProductPricing(product);
   const showTimer = timerOverride ?? pricing.hasProductFurooh;
-  const formatTomanAmount = (value: number) =>
-    new Intl.NumberFormat("fa-IR", {
-      maximumFractionDigits: 0,
-    }).format(value);
   const attributes: Array<{ label: string; value: string; icon: JSX.Element }> = [
     {
       label: "جنس",
@@ -126,7 +122,7 @@ export function ProductCard({
             aria-label="اشتراک‌گذاری محصول"
             title="اشتراک‌گذاری محصول"
           >
-            <Export size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+            <Share size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
           </button>
           <button
             type="button"

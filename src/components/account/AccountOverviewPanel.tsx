@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronLeft, ShoppingBag, Heart, PenTool, Sparkles } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
-import { formatPrice } from "@/lib/utils";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { Button } from "@/components/ui/Button";
 import { AccountStatTiles } from "@/components/account/AccountStatTiles";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
@@ -53,7 +53,9 @@ export function AccountOverviewPanel({
           </span>
           <div>
             <p className="account-highlight-eyebrow">وضعیت حساب</p>
-            <p className="account-highlight-value">{formatPrice(stats.totalSpent)}</p>
+            <p className="account-highlight-value">
+              <TomanPrice amount={stats.totalSpent} size="md" />
+            </p>
             <p className="account-highlight-hint">مجموع خریدهای ثبت‌شده در گالری</p>
           </div>
         </div>
