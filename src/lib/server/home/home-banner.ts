@@ -12,6 +12,8 @@ export function mapHomeBanner(row: {
   title: string;
   subtitle: string;
   percent: number;
+  countdownEnabled: boolean;
+  countdownEndsAt: Date | null;
   ctaLabel: string | null;
   ctaHref: string;
 }): HomeBannerDto {
@@ -21,6 +23,8 @@ export function mapHomeBanner(row: {
     title: row.title,
     subtitle: row.subtitle,
     percent: row.percent,
+    countdownEnabled: row.countdownEnabled,
+    countdownEndsAt: row.countdownEndsAt?.toISOString() ?? null,
     ctaLabel: row.ctaLabel,
     ctaHref: row.ctaHref,
   };
@@ -62,6 +66,15 @@ export async function upsertHomeBannerSettings(
       title: input.title?.trim() || current.title,
       subtitle: input.subtitle?.trim() || current.subtitle,
       percent: input.percent ?? current.percent,
+      countdownEnabled: input.countdownEnabled ?? current.countdownEnabled,
+      countdownEndsAt:
+        input.countdownEndsAt === undefined
+          ? current.countdownEndsAt
+            ? new Date(current.countdownEndsAt)
+            : null
+          : input.countdownEndsAt
+            ? new Date(input.countdownEndsAt)
+            : null,
       ctaLabel:
         input.ctaLabel === undefined
           ? current.ctaLabel
@@ -76,6 +89,10 @@ export async function upsertHomeBannerSettings(
       ...(input.title !== undefined ? { title: input.title.trim() } : {}),
       ...(input.subtitle !== undefined ? { subtitle: input.subtitle.trim() } : {}),
       ...(input.percent !== undefined ? { percent: Math.round(input.percent) } : {}),
+      ...(input.countdownEnabled !== undefined ? { countdownEnabled: input.countdownEnabled } : {}),
+      ...(input.countdownEndsAt !== undefined
+        ? { countdownEndsAt: input.countdownEndsAt ? new Date(input.countdownEndsAt) : null }
+        : {}),
       ...(input.ctaLabel !== undefined
         ? {
             ctaLabel:

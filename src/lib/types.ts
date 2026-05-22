@@ -106,6 +106,8 @@ export interface Product {
   initialSalesCount?: number;
   condition: ProductCondition;
   preOwned?: PreOwnedInfo;
+  /** ISO 8601 — پایان تخفیف اختصاصی محصول (اولویت بر تایمر جشنواره) */
+  discountEndsAt?: string;
 }
 
 export interface PromoCodeDefinition {

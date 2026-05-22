@@ -1,26 +1,8 @@
 import { badRequest, ok, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
+import { matchesProductSearchQuery } from "@/lib/catalog/product-catalog";
 import { getCatalogProducts } from "@/lib/server/products";
 import { listTelegramProducts } from "@/lib/server/telegram/sync";
-
-function matchesCatalogQuery(product: {
-  name: string;
-  namePersian: string;
-  listing: { details: string[]; headline: string };
-  collection?: string;
-}, query: string): boolean {
-  const q = query.toLowerCase();
-  const haystack = [
-    product.name,
-    product.namePersian,
-    product.listing.headline,
-    ...product.listing.details,
-    product.collection ?? "",
-  ]
-    .join(" ")
-    .toLowerCase();
-  return haystack.includes(q);
-}
 
 export async function GET(request: Request) {
   try {
@@ -30,10 +12,14 @@ export async function GET(request: Request) {
 
     const [catalog, telegramProducts] = await Promise.all([
       getCatalogProducts(),
-      listTelegramProducts({ query, channel: url.searchParams.get("channel") ?? undefined, limit: 500 }),
+      listTelegramProducts({
+        query,
+        channel: url.searchParams.get("channel") ?? undefined,
+        limit: 500,
+      }),
     ]);
 
-    const catalogProducts = catalog.filter((product) => matchesCatalogQuery(product, query));
+    const catalogProducts = catalog.filter((product) => matchesProductSearchQuery(product, query));
     return ok({
       query,
       products: {
@@ -45,4 +31,3 @@ export async function GET(request: Request) {
     return handleRouteError(error, { route: "/api/products/search" });
   }
 }
-

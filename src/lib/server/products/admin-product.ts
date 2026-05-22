@@ -7,6 +7,7 @@ import type {
   StoneShape,
   StoneType,
 } from "@/lib/types";
+import { parseDiscountEndsAtInput } from "@/lib/server/discounts/countdown";
 
 const RING_STYLES: RingStyle[] = [
   "solitaire",
@@ -64,6 +65,7 @@ export type AdminProductPayload = {
   bestseller: boolean;
   listingHeadline: string;
   listingTier: "premium" | "economy";
+  discountEndsAt?: string | null;
 };
 
 function slugifyId(raw: string): string {
@@ -233,6 +235,11 @@ export function parseAdminProductBody(
   const listingTier = body.listingTier === "economy" ? "economy" : "premium";
   const listingHeadline = String(body.listingHeadline ?? namePersian).trim() || namePersian;
 
+  const discountEndsAtParsed = parseDiscountEndsAtInput(body.discountEndsAt);
+  if (body.discountEndsAt != null && body.discountEndsAt !== "" && discountEndsAtParsed === null) {
+    return { ok: false, message: "تاریخ پایان تخفیف محصول نامعتبر است." };
+  }
+
   return {
     ok: true,
     data: {
@@ -256,6 +263,9 @@ export function parseAdminProductBody(
       bestseller: Boolean(body.bestseller),
       listingHeadline,
       listingTier,
+      ...(discountEndsAtParsed !== undefined
+        ? { discountEndsAt: discountEndsAtParsed?.toISOString() ?? null }
+        : {}),
     },
   };
 }

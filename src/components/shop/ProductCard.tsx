@@ -204,7 +204,11 @@ export function ProductCard({
           </div>
         </div>
         {showTimer ? (
-          <DiscountCountdown productId={product.id} className="shop-product-card-discount-countdown" />
+          <DiscountCountdown
+            productId={product.id}
+            endsAt={product.discountEndsAt}
+            className="shop-product-card-discount-countdown"
+          />
         ) : null}
       </div>
     </>

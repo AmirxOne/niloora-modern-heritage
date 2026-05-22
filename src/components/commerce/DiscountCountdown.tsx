@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getDiscountRemaining, resolveDiscountEndsAt } from "@/lib/discount-countdown";
+import { getDiscountRemaining } from "@/lib/discount-countdown-math";
+import { resolveDiscountEndsAt } from "@/lib/discount-countdown";
+import { useDiscountCountdownConfig } from "@/components/providers/DiscountCountdownProvider";
 
 type Props = {
   productId?: string;
+  endsAt?: string | null;
   className?: string;
 };
 
@@ -12,18 +15,22 @@ function pad(value: number): string {
   return value.toString().padStart(2, "0");
 }
 
-export function DiscountCountdown({ productId, className }: Props) {
-  const endsAt = useMemo(() => resolveDiscountEndsAt(productId), [productId]);
+export function DiscountCountdown({ endsAt, className }: Props) {
+  const config = useDiscountCountdownConfig();
+  const resolvedEndsAt = useMemo(
+    () => resolveDiscountEndsAt({ productEndsAt: endsAt, config }),
+    [config, endsAt]
+  );
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!endsAt) return;
+    if (!resolvedEndsAt) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
-  }, [endsAt]);
+  }, [resolvedEndsAt]);
 
-  if (!endsAt) return null;
-  const remaining = getDiscountRemaining(endsAt, now);
+  if (!resolvedEndsAt) return null;
+  const remaining = getDiscountRemaining(resolvedEndsAt, now);
   if (remaining.expired) return null;
 
   return (

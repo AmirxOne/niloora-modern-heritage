@@ -115,4 +115,24 @@ export const PRODUCT_LISTINGS: Record<string, ProductListing> = {
     ],
     extraTags: ["pre-owned"],
   },
+  "qom-zabarjad": {
+    tier: "premium",
+    headline: "انگشتر نقره مردانه",
+    details: ["رکاب استرلینگ", "زبرجد گرد", "خوشنویسی نسخ", "سایز : ۵۷"],
+  },
+  "mashhad-durr-najaf": {
+    tier: "premium",
+    headline: "انگشتر نقره مردانه",
+    details: ["رکاب آبکاری تیره", "در نجف بیضی", "خوشنویسی ثلث", "سایز : ۵۵"],
+  },
+  "bandar-yemen-aqeeq": {
+    tier: "economy",
+    headline: "انگشتر نقره مردانه",
+    details: ["رکاب دستساز", "عقیق یمنی", "قلم‌کاری کوفی", "سایز : ۵۸"],
+  },
+  "jaipur-moral": {
+    tier: "economy",
+    headline: "انگشتر نقره مردانه",
+    details: ["رکاب مات برس‌خورده", "مرمر هندی", "بدون حکاکی", "سایز : ۵۳"],
+  },
 };

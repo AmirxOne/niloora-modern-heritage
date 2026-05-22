@@ -1,5 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import type { PreOwnedInfo, Product } from "@/lib/types";
+import {
+  getCatalogMaxPrice as resolveCatalogMaxPrice,
+  normalizeCatalogProductPricing,
+} from "@/lib/catalog/product-catalog";
 import { prisma } from "@/lib/server/prisma";
 const preOwnedGrades = new Set(["excellent", "very-good", "good"]);
 
@@ -27,6 +31,12 @@ function merchandiseScore(product: Product): number {
 export function mapDbProduct(product: DbProduct): Product {
   // PURPOSE: isolate DB-to-domain mapping so UI never depends on Prisma shapes.
   const preOwnedGrade = product.preOwnedInfo?.grade ?? "good";
+  const pricing = normalizeCatalogProductPricing({
+    price: product.price,
+    listPrice: product.listPrice ?? undefined,
+    discountPercent: product.discountPercent ?? undefined,
+  });
+
   return {
     id: product.id,
     name: product.name,
@@ -39,9 +49,7 @@ export function mapDbProduct(product: DbProduct): Product {
         ? (product.listing?.extraTags as ("pre-owned")[])
         : undefined,
     },
-    price: product.price,
-    listPrice: product.listPrice ?? undefined,
-    discountPercent: product.discountPercent ?? undefined,
+    ...pricing,
     image: product.image,
     images: product.images.map((item) => item.url),
     category: product.category as Product["category"],
@@ -57,6 +65,7 @@ export function mapDbProduct(product: DbProduct): Product {
     collectionId: product.collectionId ?? undefined,
     initialSalesCount: product.initialSalesCount ?? 0,
     condition: product.condition as Product["condition"],
+    discountEndsAt: product.discountEndsAt?.toISOString(),
     preOwned: product.preOwnedInfo
       ? {
           originalPrice: product.preOwnedInfo.originalPrice,
@@ -110,8 +119,7 @@ export async function getCollectionsFromDb(): Promise<CollectionDto[]> {
 }
 
 export function getCatalogMaxPrice(catalog: Product[]): number {
-  if (catalog.length === 0) return 0;
-  return Math.max(...catalog.map((p) => p.price));
+  return resolveCatalogMaxPrice(catalog);
 }
 
 export function getBestsellerProducts(catalog: Product[], limit = 10): Product[] {

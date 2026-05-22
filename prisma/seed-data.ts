@@ -52,6 +52,8 @@ export type SeedProduct = {
   initialSalesCount?: number;
   collectionId?: "royal-heritage" | "ancient-dynasty" | "modern-nobility";
   condition?: "new" | "pre-owned";
+  /** ISO date — per-product discount countdown (overrides site-wide default) */
+  discountEndsAt?: string;
   preOwned?: {
     originalPrice: number;
     depreciationPercent: number;
@@ -81,6 +83,7 @@ export const seedProducts: SeedProduct[] = [
     bestseller: true,
     initialSalesCount: 47,
     collectionId: "royal-heritage",
+    discountEndsAt: "2026-07-15T23:59:59+03:30",
   },
   {
     id: "isfahan-halo",
@@ -293,6 +296,70 @@ export const seedProducts: SeedProduct[] = [
       canRemake: true,
       buybackRatePercent: 52,
     },
+  },
+  {
+    id: "qom-zabarjad",
+    name: "زبرجد «قم»",
+    namePersian: "مجموعه دودمان کهن",
+    price: 98_000_000,
+    listPrice: 115_000_000,
+    discountPercent: 15,
+    category: "solitaire",
+    metal: "sterling",
+    stone: "zabarjad",
+    stoneShape: "round",
+    engravingType: "naskh",
+    availability: "ready",
+    initialSalesCount: 14,
+    collectionId: "ancient-dynasty",
+  },
+  {
+    id: "mashhad-durr-najaf",
+    name: "در نجف «مشهد»",
+    namePersian: "مجموعه میراث سلطنتی",
+    price: 72_000_000,
+    listPrice: 85_000_000,
+    discountPercent: 15,
+    category: "signet",
+    metal: "oxidized",
+    stone: "durr-najaf",
+    stoneShape: "oval",
+    engravingType: "thuluth",
+    availability: "ready",
+    initialSalesCount: 19,
+    collectionId: "royal-heritage",
+  },
+  {
+    id: "bandar-yemen-aqeeq",
+    name: "عقیق یمنی «بندر»",
+    namePersian: "مجموعه نجیب‌زادگی معاصر",
+    price: 54_000_000,
+    listPrice: 64_000_000,
+    discountPercent: 16,
+    category: "signet",
+    metal: "sterling",
+    stone: "yemen-aqeeq",
+    stoneShape: "cushion",
+    engravingType: "kufic",
+    availability: "made-to-order",
+    initialSalesCount: 27,
+    collectionId: "modern-nobility",
+  },
+  {
+    id: "jaipur-moral",
+    name: "مرمر «جیپور»",
+    namePersian: "مجموعه نجیب‌زادگی معاصر",
+    price: 48_000_000,
+    listPrice: 56_000_000,
+    discountPercent: 14,
+    category: "stackable",
+    metal: "matte-silver",
+    stone: "moral",
+    stoneShape: "round",
+    engravingType: "none",
+    availability: "ready",
+    initialSalesCount: 11,
+    collectionId: "modern-nobility",
   },
 ];
 

@@ -162,7 +162,11 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
               </div>
               <div className="product-detail-price">
                 <ProductPriceDisplay product={product} size="lg" />
-                <DiscountCountdown productId={product.id} className="product-detail-discount-countdown" />
+                <DiscountCountdown
+                  productId={product.id}
+                  endsAt={product.discountEndsAt}
+                  className="product-detail-discount-countdown"
+                />
               </div>
             </header>
 

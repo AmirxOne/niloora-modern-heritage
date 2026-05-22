@@ -30,6 +30,7 @@ function productDataFromPayload(data: AdminProductPayload): Prisma.ProductCreate
     availability: data.availability,
     stock: data.stock,
     condition: "new",
+    discountEndsAt: data.discountEndsAt ? new Date(data.discountEndsAt) : null,
     featured: data.featured,
     bestseller: data.bestseller,
     collection: data.collectionId
@@ -119,6 +120,9 @@ export async function updateAdminProduct(id: string, data: AdminProductPayload) 
         featured: data.featured,
         bestseller: data.bestseller,
         collectionId: data.collectionId,
+        ...(data.discountEndsAt !== undefined
+          ? { discountEndsAt: data.discountEndsAt ? new Date(data.discountEndsAt) : null }
+          : {}),
       },
     });
 

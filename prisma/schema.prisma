@@ -85,6 +85,7 @@ model Product {
   price             Int
   listPrice         Int?
   discountPercent   Int?
+  discountEndsAt    DateTime?
   image             String
   category          String
   metal             String
@@ -368,15 +369,17 @@ model HomeSliderItem {
 }
 
 model HomeBannerSettings {
-  id        String   @id @default("default")
-  enabled   Boolean  @default(true)
-  badge     String
-  title     String
-  subtitle  String
-  percent   Int      @default(20)
-  ctaLabel  String?
-  ctaHref   String   @default("/shop")
-  updatedAt DateTime @updatedAt
+  id               String    @id @default("default")
+  enabled          Boolean   @default(true)
+  badge            String
+  title            String
+  subtitle         String
+  percent          Int       @default(20)
+  countdownEnabled Boolean   @default(true)
+  countdownEndsAt  DateTime?
+  ctaLabel         String?
+  ctaHref          String    @default("/shop")
+  updatedAt        DateTime  @updatedAt
 }
 
 model HomeTestimonial {

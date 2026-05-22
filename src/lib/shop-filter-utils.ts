@@ -1,4 +1,5 @@
 import { STONE_OPTIONS } from "@/lib/constants";
+import { matchesProductSearchQuery } from "@/lib/catalog/product-catalog";
 import { fa } from "@/lib/i18n/fa";
 import { getProductStatusConfig, PRODUCT_AVAILABILITY_OPTIONS } from "@/lib/product-status";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
@@ -22,18 +23,7 @@ export function applyShopFilters(
 ): Product[] {
   const q = options?.skipQuery ? "" : filters.query.trim().toLowerCase();
   return catalog.filter((p) => {
-    if (q) {
-      const haystack = [
-        p.name,
-        p.namePersian,
-        p.collection ?? "",
-        p.listing?.headline ?? "",
-        ...(p.listing?.details ?? []),
-      ]
-        .join(" ")
-        .toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
+    if (q && !matchesProductSearchQuery(p, q)) return false;
     if (filters.stones.length > 0 && !filters.stones.includes(p.stone)) return false;
     if (filters.styles.length > 0 && !filters.styles.includes(p.category)) return false;
     if (filters.engravingTypes.length > 0) {

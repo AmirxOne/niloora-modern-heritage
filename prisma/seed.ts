@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Prisma, PrismaClient } from "@prisma/client";
+import { normalizeCatalogProductPricing } from "../src/lib/catalog/product-catalog";
+import { DISCOUNT_COUNTDOWN } from "../src/lib/discounts-config";
 import {
   seedProducts as products,
   seedCollections as collections,
@@ -43,6 +45,11 @@ async function seedProducts() {
     }
     const productId = product.id;
     const stock = product.availability === "sold" ? 0 : 1;
+    const pricing = normalizeCatalogProductPricing({
+      price: product.price,
+      listPrice: product.listPrice,
+      discountPercent: product.discountPercent,
+    });
 
     await prisma.product.upsert({
       where: { id: productId },
@@ -50,9 +57,9 @@ async function seedProducts() {
         id: productId,
         name: product.name,
         namePersian: product.namePersian,
-        price: product.price,
-        listPrice: product.listPrice ?? null,
-        discountPercent: product.discountPercent ?? null,
+        price: pricing.price,
+        listPrice: pricing.listPrice ?? null,
+        discountPercent: pricing.discountPercent ?? null,
         image: getSeedImage(product.id),
         category: product.category,
         metal: product.metal,
@@ -66,13 +73,14 @@ async function seedProducts() {
         bestseller: Boolean(product.bestseller),
         initialSalesCount: product.initialSalesCount ?? 0,
         collectionId: product.collectionId ?? null,
+        discountEndsAt: product.discountEndsAt ? new Date(product.discountEndsAt) : null,
       },
       update: {
         name: product.name,
         namePersian: product.namePersian,
-        price: product.price,
-        listPrice: product.listPrice ?? null,
-        discountPercent: product.discountPercent ?? null,
+        price: pricing.price,
+        listPrice: pricing.listPrice ?? null,
+        discountPercent: pricing.discountPercent ?? null,
         image: getSeedImage(product.id),
         category: product.category,
         metal: product.metal,
@@ -86,6 +94,7 @@ async function seedProducts() {
         bestseller: Boolean(product.bestseller),
         initialSalesCount: product.initialSalesCount ?? 0,
         collectionId: product.collectionId ?? null,
+        discountEndsAt: product.discountEndsAt ? new Date(product.discountEndsAt) : null,
       },
     });
 
@@ -147,6 +156,17 @@ async function seedProducts() {
   }
 }
 
+async function seedHomeBannerCountdown() {
+  await prisma.homeBannerSettings.updateMany({
+    data: {
+      countdownEnabled: DISCOUNT_COUNTDOWN.enabled,
+      countdownEndsAt: DISCOUNT_COUNTDOWN.defaultEndsAt
+        ? new Date(DISCOUNT_COUNTDOWN.defaultEndsAt)
+        : null,
+    },
+  });
+}
+
 async function main() {
   const adminPhone = process.env.ADMIN_PHONE ?? "";
   if (adminPhone) {
@@ -166,6 +186,7 @@ async function main() {
 
   await seedCollections();
   await seedProducts();
+  await seedHomeBannerCountdown();
   await prisma.homeTestimonial.deleteMany();
   await prisma.homeInstagramPost.deleteMany();
   if (testimonials.length > 0) {

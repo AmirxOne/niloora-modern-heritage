@@ -9,6 +9,7 @@ import { ConditionalLayoutChrome } from "@/components/layout/ConditionalLayoutCh
 import { AppToaster } from "@/components/ui/AppToaster";
 import { PersianDigitsEnforcer } from "@/components/providers/PersianDigitsEnforcer";
 import { ClientObservability } from "@/components/providers/ClientObservability";
+import { DiscountCountdownProvider } from "@/components/providers/DiscountCountdownProvider";
 import { MotionOffProvider } from "@/components/providers/MotionOffProvider";
 import iranYekanFont from "@/fonts/iranYekanFont";
 import iranYekanFontNum from "@/fonts/iranYekanFontNum";
@@ -43,10 +44,12 @@ export default function RootLayout({
         <MotionOffProvider>
           <StoreProvider>
             <AppProvider>
-              <ConditionalLayoutChrome>{children}</ConditionalLayoutChrome>
-              <AppToaster />
-              <PersianDigitsEnforcer />
-              <ClientObservability />
+              <DiscountCountdownProvider>
+                <ConditionalLayoutChrome>{children}</ConditionalLayoutChrome>
+                <AppToaster />
+                <PersianDigitsEnforcer />
+                <ClientObservability />
+              </DiscountCountdownProvider>
             </AppProvider>
           </StoreProvider>
         </MotionOffProvider>

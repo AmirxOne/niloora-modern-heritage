@@ -4,6 +4,8 @@ export type HomeBannerDto = {
   title: string;
   subtitle: string;
   percent: number;
+  countdownEnabled: boolean;
+  countdownEndsAt: string | null;
   ctaLabel: string | null;
   ctaHref: string;
 };

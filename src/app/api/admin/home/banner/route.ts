@@ -35,6 +35,14 @@ export async function PATCH(request: Request) {
       title: typeof body.title === "string" ? body.title : undefined,
       subtitle: typeof body.subtitle === "string" ? body.subtitle : undefined,
       percent,
+      countdownEnabled:
+        typeof body.countdownEnabled === "boolean" ? body.countdownEnabled : undefined,
+      countdownEndsAt:
+        body.countdownEndsAt === null
+          ? null
+          : typeof body.countdownEndsAt === "string"
+            ? body.countdownEndsAt
+            : undefined,
       ctaLabel: typeof body.ctaLabel === "string" ? body.ctaLabel : undefined,
       ctaHref: typeof body.ctaHref === "string" ? body.ctaHref : undefined,
     });
