@@ -1431,10 +1431,6 @@
     @apply flex min-w-0 flex-col gap-2;
   }
 
-  .shop-price-filter--skeleton .shop-price-range-value {
-    @apply border-gold/5 bg-white/30;
-  }
-
   .shop-price-range-values {
     @apply grid grid-cols-2 gap-2;
   }
@@ -1483,11 +1479,19 @@
 
   .shop-price-range-fill {
     @apply pointer-events-none absolute top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-gold/75;
+    transition:
+      inset-inline-start 120ms ease-out,
+      width 120ms ease-out;
+  }
+
+  .shop-price-range-track--dragging .shop-price-range-fill {
+    transition: none;
   }
 
   .shop-price-range {
     @apply pointer-events-none absolute inset-x-0 top-1/2 z-[3] h-5 w-full -translate-y-1/2 appearance-none bg-transparent;
     margin: 0;
+    touch-action: none;
   }
 
   .shop-price-range::-webkit-slider-runnable-track {
@@ -4082,10 +4086,15 @@
 
   .account-skeleton {
     border-radius: 0.75rem;
-    background: linear-gradient(105deg, #e5e7eb 30%, #d1d5db 50%, #e5e7eb 70%);
+    background: linear-gradient(
+      105deg,
+      var(--sk-base) 30%,
+      var(--sk-shine) 50%,
+      var(--sk-base) 70%
+    );
     background-size: 300% 100%;
     animation: sk-wave 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    border: none;
+    border: 1px solid var(--sk-border);
     box-shadow: none;
   }
 
@@ -4288,21 +4297,35 @@
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    Skeleton unified system
-   base: #E5E7EB / shine: #D1D5DB
-   cool neutral gray (matches reference)
+   pale neutral gray — blocks + borders
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root {
+  --sk-base: #f5f6f8;
+  --sk-shine: #eff1f4;
+  --sk-border: #eceef2;
+  --sk-surface: #f8f9fb;
+}
+
 @keyframes sk-wave {
   0%   { background-position: 200% center; }
   100% { background-position: -200% center; }
 }
 
 @layer components {
+  [aria-busy="true"],
+  .shop-price-filter--skeleton[aria-busy="true"] {
+    --sk-base: #f5f6f8;
+    --sk-shine: #eff1f4;
+    --sk-border: #eceef2;
+    --sk-surface: #f8f9fb;
+  }
+
   .sk {
     background: linear-gradient(
       105deg,
-      #e5e7eb 30%,
-      #d1d5db 50%,
-      #e5e7eb 70%
+      var(--sk-base) 30%,
+      var(--sk-shine) 50%,
+      var(--sk-base) 70%
     );
     background-size: 300% 100%;
     animation: sk-wave 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -4317,10 +4340,54 @@
     transition: none !important;
   }
 
+  [aria-busy="true"] .shop-product-card,
+  .shop-product-card[aria-busy="true"] {
+    border-color: var(--sk-border) !important;
+    background: var(--sk-surface) !important;
+    box-shadow: none !important;
+  }
+
   .shop-product-card[aria-busy="true"]:hover {
     transform: none !important;
     box-shadow: none !important;
-    border-color: color-mix(in srgb, var(--pc-accent) 22%, #ece7df) !important;
+    border-color: var(--sk-border) !important;
+  }
+
+  [aria-busy="true"] .heritage-frame {
+    border-color: var(--sk-border) !important;
+    background: var(--sk-surface) !important;
+    box-shadow: none !important;
+  }
+
+  [aria-busy="true"] .heritage-frame::before {
+    border-color: var(--sk-border) !important;
+  }
+
+  .shop-price-filter--skeleton .shop-price-range-value,
+  [aria-busy="true"] .shop-price-range-value {
+    border-color: var(--sk-border) !important;
+    background: var(--sk-surface) !important;
+  }
+
+  [aria-busy="true"] .order-timeline,
+  [aria-busy="true"] .order-history-card,
+  [aria-busy="true"] .comment-moderation-card,
+  [aria-busy="true"] .product-review-summary,
+  [aria-busy="true"] .product-comment-card,
+  [aria-busy="true"].account-panel,
+  [aria-busy="true"] .account-panel {
+    border-color: var(--sk-border) !important;
+  }
+
+  [aria-busy="true"].account-panel,
+  [aria-busy="true"] .account-panel {
+    background: var(--sk-surface) !important;
+    box-shadow: none !important;
+  }
+
+  [aria-busy="true"] [class*="border-gold"],
+  [aria-busy="true"] [class*="border-stone"] {
+    border-color: var(--sk-border) !important;
   }
 }
 
