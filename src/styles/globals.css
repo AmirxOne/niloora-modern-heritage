@@ -1587,9 +1587,13 @@
   }
 
   .shop-product-card-discount-tag {
-    @apply inline-flex items-center justify-center rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold leading-none tracking-tight shadow-none;
+    @apply inline-flex items-center justify-center rounded-full border-0 px-2.5 text-[11px] font-semibold leading-none tracking-tight shadow-none;
     color: #b91c1c;
     background: #fff0f0;
+    height: 20px;
+    min-height: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .shop-product-card-image-link {
@@ -1610,16 +1614,56 @@
     @apply flex items-center justify-end gap-2;
   }
 
+  .shop-product-card-floating-actions {
+    position: absolute;
+    z-index: 3;
+    top: 0.55rem;
+    left: 0.55rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.45rem;
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: opacity 0.28s ease, transform 0.28s ease;
+  }
+
+  .shop-product-card:hover .shop-product-card-floating-actions,
+  .shop-product-card:focus-within .shop-product-card-floating-actions {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .shop-product-card:hover .shop-product-card-wishlist,
+  .shop-product-card:hover .shop-product-card-compare,
+  .shop-product-card:hover .shop-product-card-share,
+  .shop-product-card:focus-within .shop-product-card-wishlist,
+  .shop-product-card:focus-within .shop-product-card-compare,
+  .shop-product-card:focus-within .shop-product-card-share {
+    background: color-mix(in srgb, #ffffff 10%, transparent);
+    border-color: rgba(255, 255, 255, 0.95);
+    color: #fff;
+  }
+
   .shop-product-card-toolbar--solo {
     @apply justify-end;
   }
 
   .shop-product-card-wishlist {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/20 bg-white text-silver shadow-none transition-[color,transform,background-color,border-color] hover:border-gold/40 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-none transition-[color,transform,background-color,border-color,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .shop-product-card-wishlist--active {
-    @apply border-gold/40 bg-gold/10 text-gold hover:bg-gold/15 hover:text-gold;
+    border-color: rgba(255, 255, 255, 0.95);
+    background: color-mix(in srgb, #ffffff 16%, transparent);
+    color: #fff;
   }
 
   .shop-product-card-wishlist-icon {
@@ -1627,19 +1671,32 @@
   }
 
   .shop-product-card-wishlist--active .shop-product-card-wishlist-icon {
-    @apply fill-gold text-gold drop-shadow-none;
+    @apply text-white drop-shadow-none;
+    fill: currentColor;
   }
 
   .shop-product-card-compare {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/20 bg-white text-silver shadow-none transition-[color,transform,background-color,border-color] hover:border-gold/40 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-none transition-[color,transform,background-color,border-color,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .shop-product-card-compare--active {
-    @apply border-turquoise/40 bg-turquoise/10 text-turquoise hover:bg-turquoise/15 hover:text-turquoise;
+    border-color: rgba(255, 255, 255, 0.95);
+    background: color-mix(in srgb, #ffffff 16%, transparent);
+    color: #fff;
   }
 
   .shop-product-card-share {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/20 bg-white text-silver shadow-none transition-[color,transform,background-color,border-color] hover:border-gold/40 hover:text-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-none transition-[color,transform,background-color,border-color,opacity] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .product-detail-actions-compare--active {
@@ -1756,7 +1813,7 @@
   }
 
   .shop-product-card-status {
-    @apply flex flex-wrap items-center gap-1;
+    @apply ml-auto flex flex-wrap items-center justify-end gap-1;
   }
 
   .shop-product-card-status .product-status-wrap {
@@ -1866,10 +1923,10 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.45rem 0.6rem;
     width: 100%;
-    direction: ltr;
+    direction: rtl;
   }
 
   .shop-product-card-description {
@@ -1979,6 +2036,7 @@
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
+    direction: ltr;
     gap: 0.75rem;
     margin-top: auto;
     padding-top: 0.55rem;
@@ -1990,11 +2048,15 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    order: 1;
+    margin-right: auto;
     gap: 0.18rem;
   }
 
   .shop-product-card-pricing-row .shop-product-card-discount-tag {
-    margin-inline-end: auto;
+    order: 2;
+    margin-inline-start: auto;
+    margin-inline-end: 0;
   }
 
   .shop-product-card-discount-countdown {
@@ -3026,7 +3088,11 @@
   }
 
   .product-status-badge--sm {
-    @apply px-2.5 py-1 text-[10px];
+    @apply px-2 text-[10px];
+    height: 20px;
+    min-height: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .product-status-delivery {
@@ -3715,6 +3781,10 @@
 
   .pre-owned-badge {
     @apply inline-flex items-center rounded-full border border-copper/40 bg-copper/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-copper-dark;
+    height: 20px;
+    min-height: 20px;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .pre-owned-badge--md {
@@ -4213,6 +4283,18 @@
     border-radius: 0.375rem;
     border: none !important;
     box-shadow: none !important;
+  }
+
+  /* Skeleton states should stay visually static */
+  [aria-busy="true"] .sk,
+  [aria-busy="true"] .account-skeleton {
+    transition: none !important;
+  }
+
+  .shop-product-card[aria-busy="true"]:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: color-mix(in srgb, var(--pc-accent) 22%, #ece7df) !important;
   }
 }
 

@@ -11,7 +11,6 @@ import { SHOP_PAGE_SIZE } from "@/lib/pagination";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { ProductCardSkeleton } from "@/components/shop/ProductCardSkeleton";
 import { ShopFiltersPanel, ShopFiltersDrawer } from "@/components/shop/ShopFilters";
-import { ShopCollectionHeader } from "@/components/shop/ShopCollectionHeader";
 import { PreOwnedShopStrip } from "@/components/pre-owned/PreOwnedShopStrip";
 import { Pagination } from "@/components/ui/Pagination";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -106,6 +105,39 @@ function ShopPageContent() {
     [sourceProducts, filters, isSearchMode]
   );
   const sorted = useMemo(() => sortShopProducts(filtered, sort), [filtered, sort]);
+  const cardUiQaMode = true;
+  const qaProducts = useMemo(() => {
+    if (!cardUiQaMode) return sorted;
+    return sorted.map((product, idx) => {
+      const group = idx % 4;
+      const withDiscount = group === 0 || group === 1;
+      const discountPercent = withDiscount
+        ? product.discountPercent && product.discountPercent > 0
+          ? product.discountPercent
+          : 20
+        : 0;
+      const listPrice = product.listPrice ?? product.price;
+      const discountAmount = Math.round(listPrice * (discountPercent / 100));
+      const salePrice = withDiscount ? Math.max(1, listPrice - discountAmount) : listPrice;
+      return {
+        ...product,
+        discountPercent,
+        listPrice,
+        price: salePrice,
+      };
+    });
+  }, [cardUiQaMode, sorted]);
+  const displayProducts = cardUiQaMode ? qaProducts : sorted;
+  const timerOverridesByProductId = useMemo(() => {
+    if (!cardUiQaMode) return undefined;
+    return Object.fromEntries(
+      qaProducts.map((product, idx) => {
+        const group = idx % 4;
+        const hasTimer = group === 0 || group === 2;
+        return [product.id, hasTimer];
+      })
+    ) as Record<string, boolean>;
+  }, [cardUiQaMode, qaProducts]);
 
   const isLoading = isCatalogLoading || (isSearchMode && search.isSearching);
   const showSearchError = isSearchMode && search.searchFailed && !search.isSearching;
@@ -123,7 +155,7 @@ function ShopPageContent() {
     totalItems,
     showPagination,
     setPage: setPaginationPage,
-  } = usePagination(sorted, SHOP_PAGE_SIZE, `${filterResetKey}|${sort}`, {
+  } = usePagination(displayProducts, SHOP_PAGE_SIZE, `${filterResetKey}|${sort}|${cardUiQaMode}`, {
     page,
     onPageChange: setPage,
   });
@@ -146,11 +178,6 @@ function ShopPageContent() {
     <PageTransition>
       <motion.div className="shop-page">
         <motion.div className="site-container">
-          <ShopCollectionHeader
-            resultCount={sorted.length}
-            query={isSearchMode ? search.resolvedQuery || filters.query : undefined}
-            isSearchPage={isSearchMode}
-          />
           {!isSearchMode ? <PreOwnedShopStrip /> : null}
 
           {isSearchMode && isLoading ? (
@@ -210,7 +237,7 @@ function ShopPageContent() {
                     ))}
                   </div>
                   <p className="shop-sort-box-count">
-                    <span className="shop-sort-box-count-num">{fa.shop.count(sorted.length)}</span>
+                    <span className="shop-sort-box-count-num">{fa.shop.count(displayProducts.length)}</span>
                     <span className="shop-sort-box-count-label">{fa.shop.countLabel}</span>
                   </p>
                 </div>
@@ -227,7 +254,7 @@ function ShopPageContent() {
                       <ProductCardSkeleton key={idx} />
                     ))}
                   </div>
-                ) : sorted.length === 0 ? (
+                ) : displayProducts.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -253,7 +280,10 @@ function ShopPageContent() {
                         {fa.shop.pageResults(from, to, totalItems)}
                       </p>
                     ) : null}
-                    <ShopProductGrid products={pagedProducts} />
+                    <ShopProductGrid
+                      products={pagedProducts}
+                      timerOverridesByProductId={timerOverridesByProductId}
+                    />
                     <Pagination
                       page={page}
                       totalPages={totalPages}

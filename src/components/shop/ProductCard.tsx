@@ -21,12 +21,14 @@ interface ProductCardProps {
   index?: number;
   /** داخل اسلایدر افقی — بدون انیمیشن ورود */
   variant?: "grid" | "carousel";
+  timerOverride?: boolean;
 }
 
 export function ProductCard({
   product,
   index = 0,
   variant = "grid",
+  timerOverride,
 }: ProductCardProps) {
   const styleLabels: Record<Product["category"], string> = {
     solitaire: "تک نگین",
@@ -65,6 +67,7 @@ export function ProductCard({
   const wished = wishlist.isWishlisted(product.id);
   const isSold = product.availability === "sold";
   const pricing = getProductPricing(product);
+  const showTimer = timerOverride ?? pricing.hasProductFurooh;
   const formatTomanAmount = (value: number) =>
     new Intl.NumberFormat("fa-IR", {
       maximumFractionDigits: 0,
@@ -109,6 +112,46 @@ export function ProductCard({
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         </Link>
+        <div className="shop-product-card-toolbar shop-product-card-floating-actions">
+          <ProductCompareButton productId={product.id} variant="card" />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (typeof window !== "undefined") {
+                void navigator.clipboard?.writeText(`${window.location.origin}/product/${product.id}`);
+              }
+            }}
+            className="shop-product-card-share"
+            aria-label="اشتراک‌گذاری محصول"
+            title="اشتراک‌گذاری محصول"
+          >
+            <Export size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              wishlist.toggle(product.id);
+            }}
+            className={cn(
+              "shop-product-card-wishlist",
+              wished && "shop-product-card-wishlist--active"
+            )}
+            aria-label={wished ? fa.product.wishlistRemoveAria : fa.product.wishlistAddAria}
+            aria-pressed={wished}
+          >
+            <Heart
+              className="shop-product-card-wishlist-icon"
+              fill={wished ? "currentColor" : "none"}
+              size={iconSizes.sm}
+              variant={ICON_VARIANT}
+              aria-hidden
+            />
+          </button>
+        </div>
         {isSold ? <div className="shop-product-card-sold-veil" aria-hidden /> : null}
       </div>
 
@@ -134,46 +177,6 @@ export function ProductCard({
         </dl>
 
         <div className="shop-product-card-meta-row">
-          <div className="shop-product-card-toolbar">
-            <ProductCompareButton productId={product.id} variant="card" />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (typeof window !== "undefined") {
-                  void navigator.clipboard?.writeText(`${window.location.origin}/product/${product.id}`);
-                }
-              }}
-              className="shop-product-card-share"
-              aria-label="اشتراک‌گذاری محصول"
-              title="اشتراک‌گذاری محصول"
-            >
-              <Export size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                wishlist.toggle(product.id);
-              }}
-              className={cn(
-                "shop-product-card-wishlist",
-                wished && "shop-product-card-wishlist--active"
-              )}
-              aria-label={wished ? fa.product.wishlistRemoveAria : fa.product.wishlistAddAria}
-              aria-pressed={wished}
-            >
-              <Heart
-                className="shop-product-card-wishlist-icon"
-                fill={wished ? "currentColor" : "none"}
-                size={iconSizes.sm}
-                variant={ICON_VARIANT}
-                aria-hidden
-              />
-            </button>
-          </div>
           <div className="shop-product-card-status">
             {isPreOwnedProduct(product) ? <PreOwnedBadge /> : null}
             <ProductAvailabilityBadge availability={product.availability} short />
@@ -203,7 +206,7 @@ export function ProductCard({
             </p>
           </div>
         </div>
-        {pricing.hasProductFurooh ? (
+        {showTimer ? (
           <DiscountCountdown productId={product.id} className="shop-product-card-discount-countdown" />
         ) : null}
       </div>

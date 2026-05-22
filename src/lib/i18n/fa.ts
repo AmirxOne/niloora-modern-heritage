@@ -1106,7 +1106,7 @@ export const fa = {
     word: "بهاکاهی",
     percentOff: (n: number) => `${n.toLocaleString("fa-IR")}٪ بهاکاهی`,
     /** برچسب کوتاه روی کارت محصول */
-    cardTag: (n: number) => `${n.toLocaleString("fa-IR")}٪ تخفیف`,
+    cardTag: (n: number) => `${n.toLocaleString("fa-IR")}٪`,
     productSaved: (amount: string) => `${amount} بهاکاهی از این اثر`,
     fromProducts: "بهاکاهی اختصاصی آثار",
     siteWide: (n: number) => `بهاکاهی جشنوارهٔ گالری (${n.toLocaleString("fa-IR")}٪)`,
