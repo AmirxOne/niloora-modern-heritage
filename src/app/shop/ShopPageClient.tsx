@@ -174,6 +174,8 @@ function ShopPageContent() {
     return fa.shop.noResultsHint;
   }, [showSearchError, isSearchMode, isLoading, filtered.length]);
 
+  const priceRangeReady = !isCatalogLoading && maxPrice > 0;
+
   return (
     <PageTransition>
       <motion.div className="shop-page">
@@ -193,6 +195,7 @@ function ShopPageContent() {
                   filters={filters}
                   onChange={setFilters}
                   maxPrice={maxPrice}
+                  priceRangeReady={priceRangeReady}
                   onReset={resetFilters}
                   variant="sidebar"
                 />
@@ -206,6 +209,7 @@ function ShopPageContent() {
                 filters={filters}
                 onChange={setFilters}
                 maxPrice={maxPrice}
+                priceRangeReady={priceRangeReady}
                 onReset={resetFilters}
               />
 

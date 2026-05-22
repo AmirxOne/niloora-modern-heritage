@@ -16,13 +16,14 @@ import {
   countActiveFilters,
 } from "@/lib/shop-filter-utils";
 import { FilterMultiSelect } from "@/components/ui/FilterMultiSelect";
-import { PriceRangeFilter } from "@/components/shop/PriceRangeFilter";
+import { PriceRangeFilter, PriceRangeFilterSkeleton } from "@/components/shop/PriceRangeFilter";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 
 interface ShopFiltersPanelProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
   maxPrice: number;
+  priceRangeReady?: boolean;
   onReset?: () => void;
   onClose?: () => void;
   /** موبایل: داخل دراور؛ دسکتاپ: سایدبار */
@@ -33,6 +34,7 @@ export function ShopFiltersPanel({
   filters,
   onChange,
   maxPrice,
+  priceRangeReady = true,
   onReset,
   onClose,
   variant = "sidebar",
@@ -52,31 +54,33 @@ export function ShopFiltersPanel({
       }
     >
       <header className="shop-filters-panel-header">
-        <div>
+        <div className="shop-filters-panel-header-row">
           <h2 className="shop-filters-panel-title">{fa.shop.refine}</h2>
+          <div className="shop-filters-panel-actions">
+            {showReset ? (
+              <button
+                type="button"
+                onClick={onReset}
+                className="shop-filter-reset"
+                aria-label={fa.shop.activeFilters(activeCount)}
+              >
+                {fa.shop.clearFilterWithCount(activeCount)}
+              </button>
+            ) : null}
+            {!isSidebar && onClose ? (
+              <button type="button" onClick={onClose} className="shop-filter-reset">
+                {fa.shop.filtersClose}
+              </button>
+            ) : null}
+          </div>
+        </div>
+        {!isSidebar ? (
           <p className="shop-filters-panel-hint">{fa.shop.filterPanelHint}</p>
-        </div>
-        <div className="shop-filters-panel-actions">
-          {activeCount > 0 ? (
-            <span className="shop-filter-badge" aria-label={fa.shop.activeFilters(activeCount)}>
-              {activeCount.toLocaleString("fa-IR")}
-            </span>
-          ) : null}
-          {showReset ? (
-            <button type="button" onClick={onReset} className="shop-filter-reset">
-              {fa.shop.clearFilters}
-            </button>
-          ) : null}
-          {!isSidebar && onClose ? (
-            <button type="button" onClick={onClose} className="shop-filter-reset">
-              {fa.shop.filtersClose}
-            </button>
-          ) : null}
-        </div>
+        ) : null}
       </header>
 
       <div className="shop-filters-layout shop-filters-layout--sidebar">
-        <section className="shop-filter-section">
+        <div className="shop-filter-field">
           <h3 className="shop-filter-section-title">جستجو در گالری</h3>
           <div className="shop-filter-search-wrap">
             <Search
@@ -104,7 +108,7 @@ export function ShopFiltersPanel({
               </button>
             ) : null}
           </div>
-        </section>
+        </div>
 
         <FilterMultiSelect
           label={fa.shop.collection}
@@ -155,15 +159,19 @@ export function ShopFiltersPanel({
           onChange={(availabilities) => patch("availabilities", availabilities)}
         />
 
-        <section className="shop-filter-section shop-filter-section--price">
+        <div className="shop-filter-field shop-filter-field--price">
           <h3 className="shop-filter-section-title">{fa.shop.priceRange}</h3>
-          <PriceRangeFilter
-            min={filters.priceRange[0]}
-            max={filters.priceRange[1]}
-            ceiling={maxPrice}
-            onChange={(priceRange) => patch("priceRange", priceRange)}
-          />
-        </section>
+          {priceRangeReady && maxPrice > 0 ? (
+            <PriceRangeFilter
+              min={filters.priceRange[0]}
+              max={filters.priceRange[1]}
+              ceiling={maxPrice}
+              onChange={(priceRange) => patch("priceRange", priceRange)}
+            />
+          ) : (
+            <PriceRangeFilterSkeleton />
+          )}
+        </div>
       </div>
 
       {showReset ? (
@@ -183,6 +191,7 @@ interface ShopFiltersDrawerProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
   maxPrice: number;
+  priceRangeReady?: boolean;
   onReset: () => void;
 }
 
@@ -192,6 +201,7 @@ export function ShopFiltersDrawer({
   filters,
   onChange,
   maxPrice,
+  priceRangeReady = true,
   onReset,
 }: ShopFiltersDrawerProps) {
   return (
@@ -221,6 +231,7 @@ export function ShopFiltersDrawer({
               filters={filters}
               onChange={onChange}
               maxPrice={maxPrice}
+              priceRangeReady={priceRangeReady}
               onClose={onClose}
               onReset={() => {
                 onReset();

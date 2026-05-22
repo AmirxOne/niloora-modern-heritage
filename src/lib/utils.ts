@@ -7,9 +7,10 @@ export function cn(...inputs: ClassValue[]): string {
 /** قیمت‌ها به تومان ذخیره و نمایش داده می‌شوند */
 export function formatPrice(priceInToman: number): string {
   return (
+    "تومان\u00A0" +
     new Intl.NumberFormat("fa-IR", {
       maximumFractionDigits: 0,
-    }).format(priceInToman) + "\u00A0تومان"
+    }).format(priceInToman)
   );
 }
 

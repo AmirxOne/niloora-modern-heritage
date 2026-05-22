@@ -72,7 +72,6 @@ export function ProductCard({
     new Intl.NumberFormat("fa-IR", {
       maximumFractionDigits: 0,
     }).format(value);
-  const description = product.listing.headline || product.listing.details[0] || product.name;
   const attributes: Array<{ label: string; value: string; icon: JSX.Element }> = [
     {
       label: "جنس",
@@ -157,12 +156,10 @@ export function ProductCard({
 
       <div className="shop-product-card-body">
         <div className="shop-product-card-heading-row">
-          <Link href={`/product/${product.id}`} className="shop-product-card-title-link">
+          <Link href={`/product/${product.id}`} className="shop-product-card-title-link" title={product.name}>
             <h3 className="shop-product-card-title">{product.name}</h3>
           </Link>
         </div>
-
-        <p className="shop-product-card-description">{description}</p>
 
         <dl className="shop-product-card-attributes" aria-label="ویژگی‌های محصول">
           {attributes.map((item) => (
@@ -199,10 +196,10 @@ export function ProductCard({
               </p>
             ) : null}
             <p className="shop-product-card-price-main">
+              <span className="shop-product-card-price-currency">تومان</span>
               <span className="shop-product-card-price-amount">
                 {formatTomanAmount(pricing.salePrice)}
               </span>
-              <span className="shop-product-card-price-currency">تومان</span>
             </p>
           </div>
         </div>

@@ -166,7 +166,7 @@ export const fa = {
     subtitle: "هر اثر با استاندارد کارگاه اختصاصی — انتخاب نگین، طرح و خوشنویسی در یک نگاه.",
     count: (n: number) => `${n.toLocaleString("fa-IR")} اثر`,
     countLabel: "در این نمایش",
-    refine: "فیلتر گالری",
+    refine: "فیلتر",
     filterPanelHint: "معیارهای نمایش آثار را با دقت انتخاب کنید",
     filterSearchPlaceholder: "جستجو در گزینه‌ها…",
     filterAll: "همه",
@@ -176,6 +176,9 @@ export const fa = {
     filtersToggle: "فیلترها",
     filtersClose: "بستن فیلترها",
     clearFilters: "حذف همهٔ فیلترها",
+    clearFilter: "حذف فیلتر",
+    clearFilterWithCount: (n: number) =>
+      `حذف فیلترها(${n.toLocaleString("fa-IR")})`,
     activeFilters: (n: number) => `${n.toLocaleString("fa-IR")} فیلتر فعال`,
     stone: "نگین",
     style: "دستهٔ طرح",

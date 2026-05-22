@@ -25,6 +25,30 @@ function snapToStep(value: number, step: number, ceiling: number): number {
 
 type ActiveThumb = "min" | "max" | null;
 
+export function PriceRangeFilterSkeleton() {
+  return (
+    <div className="shop-price-filter shop-price-filter--skeleton" aria-busy="true" aria-hidden>
+      <div className="shop-price-range-values">
+        <div className="shop-price-range-value">
+          <div className="sk h-2.5 w-7 rounded" />
+          <div className="sk mt-1.5 h-3 w-full rounded" />
+        </div>
+        <div className="shop-price-range-value">
+          <div className="sk h-2.5 w-6 rounded" />
+          <div className="sk mt-1.5 h-3 w-full rounded" />
+        </div>
+      </div>
+      <div className="shop-price-range-track shop-price-range-track--dual shop-price-range-track--skeleton">
+        <div className="sk h-0.5 w-full rounded-full" />
+      </div>
+      <div className="shop-price-range-bounds">
+        <div className="sk h-2 w-14 rounded" />
+        <div className="sk h-2 w-16 rounded" />
+      </div>
+    </div>
+  );
+}
+
 export function PriceRangeFilter({ min, max, ceiling, onChange }: PriceRangeFilterProps) {
   const step = useMemo(() => priceStep(ceiling), [ceiling]);
   const [activeThumb, setActiveThumb] = useState<ActiveThumb>(null);
@@ -75,52 +99,54 @@ export function PriceRangeFilter({ min, max, ceiling, onChange }: PriceRangeFilt
       </div>
 
       <div className="shop-price-range-track shop-price-range-track--dual" dir="rtl">
-        <div
-          className="shop-price-range-fill"
-          style={{
-            insetInlineStart: `${minPercent}%`,
-            width: `${Math.max(0, maxPercent - minPercent)}%`,
-          }}
-          aria-hidden
-        />
-        <input
-          type="range"
-          min={0}
-          max={ceiling}
-          step={step}
-          value={safeMin}
-          onInput={(e) => setMin(Number(e.currentTarget.value))}
-          onChange={(e) => setMin(Number(e.currentTarget.value))}
-          onPointerDown={() => setActiveThumb("min")}
-          onPointerUp={() => setActiveThumb(null)}
-          onPointerCancel={() => setActiveThumb(null)}
-          onLostPointerCapture={() => setActiveThumb(null)}
-          className="shop-price-range shop-price-range--min"
-          style={{ zIndex: minOnTop ? 4 : 3 }}
-          aria-label={fa.shop.priceFrom}
-          aria-valuemin={0}
-          aria-valuemax={safeMax}
-          aria-valuenow={safeMin}
-        />
-        <input
-          type="range"
-          min={0}
-          max={ceiling}
-          step={step}
-          value={safeMax}
-          onInput={(e) => setMax(Number(e.currentTarget.value))}
-          onChange={(e) => setMax(Number(e.currentTarget.value))}
-          onPointerDown={() => setActiveThumb("max")}
-          onPointerUp={() => setActiveThumb(null)}
-          onPointerCancel={() => setActiveThumb(null)}
-          onLostPointerCapture={() => setActiveThumb(null)}
-          className="shop-price-range shop-price-range--max"
-          style={{ zIndex: minOnTop ? 3 : 4 }}
-          aria-label={fa.shop.priceTo}
-          aria-valuemin={safeMin}
-          aria-valuemax={ceiling}
-          aria-valuenow={safeMax}
-        />
+        <div className="shop-price-range-rail">
+          <div
+            className="shop-price-range-fill"
+            style={{
+              insetInlineStart: `${minPercent}%`,
+              width: `${Math.max(0, maxPercent - minPercent)}%`,
+            }}
+            aria-hidden
+          />
+          <input
+            type="range"
+            min={0}
+            max={ceiling}
+            step={step}
+            value={safeMin}
+            onInput={(e) => setMin(Number(e.currentTarget.value))}
+            onChange={(e) => setMin(Number(e.currentTarget.value))}
+            onPointerDown={() => setActiveThumb("min")}
+            onPointerUp={() => setActiveThumb(null)}
+            onPointerCancel={() => setActiveThumb(null)}
+            onLostPointerCapture={() => setActiveThumb(null)}
+            className="shop-price-range shop-price-range--min"
+            style={{ zIndex: minOnTop ? 4 : 3 }}
+            aria-label={fa.shop.priceFrom}
+            aria-valuemin={0}
+            aria-valuemax={safeMax}
+            aria-valuenow={safeMin}
+          />
+          <input
+            type="range"
+            min={0}
+            max={ceiling}
+            step={step}
+            value={safeMax}
+            onInput={(e) => setMax(Number(e.currentTarget.value))}
+            onChange={(e) => setMax(Number(e.currentTarget.value))}
+            onPointerDown={() => setActiveThumb("max")}
+            onPointerUp={() => setActiveThumb(null)}
+            onPointerCancel={() => setActiveThumb(null)}
+            onLostPointerCapture={() => setActiveThumb(null)}
+            className="shop-price-range shop-price-range--max"
+            style={{ zIndex: minOnTop ? 3 : 4 }}
+            aria-label={fa.shop.priceTo}
+            aria-valuemin={safeMin}
+            aria-valuemax={ceiling}
+            aria-valuenow={safeMax}
+          />
+        </div>
       </div>
 
       <div className="shop-price-range-bounds" dir="rtl">
