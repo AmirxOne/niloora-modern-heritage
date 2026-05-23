@@ -7,14 +7,7 @@ import type { CartItem, Order } from "../types";
 import { useAuth } from "./useAuth";
 import { useAppDispatch } from "../store/hooks";
 import { incrementProductSalesFromItems } from "../store/slices/productSalesSlice";
-
-async function parseResponse<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useOrders() {
   const auth = useAuth();
@@ -36,7 +29,7 @@ export function useOrders() {
         toast.error("دریافت سفارش‌ها انجام نشد.");
         return;
       }
-      const data = await parseResponse<{ orders: Order[] }>(response);
+      const data = await parseJsonResponse<{ orders: Order[] }>(response);
       setOrders(data?.orders ?? []);
     } finally {
       setIsLoading(false);
@@ -62,7 +55,7 @@ export function useOrders() {
           shipping: extras.shipping,
         }),
       });
-      const data = await parseResponse<{ redirectUrl?: string; message?: string }>(response);
+      const data = await parseJsonResponse<{ redirectUrl?: string; message?: string }>(response);
       if (!response.ok || !data?.redirectUrl) {
         const errBody = data as { message?: string } | null;
         toast.error(errBody?.message ?? "اتصال به درگاه پرداخت ناموفق بود.");

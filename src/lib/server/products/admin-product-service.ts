@@ -14,6 +14,9 @@ async function assertCollectionExists(collectionId: string | null) {
 }
 
 function productDataFromPayload(data: AdminProductPayload): Prisma.ProductCreateInput {
+  const collectionRelation = data.collectionId
+    ? { connect: { id: data.collectionId } }
+    : undefined;
   return {
     id: data.id,
     name: data.name,
@@ -31,13 +34,41 @@ function productDataFromPayload(data: AdminProductPayload): Prisma.ProductCreate
     availability: data.availability,
     stock: data.stock,
     condition: "new",
-    discountEndsAt: data.discountEndsAt ? new Date(data.discountEndsAt) : null,
+    discountEndsAt: toDiscountEndsAt(data.discountEndsAt),
     featured: data.featured,
     bestseller: data.bestseller,
-    collection: data.collectionId
-      ? { connect: { id: data.collectionId } }
-      : undefined,
+    collection: collectionRelation,
   };
+}
+
+function toDiscountEndsAt(value: AdminProductPayload["discountEndsAt"]) {
+  return value ? new Date(value) : null;
+}
+
+function productUpdateDataFromPayload(data: AdminProductPayload): Prisma.ProductUpdateInput {
+  const updateData: Prisma.ProductUpdateInput = {
+    name: data.name,
+    namePersian: data.namePersian,
+    introVideoUrl: data.introVideoUrl,
+    price: data.price,
+    listPrice: data.listPrice,
+    discountPercent: data.discountPercent,
+    image: data.image,
+    category: data.category,
+    metal: data.metal,
+    stone: data.stone,
+    stoneShape: data.stoneShape,
+    engravingType: data.engravingType,
+    availability: data.availability,
+    stock: data.stock,
+    featured: data.featured,
+    bestseller: data.bestseller,
+    collectionId: data.collectionId,
+  };
+  if (data.discountEndsAt !== undefined) {
+    updateData.discountEndsAt = toDiscountEndsAt(data.discountEndsAt);
+  }
+  return updateData;
 }
 
 export async function listAdminProducts(): Promise<ReturnType<typeof toAdminProductDto>[]> {
@@ -104,28 +135,7 @@ export async function updateAdminProduct(id: string, data: AdminProductPayload) 
   const row = await prisma.$transaction(async (tx) => {
     await tx.product.update({
       where: { id },
-      data: {
-        name: data.name,
-        namePersian: data.namePersian,
-        introVideoUrl: data.introVideoUrl,
-        price: data.price,
-        listPrice: data.listPrice,
-        discountPercent: data.discountPercent,
-        image: data.image,
-        category: data.category,
-        metal: data.metal,
-        stone: data.stone,
-        stoneShape: data.stoneShape,
-        engravingType: data.engravingType,
-        availability: data.availability,
-        stock: data.stock,
-        featured: data.featured,
-        bestseller: data.bestseller,
-        collectionId: data.collectionId,
-        ...(data.discountEndsAt !== undefined
-          ? { discountEndsAt: data.discountEndsAt ? new Date(data.discountEndsAt) : null }
-          : {}),
-      },
+      data: productUpdateDataFromPayload(data),
     });
 
     await tx.productListing.upsert({

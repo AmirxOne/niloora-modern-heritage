@@ -4,14 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { CustomizerQuoteRequest, CustomizerState } from "@/lib/types";
 import { useAuth } from "./useAuth";
-
-async function parseResponse<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useQuoteRequests() {
   const auth = useAuth();
@@ -32,7 +25,7 @@ export function useQuoteRequests() {
         toast.error("دریافت درخواست‌های برآورد انجام نشد.");
         return;
       }
-      const data = await parseResponse<{ quotes: CustomizerQuoteRequest[] }>(response);
+      const data = await parseJsonResponse<{ quotes: CustomizerQuoteRequest[] }>(response);
       setQuotes(data?.quotes ?? []);
     } finally {
       setIsLoading(false);
@@ -58,7 +51,7 @@ export function useQuoteRequests() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(input),
         });
-        const data = await parseResponse<{ quote?: CustomizerQuoteRequest; message?: string }>(
+        const data = await parseJsonResponse<{ quote?: CustomizerQuoteRequest; message?: string }>(
           response
         );
         if (!response.ok || !data?.quote) {

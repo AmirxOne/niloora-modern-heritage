@@ -5,14 +5,7 @@ import { toast } from "sonner";
 import type { AdminProductDto } from "@/lib/server/products/admin-product-dto";
 import type { CollectionDto } from "@/lib/server/products";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminProducts() {
   const auth = useAuth();
@@ -26,7 +19,7 @@ export function useAdminProducts() {
   const loadCollections = useCallback(async () => {
     const response = await fetch("/api/admin/collections");
     if (!response.ok) return;
-    const data = await parseJson<{ collections: CollectionDto[] }>(response);
+    const data = await parseJsonResponse<{ collections: CollectionDto[] }>(response);
     setCollections(data?.collections ?? []);
   }, []);
 
@@ -44,7 +37,7 @@ export function useAdminProducts() {
         toast.error("دریافت محصولات انجام نشد.");
         return;
       }
-      const data = await parseJson<{ products: AdminProductDto[] }>(response);
+      const data = await parseJsonResponse<{ products: AdminProductDto[] }>(response);
       setProducts(data?.products ?? []);
     } finally {
       setIsLoading(false);
@@ -65,7 +58,7 @@ export function useAdminProducts() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ product?: AdminProductDto; message?: string }>(response);
+        const data = await parseJsonResponse<{ product?: AdminProductDto; message?: string }>(response);
         if (!response.ok || !data?.product) {
           toast.error(data?.message ?? "ثبت محصول انجام نشد.");
           return null;
@@ -90,7 +83,7 @@ export function useAdminProducts() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ product?: AdminProductDto; message?: string }>(response);
+        const data = await parseJsonResponse<{ product?: AdminProductDto; message?: string }>(response);
         if (!response.ok || !data?.product) {
           toast.error(data?.message ?? "ذخیره محصول انجام نشد.");
           return null;
@@ -113,7 +106,7 @@ export function useAdminProducts() {
         const response = await fetch(`/api/admin/products/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
-        const data = await parseJson<{ message?: string }>(response);
+        const data = await parseJsonResponse<{ message?: string }>(response);
         if (!response.ok) {
           toast.error(data?.message ?? "حذف محصول انجام نشد.");
           return false;

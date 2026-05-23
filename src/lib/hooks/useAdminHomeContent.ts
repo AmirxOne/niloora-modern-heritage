@@ -9,14 +9,7 @@ import type {
   HomeTestimonialDto,
 } from "@/lib/types/home-content";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminHomeContent() {
   const auth = useAuth();
@@ -41,19 +34,19 @@ export function useAdminHomeContent() {
       ]);
 
       if (bannerRes.ok) {
-        const data = await parseJson<{ banner: HomeBannerDto }>(bannerRes);
+        const data = await parseJsonResponse<{ banner: HomeBannerDto }>(bannerRes);
         setBanner(data?.banner ?? null);
       }
       if (sliderRes.ok) {
-        const data = await parseJson<{ items: HomeSliderItemDto[] }>(sliderRes);
+        const data = await parseJsonResponse<{ items: HomeSliderItemDto[] }>(sliderRes);
         setSliderItems(data?.items ?? []);
       }
       if (testimonialRes.ok) {
-        const data = await parseJson<{ testimonials: HomeTestimonialDto[] }>(testimonialRes);
+        const data = await parseJsonResponse<{ testimonials: HomeTestimonialDto[] }>(testimonialRes);
         setTestimonials(data?.testimonials ?? []);
       }
       if (instagramRes.ok) {
-        const data = await parseJson<{ posts: HomeInstagramPostDto[] }>(instagramRes);
+        const data = await parseJsonResponse<{ posts: HomeInstagramPostDto[] }>(instagramRes);
         setInstagramPosts(data?.posts ?? []);
       }
     } finally {
@@ -71,7 +64,7 @@ export function useAdminHomeContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ banner?: HomeBannerDto; message?: string }>(response);
+        const data = await parseJsonResponse<{ banner?: HomeBannerDto; message?: string }>(response);
         if (!response.ok || !data?.banner) {
           toast.error(data?.message ?? "ذخیره بنر انجام نشد.");
           return false;
@@ -96,7 +89,7 @@ export function useAdminHomeContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ message?: string }>(response);
+        const data = await parseJsonResponse<{ message?: string }>(response);
         if (!response.ok) {
           toast.error(data?.message ?? "افزودن به اسلایدر انجام نشد.");
           return false;

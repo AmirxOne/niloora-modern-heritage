@@ -37,6 +37,9 @@ export default function AdminPromoCodesPage() {
                 >
                   {fa.admin.supportRequests.navLabel}
                 </Link>
+                <Link href="/admin/moderation" className="text-turquoise-dark hover:text-turquoise">
+                  {fa.admin.moderation.navLabel}
+                </Link>
                 <Link href="/account" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.backToAccount}
                 </Link>

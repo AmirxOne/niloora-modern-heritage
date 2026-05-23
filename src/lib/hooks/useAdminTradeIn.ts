@@ -8,14 +8,7 @@ import type {
   TradeInSubmissionStatus,
 } from "@/lib/server/trade-in/admin-trade-in";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminTradeIn() {
   const auth = useAuth();
@@ -42,7 +35,7 @@ export function useAdminTradeIn() {
           toast.error("دریافت درخواست‌ها انجام نشد.");
           return;
         }
-        const data = await parseJson<{ submissions: AdminTradeInSubmission[] }>(response);
+        const data = await parseJsonResponse<{ submissions: AdminTradeInSubmission[] }>(response);
         setSubmissions(data?.submissions ?? []);
       } finally {
         setIsLoading(false);
@@ -64,7 +57,7 @@ export function useAdminTradeIn() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ submission?: AdminTradeInSubmission; message?: string }>(
+        const data = await parseJsonResponse<{ submission?: AdminTradeInSubmission; message?: string }>(
           response
         );
         if (!response.ok || !data?.submission) {

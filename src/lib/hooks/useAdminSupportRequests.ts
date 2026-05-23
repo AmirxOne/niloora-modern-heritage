@@ -9,14 +9,7 @@ import type {
   SupportRequestStatus,
 } from "@/lib/server/support-request/support-request";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminSupportRequests() {
   const auth = useAuth();
@@ -50,7 +43,7 @@ export function useAdminSupportRequests() {
           toast.error("دریافت درخواست‌ها انجام نشد.");
           return;
         }
-        const data = await parseJson<{ requests: AdminSupportRequest[] }>(response);
+        const data = await parseJsonResponse<{ requests: AdminSupportRequest[] }>(response);
         setRequests(data?.requests ?? []);
       } finally {
         setIsLoading(false);
@@ -75,7 +68,7 @@ export function useAdminSupportRequests() {
             body: JSON.stringify(payload),
           }
         );
-        const data = await parseJson<{ request?: AdminSupportRequest; message?: string }>(
+        const data = await parseJsonResponse<{ request?: AdminSupportRequest; message?: string }>(
           response
         );
         if (!response.ok || !data?.request) {

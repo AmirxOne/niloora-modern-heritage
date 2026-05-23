@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ProductQuestion } from "@/lib/types";
-
-async function parseResponse<T>(response: Response): Promise<T | null> {
-  if (!response.ok) return null;
-  return (await response.json()) as T;
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export interface PendingProductQuestionAnswer {
   id: string;
@@ -33,7 +29,7 @@ export function useProductQuestions(productId: string) {
         `/api/product-questions?productId=${encodeURIComponent(productId)}&status=approved`
       );
       if (!response.ok) return;
-      const data = await parseResponse<{ questions: ProductQuestion[] }>(response);
+      const data = await parseJsonResponse<{ questions: ProductQuestion[] }>(response);
       setApproved(data?.questions ?? []);
     } finally {
       setIsLoading(false);
@@ -106,7 +102,7 @@ export function useProductQuestionsModeration() {
         setCanModerate(false);
         return;
       }
-      const data = await parseResponse<{
+      const data = await parseJsonResponse<{
         questions: ProductQuestion[];
         answers: PendingProductQuestionAnswer[];
       }>(response);

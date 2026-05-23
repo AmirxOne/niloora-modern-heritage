@@ -5,14 +5,7 @@ import { toast } from "sonner";
 import type { AdminOrder } from "@/lib/types";
 import type { AdminOrderFilterStatus, AdminSettableOrderStatus } from "@/lib/server/orders/admin-order";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminOrders() {
   const auth = useAuth();
@@ -39,7 +32,7 @@ export function useAdminOrders() {
           toast.error("دریافت سفارش‌ها انجام نشد.");
           return;
         }
-        const data = await parseJson<{ orders: AdminOrder[] }>(response);
+        const data = await parseJsonResponse<{ orders: AdminOrder[] }>(response);
         setOrders(data?.orders ?? []);
       } finally {
         setIsLoading(false);
@@ -61,7 +54,7 @@ export function useAdminOrders() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ order?: AdminOrder; message?: string }>(response);
+        const data = await parseJsonResponse<{ order?: AdminOrder; message?: string }>(response);
         if (!response.ok || !data?.order) {
           toast.error(data?.message ?? "ذخیره تغییرات انجام نشد.");
           return false;

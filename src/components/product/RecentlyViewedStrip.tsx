@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { useApp } from "@/lib/context/AppContext";
 import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { fa } from "@/lib/i18n/fa";
-import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 
 export function RecentlyViewedStrip({
   excludeProductId,
@@ -21,35 +19,14 @@ export function RecentlyViewedStrip({
   if (products.length === 0) return null;
 
   return (
-    <section className={className ?? "recently-viewed-strip"} aria-labelledby="recently-viewed-title">
-      <div className="recently-viewed-strip__head">
-        <h2 id="recently-viewed-title" className="recently-viewed-strip__title">
-          {fa.product.recentlyViewedTitle}
-        </h2>
-      </div>
-      <ul className="recently-viewed-strip__list">
-        {products.map((product) => (
-          <li key={product.id}>
-            <Link href={`/product/${product.id}`} className="recently-viewed-strip__card">
-              <span className="recently-viewed-strip__thumb">
-                <Image
-                  src={product.image}
-                  alt=""
-                  fill
-                  sizes="120px"
-                  className="object-cover"
-                />
-              </span>
-              <span className="recently-viewed-strip__meta">
-                <span className="recently-viewed-strip__name">{product.name}</span>
-                <span className="recently-viewed-strip__price">
-                  <TomanPrice amount={product.price} size="xs" />
-                </span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <section
+      className={className ?? "product-detail-related"}
+      aria-labelledby="recently-viewed-title"
+    >
+      <h2 id="recently-viewed-title" className="product-detail-related-title">
+        {fa.product.recentlyViewedTitle}
+      </h2>
+      <ShopProductGrid products={products} className="product-detail-related-grid" />
     </section>
   );
 }

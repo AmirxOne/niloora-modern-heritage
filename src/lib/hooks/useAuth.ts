@@ -23,6 +23,7 @@ import {
 import { getAuthErrorMessage } from "../auth/authErrors";
 import { normalizeIranPhone } from "../auth/phone";
 import { toEnglishDigits, toPersianDigits } from "@/lib/persian-digits";
+import { parseJsonResponse } from "./fetch-utils";
 
 /**
  * Client auth gateway:
@@ -50,14 +51,6 @@ type OtpVerifyDto = {
   user: SessionUserDto;
   isNewUser: boolean;
 };
-
-async function parseResponse<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
 
 function mapErrorStatus(status: number): "invalid_credentials" | "unknown" {
   if (status === 401) return "invalid_credentials";
@@ -126,7 +119,7 @@ export function useAuth() {
         dispatch(setAuthError(mapErrorStatus(response.status)));
         return;
       }
-      const data = await parseResponse<{ user: SessionUserDto }>(response);
+      const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
       if (!data?.user) {
         dispatch(setAuthError("unknown"));
         return;
@@ -169,7 +162,7 @@ export function useAuth() {
         return;
       }
 
-      const data = await parseResponse<{ user: SessionUserDto }>(response);
+      const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
       if (!data?.user) {
         dispatch(setAuthError("unknown"));
         return;
@@ -214,7 +207,7 @@ export function useAuth() {
         dispatch(setAuthError("unknown"));
         return;
       }
-      const data = await parseResponse<{ tokenPreview?: string }>(response);
+      const data = await parseJsonResponse<{ tokenPreview?: string }>(response);
       if (!data?.tokenPreview) {
         dispatch(setAuthError("unknown"));
         return;
@@ -278,7 +271,7 @@ export function useAuth() {
         body: JSON.stringify({ phone: normalizedPhone }),
       });
 
-      const data = await parseResponse<
+      const data = await parseJsonResponse<
         OtpRequestDto & { message?: string; code?: string; retryAfterSec?: number }
       >(response);
       if (!response.ok || !data) {
@@ -318,7 +311,7 @@ export function useAuth() {
         }),
       });
 
-      const data = await parseResponse<OtpVerifyDto & { message?: string; code?: string }>(response);
+      const data = await parseJsonResponse<OtpVerifyDto & { message?: string; code?: string }>(response);
       if (!response.ok || !data?.user) {
         dispatch(setAuthError(mapOtpErrorCode(response.status, data?.code, data?.message)));
         toast.error(otpFailureToast(response.status, data ?? undefined));
@@ -360,7 +353,7 @@ export function useAuth() {
         dispatch(setAuthError("unknown"));
         return;
       }
-      const data = await parseResponse<{ user: SessionUserDto }>(response);
+      const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
       if (!data?.user) {
         dispatch(setAuthUser(null));
         return;

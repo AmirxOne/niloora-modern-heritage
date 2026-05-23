@@ -51,10 +51,6 @@
     }
   }
 
-  @media (min-width: 768px) {
-    :root { --header-height: 5rem; }
-  }
-
   html {
     scroll-behavior: smooth;
     background-color: var(--color-bg);
@@ -1736,10 +1732,7 @@
   }
 
   .shop-product-card-discount-tag {
-    @apply inline-flex items-center justify-center rounded-full border px-2.5 text-[11px] font-semibold leading-none tracking-tight shadow-none;
-    color: var(--bahakahi-fg);
-    background: var(--bahakahi-bg);
-    border-color: var(--bahakahi-fg);
+    @apply furooh-badge inline-flex items-center justify-center px-2.5 text-[11px] font-semibold leading-none tracking-tight shadow-none;
     height: 20px;
     min-height: 20px;
     padding-top: 0;
@@ -1957,10 +1950,7 @@
   }
 
   .product-price-bahakahi-pill {
-    @apply inline-flex shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium leading-none;
-    color: var(--bahakahi-fg);
-    background: var(--bahakahi-bg);
-    border: 1px solid var(--bahakahi-fg);
+    @apply furooh-badge inline-flex shrink-0 rounded px-1.5 py-0.5 text-[9px] font-medium leading-none;
   }
 
   .shop-product-card-status {
@@ -2536,10 +2526,7 @@
   }
 
   .site-wide-banner-badge {
-    @apply shrink-0 rounded-full px-3 py-1 text-xs font-semibold tracking-wide;
-    border: 1px solid var(--bahakahi-fg);
-    background: var(--bahakahi-bg);
-    color: var(--bahakahi-fg);
+    @apply furooh-badge shrink-0 px-3 py-1 text-xs font-semibold tracking-wide;
   }
 
   .site-wide-banner-title {
@@ -2806,7 +2793,8 @@
     @apply px-0;
   }
 
-  .product-detail-related {
+  .product-detail-related,
+  .product-detail-recently-viewed {
     @apply mt-16 border-t border-gold/10 pt-16 md:mt-20 md:pt-20;
   }
 

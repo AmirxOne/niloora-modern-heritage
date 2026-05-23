@@ -4,16 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { computeProductRating } from "../product-rating";
 import type { ProductComment } from "../types";
 import { useAuth } from "./useAuth";
+import { parseJsonResponse } from "./fetch-utils";
 
 type CommentDto = ProductComment;
-
-async function parseResponse<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
 
 export function useComments() {
   const auth = useAuth();
@@ -37,7 +30,7 @@ export function useComments() {
         return;
       }
       if (!response.ok) return;
-      const data = await parseResponse<{ comments: CommentDto[] }>(response);
+      const data = await parseJsonResponse<{ comments: CommentDto[] }>(response);
       setPendingComments(data?.comments ?? []);
       setCanModerate(true);
     } finally {
@@ -100,7 +93,7 @@ export function useProductComments(productId: string) {
         `/api/comments?productId=${encodeURIComponent(productId)}&status=approved`
       );
       if (!response.ok) return;
-      const data = await parseResponse<{ comments: ProductComment[] }>(response);
+      const data = await parseJsonResponse<{ comments: ProductComment[] }>(response);
       setApproved(data?.comments ?? []);
     } finally {
       setIsApprovedLoading(false);

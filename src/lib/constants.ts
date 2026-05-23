@@ -23,6 +23,10 @@ export const STONE_OPTIONS: { value: StoneType; label: string; color: string }[]
   { value: "ruby", label: fa.stones.ruby, color: "#E0115F" },
   { value: "turquoise", label: fa.stones.turquoise, color: "#2A9D8F" },
   { value: "onyx", label: fa.stones.onyx, color: "#353935" },
+  { value: "zabarjad", label: fa.stones.zabarjad, color: "#7BA05B" },
+  { value: "yemen-aqeeq", label: fa.stones["yemen-aqeeq"], color: "#8B4513" },
+  { value: "durr-najaf", label: fa.stones["durr-najaf"], color: "#D9DDE0" },
+  { value: "moral", label: fa.stones.moral, color: "#D7D1C9" },
 ];
 
 export const SHAPE_OPTIONS: { value: StoneShape; label: string }[] = [

@@ -4,14 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminPromoCodeRecord } from "@/lib/server/promo/promo-code";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminPromoCodes() {
   const auth = useAuth();
@@ -35,7 +28,7 @@ export function useAdminPromoCodes() {
         toast.error("دریافت کدهای تخفیف انجام نشد.");
         return;
       }
-      const data = await parseJson<{ promoCodes: AdminPromoCodeRecord[] }>(response);
+      const data = await parseJsonResponse<{ promoCodes: AdminPromoCodeRecord[] }>(response);
       setPromoCodes(data?.promoCodes ?? []);
     } finally {
       setIsLoading(false);
@@ -52,7 +45,7 @@ export function useAdminPromoCodes() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ promoCode?: AdminPromoCodeRecord; message?: string }>(
+        const data = await parseJsonResponse<{ promoCode?: AdminPromoCodeRecord; message?: string }>(
           response
         );
         if (!response.ok || !data?.promoCode) {
@@ -79,7 +72,7 @@ export function useAdminPromoCodes() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ promoCode?: AdminPromoCodeRecord; message?: string }>(
+        const data = await parseJsonResponse<{ promoCode?: AdminPromoCodeRecord; message?: string }>(
           response
         );
         if (!response.ok || !data?.promoCode) {

@@ -36,6 +36,7 @@ function AdminNavLinks() {
     { href: "/admin/trade-in", label: fa.admin.tradeIn.navLabel },
     { href: "/admin/support-requests", label: fa.admin.supportRequests.navLabel },
     { href: "/admin/posts", label: fa.admin.posts.navLabel },
+    { href: "/admin/moderation", label: fa.admin.moderation.navLabel },
     { href: "/account", label: fa.admin.backToAccount },
   ];
   return (

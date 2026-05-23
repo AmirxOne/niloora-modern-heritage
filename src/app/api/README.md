@@ -79,6 +79,9 @@ All handlers are in `route.ts`. Business logic should stay in `src/lib/server/*`
 - `POST /api/comments` - submit pending comment (requires session)
 - `GET /api/comments/pending` - admin pending queue
 - `PATCH /api/comments/[id]` - admin approve/reject
+- `GET /api/product-questions/pending` - admin pending queue for questions and answers
+- `PATCH /api/product-questions/[id]` - admin approve/reject question
+- `PATCH /api/product-questions/answers/[id]` - admin approve/reject answer
 
 ## Important Security Notes
 - Admin checks use `ensureAdmin` from `src/lib/server/auth/guards.ts`

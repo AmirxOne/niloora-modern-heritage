@@ -15,6 +15,7 @@ import { isPreOwnedProduct } from "@/lib/pre-owned";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn, formatTomanAmount } from "@/lib/utils";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
+import { ENGRAVING_STYLES, METAL_OPTIONS, STONE_OPTIONS } from "@/lib/constants";
 
 interface ProductCardProps {
   product: Product;
@@ -31,38 +32,16 @@ export function ProductCard({
   timerOverride,
 }: ProductCardProps) {
   const styleLabels: Record<Product["category"], string> = {
-    solitaire: "تک نگین",
-    halo: "هاله",
-    vintage: "کلاسیک",
-    signet: "مهر",
-    eternity: "ابدیت",
-    stackable: "چندتایی",
+    solitaire: fa.shop.styles.solitaire,
+    halo: fa.shop.styles.halo,
+    vintage: fa.shop.styles.vintage,
+    signet: fa.shop.styles.signet,
+    eternity: fa.shop.styles.eternity,
+    stackable: fa.shop.styles.stackable,
   };
-  const metalLabels: Record<Product["metal"], string> = {
-    sterling: "نقره استرلینگ",
-    oxidized: "نقره اکسید",
-    rhodium: "رودیوم",
-    "matte-silver": "نقره مات",
-  };
-  const stoneLabels: Record<Product["stone"], string> = {
-    diamond: "الماس",
-    emerald: "زمرد",
-    sapphire: "یاقوت کبود",
-    ruby: "یاقوت سرخ",
-    turquoise: "فیروزه",
-    onyx: "عقیق سیاه",
-    zabarjad: "زبرجد",
-    "yemen-aqeeq": "عقیق یمنی",
-    "durr-najaf": "در نجف",
-    moral: "مرمر هندی",
-  };
-  const engravingLabels: Record<Exclude<Product["engravingType"], "none">, string> = {
-    nastaliq: "نستعلیق",
-    naskh: "نسخ",
-    thuluth: "ثلث",
-    kufic: "کوفی",
-    modern: "معاصر",
-  };
+  const metalLabelByValue = new Map(METAL_OPTIONS.map((item) => [item.value, item.label]));
+  const stoneLabelByValue = new Map(STONE_OPTIONS.map((item) => [item.value, item.label]));
+  const engravingLabelByValue = new Map(ENGRAVING_STYLES.map((item) => [item.value, item.label]));
   const { wishlist } = useApp();
   const wished = wishlist.isWishlisted(product.id);
   const isSold = product.availability === "sold";
@@ -71,17 +50,20 @@ export function ProductCard({
   const attributes: Array<{ label: string; value: string; icon: JSX.Element }> = [
     {
       label: "جنس",
-      value: metalLabels[product.metal] ?? "نقره",
+      value: metalLabelByValue.get(product.metal) ?? "نقره",
       icon: <Gem size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
     {
       label: "نگین",
-      value: stoneLabels[product.stone] ?? "—",
+      value: stoneLabelByValue.get(product.stone) ?? "—",
       icon: <Sparkles size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
     {
       label: "حکاکی",
-      value: product.engravingType === "none" ? "بدون حکاکی" : engravingLabels[product.engravingType],
+      value:
+        product.engravingType === "none"
+          ? "بدون حکاکی"
+          : (engravingLabelByValue.get(product.engravingType) ?? "بدون حکاکی"),
       icon: <PenTool size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
     {

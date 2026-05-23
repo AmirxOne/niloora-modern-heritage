@@ -4,14 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminPostRecord } from "@/lib/server/blog/post";
 import { useAuth } from "./useAuth";
-
-async function parseJson<T>(response: Response): Promise<T | null> {
-  try {
-    return (await response.json()) as T;
-  } catch {
-    return null;
-  }
-}
+import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminPosts() {
   const auth = useAuth();
@@ -29,7 +22,7 @@ export function useAdminPosts() {
         toast.error("دریافت مقالات انجام نشد.");
         return;
       }
-      const data = await parseJson<{ posts: AdminPostRecord[] }>(response);
+      const data = await parseJsonResponse<{ posts: AdminPostRecord[] }>(response);
       setPosts(data?.posts ?? []);
     } finally {
       setIsLoading(false);
@@ -46,7 +39,7 @@ export function useAdminPosts() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ post?: AdminPostRecord; message?: string }>(response);
+        const data = await parseJsonResponse<{ post?: AdminPostRecord; message?: string }>(response);
         if (!response.ok || !data?.post) {
           toast.error(data?.message ?? "ثبت مقاله انجام نشد.");
           return null;
@@ -71,7 +64,7 @@ export function useAdminPosts() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJson<{ post?: AdminPostRecord; message?: string }>(response);
+        const data = await parseJsonResponse<{ post?: AdminPostRecord; message?: string }>(response);
         if (!response.ok || !data?.post) {
           toast.error(data?.message ?? "ذخیره انجام نشد.");
           return null;
