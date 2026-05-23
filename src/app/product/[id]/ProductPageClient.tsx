@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ProductPriceDisplay } from "@/components/product/ProductPriceDisplay";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
@@ -24,11 +25,18 @@ import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { ProductRating } from "@/components/product/ProductRating";
 import { ProductSalesCount } from "@/components/product/ProductSalesCount";
+import { ProductSalesStat } from "@/components/product/ProductSalesStat";
 import { PreOwnedBadge } from "@/components/pre-owned/PreOwnedBadge";
 import { PreOwnedProductPanel } from "@/components/pre-owned/PreOwnedProductPanel";
 import { ProductContentBrief } from "@/components/product/ProductContentBrief";
 import { ProductSpecs } from "@/components/product/ProductSpecs";
+import { ProductHighlights } from "@/components/product/ProductHighlights";
+import { MobileProductBuyBar } from "@/components/product/MobileProductBuyBar";
+import { PieceNumber } from "@/components/product/PieceNumber";
+import { resolvePieceCode } from "@/lib/products/piece-code";
 import { ProductIntroVideo } from "@/components/product/ProductIntroVideo";
+import { ProductArtisansPanel } from "@/components/product/ProductArtisansPanel";
+import { ProductStoneInsight } from "@/components/product/ProductStoneInsight";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
 
 type Props = {
@@ -46,6 +54,7 @@ function applyPayload(
 }
 
 export function ProductPageClient({ productId, initialPayload }: Props) {
+  const router = useRouter();
   const [product, setProduct] = useState<Product | null>(initialPayload?.product ?? null);
   const [related, setRelated] = useState<Product[]>(initialPayload?.related ?? []);
   const [isLoading, setIsLoading] = useState(!initialPayload);
@@ -121,7 +130,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
   const status = getProductStatusConfig(product.availability);
-  const canBuy = isProductPurchasable(
+  const canBuyByStockRules = isProductPurchasable(
     {
       name: product.namePersian || product.name,
       availability: product.availability,
@@ -129,6 +138,19 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
     },
     1
   );
+  // وضعیت‌های غیر فوری (پیش‌فروش/فاخر/ساخت اختصاصی) وابسته به موجودی لحظه‌ای نیستند.
+  const canAddToCart = status.isImmediate ? canBuyByStockRules : status.canAddToCart;
+  const isRemakeRequest = product.availability === "sold";
+
+  const handlePrimaryAction = () => {
+    if (isRemakeRequest) {
+      router.push(`/customize?source=remake&productId=${encodeURIComponent(product.id)}`);
+      return;
+    }
+    if (canAddToCart) {
+      cart.addProduct(product.id);
+    }
+  };
 
   return (
     <div className="product-detail-page">
@@ -157,6 +179,12 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   <ProductRating productId={product.id} size="md" />
                   <ProductSalesCount productId={product.id} />
                 </div>
+                <PieceNumber
+                  code={resolvePieceCode(product)}
+                  variant="card"
+                  showTypeLabel
+                  className="product-detail-piece-number"
+                />
                 <ProductContentBrief listing={product.listing} className="product-detail-description" />
                 {product.introVideoUrl ? (
                   <ProductIntroVideo
@@ -177,16 +205,21 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   />
                 </div>
 
+                <ProductSalesStat
+                  productId={product.id}
+                  className="product-detail-sales-stat"
+                />
+
                 <div className="product-detail-actions">
                   <Button
                     size="lg"
                     className="product-detail-actions-primary product-detail-actions-btn"
-                    disabled={!canBuy}
-                    onClick={() => cart.addProduct(product.id)}
+                    disabled={!canAddToCart && !isRemakeRequest}
+                    onClick={handlePrimaryAction}
                   >
-                    {canBuy ? (
+                    {canAddToCart || isRemakeRequest ? (
                       <>
-                        <span className="md:hidden">{fa.product.addToCart}</span>
+                        <span className="md:hidden">{status.addToCartLabel}</span>
                         <span className="hidden md:inline">{status.addToCartLabel}</span>
                       </>
                     ) : (
@@ -206,6 +239,9 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   </h2>
                   <ProductAvailabilityPanel availability={product.availability} />
                 </section>
+
+                <ProductArtisansPanel product={product} className="product-detail-artisans-panel" />
+                <ProductStoneInsight product={product} className="product-detail-stone-insight" />
               </aside>
             </div>
 
@@ -215,6 +251,11 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
 
           </div>
         </div>
+
+        <ProductHighlights
+          product={product}
+          className="product-detail-highlights product-detail-highlights--top"
+        />
 
         <ProductSectionNav className="product-detail-section-nav" />
 
@@ -248,6 +289,8 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
           </section>
         ) : null}
       </div>
+
+      <MobileProductBuyBar product={product} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Pagination } from "@/components/ui/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { ORDERS_PAGE_SIZE } from "@/lib/pagination";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 const statusLabels: Record<CustomizerQuoteStatus, string> = {
   "pending-quote": fa.dashboard.quoteStatus.pending_quote,
@@ -139,14 +140,18 @@ export function QuoteRequestHistory({
 
   if (quotes.length === 0) {
     return (
-      <div className="order-history-empty">
-        <p>{fa.dashboard.quoteEmpty}</p>
-        <Link href="/customize">
-          <Button variant="outline" size="sm" className="mt-4">
-            {fa.dashboard.quoteStartCustomize}
-          </Button>
-        </Link>
-      </div>
+      <UnifiedEmptyState
+        visual="orders"
+        title={fa.dashboard.quoteEmpty}
+        className="order-history-empty"
+        action={
+          <Link href="/customize">
+            <Button variant="outline" size="sm">
+              {fa.dashboard.quoteStartCustomize}
+            </Button>
+          </Link>
+        }
+      />
     );
   }
 

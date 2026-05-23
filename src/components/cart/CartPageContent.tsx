@@ -24,6 +24,7 @@ import { CheckoutShippingForm, type CheckoutShippingFormState } from "@/componen
 import { useAccount } from "@/lib/hooks/useAccount";
 import { orderReceiptPath } from "@/lib/orders/order-receipt";
 import { computeShippingCost } from "@/lib/orders/shipping-cost";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 import type { CheckoutShippingInput } from "@/lib/checkout/shipping";
 import {
   checkoutProfileSummary,
@@ -188,17 +189,23 @@ export function CartPageContent() {
           </div>
         </motion.div>
       ) : cart.items.length === 0 ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="cart-empty-state">
-          <p className="font-display text-xl text-ivory">{fa.cart.empty}</p>
-          <p className="mt-2 text-silver">{fa.cart.emptyHint}</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/shop">
-              <Button>{fa.cart.explore}</Button>
-            </Link>
-            <Link href="/customize">
-              <Button variant="outline">{fa.nav.customize}</Button>
-            </Link>
-          </div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <UnifiedEmptyState
+            visual="cart"
+            title={fa.cart.empty}
+            description={fa.cart.emptyHint}
+            className="cart-empty-state"
+            action={
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link href="/shop">
+                  <Button>{fa.cart.explore}</Button>
+                </Link>
+                <Link href="/customize">
+                  <Button variant="outline">{fa.nav.customize}</Button>
+                </Link>
+              </div>
+            }
+          />
         </motion.div>
       ) : (
         <div className="cart-layout">

@@ -24,7 +24,48 @@ export type TextureStyle = "polished" | "brushed" | "matte" | "hammered" | "sand
 
 export type RingStyle = "solitaire" | "halo" | "vintage" | "signet" | "eternity" | "stackable";
 
+export type StoneSettingType = "prong" | "bezel" | "channel" | "pave" | "flush" | "gypsy";
+
+export type StoneClarityGrade =
+  | "FL"
+  | "IF"
+  | "VVS"
+  | "VS"
+  | "SI"
+  | "I"
+  | "eye-clean"
+  | "natural-inclusions";
+
+export type ProductOccasion =
+  | "engagement"
+  | "wedding"
+  | "anniversary"
+  | "birthday"
+  | "gift"
+  | "eid"
+  | "religious"
+  | "graduation"
+  | "everyday";
+
 export type ProductAvailability = "ready" | "preorder" | "sold" | "luxury" | "made-to-order";
+
+/**
+ * نوع کلی محصول — ستون فقرات شناسهٔ اثر (Piece Code) و دسته‌بندی فروشگاه.
+ * با اضافه‌شدن دسته‌های جدید (تسبیح، گردنبند، …) این اتحادیه گسترش می‌یابد
+ * و کد ۳-حرفی متناظر در `PRODUCT_TYPE_CODES` (lib/products/piece-code.ts) ثبت می‌شود.
+ */
+export type ProductType =
+  | "ring-men"      // RGM — انگشتر مردانه (پیش‌فرض فعلی فروشگاه)
+  | "ring-women"    // RGW — انگشتر زنانه
+  | "necklace"      // NCK — گردنبند
+  | "pendant"       // PND — آویز
+  | "bracelet"      // BRC — دستبند
+  | "bangle"        // BNG — النگو
+  | "earring"       // ERR — گوشواره
+  | "tasbih"        // TSB — تسبیح
+  | "cufflink"      // CFL — دکمه سرآستین
+  | "brooch"        // BRH — گل سینه
+  | "other";        // OTH — سایر آثار
 
 export type ProductCondition = "new" | "pre-owned";
 
@@ -39,6 +80,17 @@ export type EngravingMasterId =
   | "lotif"
   | "sadeghi"
   | "hakhamaneshi";
+
+export interface ProductArtisanAssignments {
+  /** استاد اصلی طراحی و ساخت رکاب */
+  shankDesignerId?: ShankMasterId;
+  /** استاد قلم‌کاری و نقش روی رکاب */
+  carvingMasterId?: EngravingMasterId;
+  /** استاد خوشنویسی/حکاکی روی رکاب */
+  bandEngraverId?: EngravingMasterId;
+  /** استاد حکاکی روی نگین */
+  stoneEngraverId?: EngravingMasterId;
+}
 
 export type StoneCategory = "religious" | "collection";
 
@@ -109,6 +161,61 @@ export interface Product {
   preOwned?: PreOwnedInfo;
   /** ISO 8601 — پایان تخفیف اختصاصی محصول (اولویت بر تایمر جشنواره) */
   discountEndsAt?: string;
+
+  // ——— مشخصات تکمیلی (تمامی فیلدها اختیاری‌اند؛ در صورت نبود، مقادیر پیش‌فرض از سایر فیلدها استخراج می‌شود) ———
+  /**
+   * نوع کلی اثر برای شناسهٔ اثر (Piece Code) و آمار گالری.
+   * اگر تعیین نشود، «انگشتر مردانه» در نظر گرفته می‌شود.
+   */
+  productType?: ProductType;
+  /**
+   * شناسهٔ اثر اختصاصی (مثل «NL-RGM-0042»).
+   * در صورت نبود، به‌صورت قطعی از `id` و `productType` تولید می‌شود
+   * تا هر اثر شناسهٔ یکتای پایدار و قابل اعلام به مشتری داشته باشد.
+   */
+  pieceCode?: string;
+  /** کد یکتای کارگاهی برای ردیابی اثر (deprecated — از `pieceCode` استفاده شود) */
+  sku?: string;
+  /** سایز پیش‌فرض انگشتر (نمرهٔ بین‌المللی) */
+  ringSize?: number;
+  /** بازهٔ سایز قابل تنظیم رایگان (پایین، بالا) */
+  ringSizeRange?: [number, number];
+  /** وزن کل اثر به گرم */
+  weightGrams?: number;
+  /** ابعاد نگین (متن آماده، مثال: «۸×۶ میلی‌متر») */
+  stoneDimensionsMm?: string;
+  /** وزن نگین به قیراط */
+  stoneWeightCarat?: number;
+  /** عرض رکاب در باریک‌ترین نقطه (میلی‌متر) */
+  bandWidthMm?: number;
+  /** نوع نشاندن نگین */
+  stoneSettingType?: StoneSettingType;
+  /** درجهٔ وضوح نگین */
+  stoneClarity?: StoneClarityGrade;
+  /** برچسب رنگ نگین (متن آزاد) */
+  stoneColorLabel?: string;
+  /** مهر/عیار فلز (مثل «0.925») — در صورت نبودن، از نوع فلز استخراج می‌شود */
+  metalStamp?: string;
+  /** برچسب رنگ ظاهری رکاب */
+  metalColorLabel?: string;
+  /** فهرست مناسبت‌های پیشنهادی برای هدیه */
+  occasions?: ProductOccasion[];
+  /** مدت گارانتی به سال */
+  warrantyYears?: number;
+  /** عدم وجود نیکل */
+  isNickelFree?: boolean;
+  /** ضدحساسیت */
+  isHypoallergenic?: boolean;
+  /** محل ساخت (پیش‌فرض: «ایران») */
+  craftedIn?: string;
+  /** نام کارگاه/استاد سازنده */
+  craftedBy?: string;
+  /** اتصال محصول به پروفایل استادکاران */
+  artisanAssignments?: ProductArtisanAssignments;
+  /** آیا تغییر سایز رایگان ارائه می‌شود */
+  freeResize?: boolean;
+  /** تاریخ نخستین عرضه (ISO) — برای نمایش «در گالری از…» */
+  firstAvailableAt?: string;
 }
 
 export interface PromoCodeDefinition {

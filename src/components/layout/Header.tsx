@@ -118,38 +118,39 @@ export function Header() {
         >
           <div className="mx-auto flex h-full max-w-[1639px] items-center px-4 md:px-8">
 
-            {/* ━━━ موبایل: هامبورگر | لوگو وسط | سبد ━━━ */}
+            {/* ━━━ موبایل: هامبورگر | لوگو وسط | جستجو ━━━
+                 (سبد و سایر تب‌ها در نوار پایین موبایل قرار دارند) */}
             <div className="flex w-full items-center justify-between lg:hidden">
               <button
                 type="button"
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-[#78716C] transition-colors hover:bg-[#F5F3EF]"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[#78716C] transition-colors active:scale-95 hover:bg-[#F5F3EF]"
                 aria-label={fa.nav.menu}
                 aria-expanded={mobileOpen}
               >
                 {mobileOpen
-                  ? <X    size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
-                  : <Menu size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
+                  ? <X    size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
+                  : <Menu size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
                 }
               </button>
 
               {/* لوگو مرکزی موبایل */}
-              <Link href="/" className="flex items-center gap-2">
-                <DiamondLogo className="text-gold" />
-                <span className="font-display text-lg font-semibold text-[#2C2A29]">
+              <Link href="/" className="flex items-center gap-1.5">
+                <DiamondLogo className="h-6 w-6 text-gold" />
+                <span className="font-display text-base font-semibold text-[#2C2A29]">
                   {fa.brand.name}
                 </span>
               </Link>
 
-              {/* آیکون سبد موبایل */}
-              <IconBtn
-                href="/cart"
-                label={fa.nav.cartItems(cart.count)}
-                badge={cart.count}
-                badgeGold
+              {/* دکمهٔ جستجو موبایل */}
+              <button
+                type="button"
+                onClick={openSearch}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[#78716C] transition-colors active:scale-95 hover:bg-[#F5F3EF]"
+                aria-label={fa.nav.search}
               >
-                <ShoppingBag size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
-              </IconBtn>
+                <Search size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
+              </button>
             </div>
 
             {/* ━━━ دسکتاپ: لوگو | منو | آیکون‌ها ━━━ */}

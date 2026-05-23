@@ -1,57 +1,71 @@
-import type { Product, RingStyle } from "@/lib/types";
-import { METAL_OPTIONS, STONE_OPTIONS, SHAPE_OPTIONS, ENGRAVING_STYLES } from "@/lib/constants";
+import type { Product } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
 import { cn } from "@/lib/utils";
+import {
+  getProductSpecGroups,
+  getProductSpecEntriesFlat,
+  type SpecEntry,
+} from "@/lib/products/product-specs";
 
-const styleLabels: Record<RingStyle, string> = {
-  solitaire: fa.shop.styles.solitaire,
-  halo: fa.shop.styles.halo,
-  vintage: fa.shop.styles.vintage,
-  signet: fa.shop.styles.signet,
-  eternity: fa.shop.styles.eternity,
-  stackable: fa.shop.styles.stackable,
-};
-
-export function getProductSpecEntries(product: Product) {
-  const metalLabel = METAL_OPTIONS.find((m) => m.value === product.metal)?.label ?? "";
-  const stoneLabel = STONE_OPTIONS.find((s) => s.value === product.stone)?.label ?? "";
-  const shapeLabel = SHAPE_OPTIONS.find((s) => s.value === product.stoneShape)?.label ?? "";
-  const engravingLabel =
-    product.engravingType === "none"
-      ? fa.shop.engravingOptions.none
-      : ENGRAVING_STYLES.find((e) => e.value === product.engravingType)?.label ?? "";
-
-  return [
-    { key: fa.shop.style, value: styleLabels[product.category] },
-    { key: fa.shop.quickViewMetal, value: metalLabel },
-    { key: fa.shop.quickViewStone, value: stoneLabel },
-    { key: fa.customize.labels.stoneShape, value: shapeLabel },
-    { key: fa.shop.engraving, value: engravingLabel },
-  ];
+/**
+ * فلت‌شده برای استفاده در صفحات قدیمی (مانند جدول مقایسه).
+ * منبع حقیقت: getProductSpecEntriesFlat
+ */
+export function getProductSpecEntries(product: Product): SpecEntry[] {
+  return getProductSpecEntriesFlat(product);
 }
 
 interface ProductSpecsProps {
   product: Product;
   className?: string;
-  /** When set, renders a visible heading inside the block (e.g. quick view). */
+  /** وقتی پر باشد، عنوانی داخل بلوک نمایش داده می‌شود (مثلاً در quick view). */
   title?: string;
+  /** حالت فشرده — فقط یک لیست تخت بدون گروه‌بندی (برای quick view). */
+  compact?: boolean;
 }
 
-export function ProductSpecs({ product, className, title }: ProductSpecsProps) {
-  const entries = getProductSpecEntries(product);
+export function ProductSpecs({ product, className, title, compact }: ProductSpecsProps) {
+  const groups = getProductSpecGroups(product);
   const ariaLabel = title ?? fa.product.featuresTitle;
 
+  if (compact) {
+    const entries = getProductSpecEntriesFlat(product);
+    return (
+      <section className={cn("product-specs", className)} aria-label={ariaLabel}>
+        {title ? <h3 className="product-specs__title">{title}</h3> : null}
+        <ul className="product-specs__list">
+          {entries.map(({ key, value }) => (
+            <li key={`${key}-${value}`}>
+              <span className="product-specs__key">{key}</span>
+              <span className="product-specs__val">{value}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
   return (
-    <section className={cn("product-specs", className)} aria-label={ariaLabel}>
+    <section
+      className={cn("product-specs product-specs--grouped", className)}
+      aria-label={ariaLabel}
+    >
       {title ? <h3 className="product-specs__title">{title}</h3> : null}
-      <ul className="product-specs__list">
-        {entries.map(({ key, value }) => (
-          <li key={key}>
-            <span className="product-specs__key">{key}</span>
-            <span className="product-specs__val">{value}</span>
-          </li>
+      <div className="product-specs__groups">
+        {groups.map((group) => (
+          <div key={group.id} className="product-specs__group">
+            <h4 className="product-specs__group-title">{group.title}</h4>
+            <ul className="product-specs__list">
+              {group.entries.map(({ key, value }) => (
+                <li key={`${group.id}-${key}`}>
+                  <span className="product-specs__key">{key}</span>
+                  <span className="product-specs__val">{value}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

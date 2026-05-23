@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { QUESTIONS_PAGE_SIZE } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 const QUESTION_BODY_MIN = 10;
 const QUESTION_BODY_MAX = 400;
@@ -213,10 +214,12 @@ export function ProductQuestions({ productId }: ProductQuestionsProps) {
               />
             </>
           ) : (
-            <div className="product-questions-empty">
-              <p className="product-questions-empty-title">{fa.product.questionsEmpty}</p>
-              <p className="product-questions-empty-text">{fa.product.questionsBeFirst}</p>
-            </div>
+            <UnifiedEmptyState
+              visual="questions"
+              title={fa.product.questionsEmpty}
+              description={fa.product.questionsBeFirst}
+              className="product-questions-empty"
+            />
           )}
         </div>
       </div>

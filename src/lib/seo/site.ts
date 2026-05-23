@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { fa } from "@/lib/i18n/fa";
 
 const DEFAULT_SITE_URL = "http://localhost:3000";
@@ -21,6 +21,21 @@ export function absoluteUrl(path: string): string {
 export function getDefaultOgImageUrl(): string {
   return absoluteUrl(DEFAULT_OG_IMAGE);
 }
+
+/**
+ * Viewport و theme-color جداگانه از metadata
+ * تا حس اپ موبایل native (status bar هم‌رنگ، notch، فول‌اسکرین) داشته باشیم.
+ */
+export const rootSiteViewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFFCF7" },
+    { media: "(prefers-color-scheme: dark)", color: "#1A1817" },
+  ],
+};
 
 export function rootSiteMetadata(): Metadata {
   const siteUrl = getSiteUrl();

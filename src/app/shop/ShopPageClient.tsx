@@ -19,6 +19,7 @@ import type { Product } from "@/lib/types";
 import { SliderHorizontal } from "@/components/icons";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 type ShopSortKey =
   | "bestselling"
@@ -264,18 +265,23 @@ function ShopPageContent() {
                     animate={{ opacity: 1 }}
                     className="shop-empty-state"
                   >
-                    <p className="font-display text-xl text-ivory">{emptyMessage}</p>
-                    <p className="mt-2 text-silver">{emptyHint}</p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        resetFilters();
-                        setFiltersOpen(false);
-                      }}
-                      className="shop-filter-reset mt-6"
-                    >
-                      {fa.shop.clearFilters}
-                    </button>
+                    <UnifiedEmptyState
+                      visual="shop"
+                      title={emptyMessage}
+                      description={emptyHint}
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => {
+                            resetFilters();
+                            setFiltersOpen(false);
+                          }}
+                          className="shop-filter-reset"
+                        >
+                          {fa.shop.clearFilters}
+                        </button>
+                      }
+                    />
                   </motion.div>
                 ) : (
                   <>

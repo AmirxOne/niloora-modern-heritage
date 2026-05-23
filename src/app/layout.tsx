@@ -1,6 +1,6 @@
 import { Cormorant_Garamond, Vazirmatn } from "next/font/google";
 import "@/styles/globals.css";
-import { rootSiteMetadata } from "@/lib/seo/site";
+import { rootSiteMetadata, rootSiteViewport } from "@/lib/seo/site";
 import { StoreProvider } from "@/lib/store/StoreProvider";
 import { AppProvider } from "@/lib/context/AppContext";
 import { Header } from "@/components/layout/Header";
@@ -27,6 +27,7 @@ const vazirmatn = Vazirmatn({
 });
 
 export const metadata = rootSiteMetadata();
+export const viewport = rootSiteViewport;
 
 export default function RootLayout({
   children,

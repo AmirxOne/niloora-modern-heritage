@@ -4,7 +4,12 @@
 
 @layer base {
   :root {
-    --header-height: 4.5rem;
+    --header-height: 3.5rem;
+    /* ━━━━ ابعاد نوار پایین موبایل ━━━━ */
+    --mobile-nav-height: 4rem;            /* ارتفاع تب‌بار */
+    --mobile-nav-height-safe: calc(
+      var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px)
+    );
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        رنگ‌های پایه سیستم طراحی
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -71,6 +76,28 @@
     -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "ss01", "ss02";
     overflow-x: hidden;
+    /* ━━━━ حس اپ موبایل ━━━━ */
+    -webkit-tap-highlight-color: transparent;
+    /* جلوگیری از over-scroll bounce در iOS مشابه اپ‌های native */
+    overscroll-behavior-y: contain;
+    /* جلوگیری از زوم دو-انگشتی روی فرم‌ها (همراه با font-size >= 16px در inputها) */
+    touch-action: manipulation;
+  }
+
+  /* ━━━━ غیرفعال‌کردن hover روی دستگاه‌های لمسی ━━━━ */
+  @media (hover: none) and (pointer: coarse) {
+    *:hover {
+      /* در دستگاه‌های لمسی، استایل hover معنی ندارد */
+      transition-property: none !important;
+    }
+  }
+
+  /* ━━━━ هدر و نوار پایین قابل انتخاب نباشند (مثل اپ native) ━━━━ */
+  .mobile-bottom-nav,
+  .header-glass,
+  .header-glass-solid {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   @media (min-width: 640px) {
@@ -110,6 +137,392 @@
 }
 
 @layer components {
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     نوار پایین موبایل (Bottom Tab Bar)
+     — حس اپ موبایل native، با safe-area iOS
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .mobile-bottom-nav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 45;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255, 252, 247, 0.92);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-top: 1px solid rgba(184, 134, 11, 0.12);
+    box-shadow: 0 -8px 24px -12px rgba(44, 42, 41, 0.12);
+  }
+
+  .mobile-bottom-nav__list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
+    height: var(--mobile-nav-height);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-bottom-nav__item {
+    display: flex;
+  }
+
+  .mobile-bottom-nav__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
+    min-height: 44px;
+    color: #78716c;
+    text-decoration: none;
+    transition: color 180ms ease;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+  }
+
+  .mobile-bottom-nav__link:active {
+    transform: scale(0.96);
+    transition: transform 100ms ease;
+  }
+
+  .mobile-bottom-nav__link--active {
+    color: var(--color-accent);
+  }
+
+  /* خط طلایی نازک بالای تب فعال — مثل iOS */
+  .mobile-bottom-nav__link--active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    inset-inline: 22%;
+    height: 2px;
+    background: var(--color-accent);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .mobile-bottom-nav__icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+  }
+
+  .mobile-bottom-nav__label {
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .mobile-bottom-nav__badge {
+    position: absolute;
+    top: -4px;
+    inset-inline-end: -6px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    border: 1.5px solid rgba(255, 252, 247, 0.95);
+  }
+
+  .mobile-bottom-nav__badge--gold {
+    background: var(--color-accent);
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     شمارهٔ اثر (Piece Number) — هویت‌نمای محصول
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .piece-number {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── کارت بزرگ (صفحهٔ محصول) ── */
+  .piece-number--card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background:
+      linear-gradient(180deg, rgba(184, 134, 11, 0.06) 0%, rgba(184, 134, 11, 0.02) 100%),
+      rgba(255, 252, 247, 0.85);
+    border: 1px solid rgba(184, 134, 11, 0.22);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 4px 16px -8px rgba(184, 134, 11, 0.18);
+  }
+
+  .piece-number__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .piece-number__label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #8b6914;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .piece-number__type {
+    font-size: 10px;
+    font-weight: 500;
+    color: #78716c;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(184, 134, 11, 0.08);
+    border: 1px solid rgba(184, 134, 11, 0.15);
+  }
+
+  .piece-number--card .piece-number__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .piece-number--card .piece-number__value {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #2c2a29;
+    letter-spacing: 0.06em;
+    user-select: all;
+    -webkit-user-select: all;
+  }
+
+  .piece-number__copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(184, 134, 11, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+    color: #8b6914;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 160ms ease, transform 100ms ease;
+  }
+
+  .piece-number__copy:hover {
+    background: rgba(184, 134, 11, 0.06);
+  }
+
+  .piece-number__copy:active {
+    transform: scale(0.96);
+  }
+
+  .piece-number__copy-label {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 480px) {
+    .piece-number--card .piece-number__copy-label {
+      display: none;
+    }
+  }
+
+  .piece-number__hint {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.45;
+    color: #78716c;
+  }
+
+  /* ── inline (یک‌خطی، در کارت و فاکتور) ── */
+  .piece-number--inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #78716c;
+  }
+
+  .piece-number__inline-label {
+    color: #a8a29e;
+  }
+
+  .piece-number--inline .piece-number__value {
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    font-weight: 600;
+    color: #5a5550;
+    letter-spacing: 0.05em;
+    direction: ltr;
+  }
+
+  .piece-number__copy--inline {
+    padding: 2px;
+    border-radius: 6px;
+    border: 0;
+    background: transparent;
+    color: #a8a29e;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .piece-number__copy--inline:hover {
+    color: #8b6914;
+    background: rgba(184, 134, 11, 0.08);
+  }
+
+  /* ── compact (روی کارت محصول / placeholderها) ── */
+  .piece-number--compact {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #a8a29e;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(184, 134, 11, 0.06);
+    border: 1px solid rgba(184, 134, 11, 0.12);
+    user-select: all;
+    -webkit-user-select: all;
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     نوار خرید چسبان موبایل (Mobile Buy Bar)
+     — مشابه اپ‌های شاپ native در صفحه محصول
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .mobile-product-buy-bar {
+    position: fixed;
+    inset-inline: 0;
+    /* بالای نوار تب موبایل می‌نشیند تا با آن هم‌پوشانی نداشته باشد */
+    bottom: var(--mobile-nav-height-safe);
+    z-index: 44;
+    padding: 8px 12px;
+    background: rgba(255, 252, 247, 0.97);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border-top: 1px solid rgba(184, 134, 11, 0.12);
+    box-shadow: 0 -10px 28px -14px rgba(44, 42, 41, 0.18);
+    transform: translateY(120%);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 200ms ease;
+  }
+
+  .mobile-product-buy-bar--visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-product-buy-bar__inner {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-product-buy-bar__media {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(184, 134, 11, 0.18);
+    background: rgba(245, 243, 239, 0.6);
+    flex-shrink: 0;
+  }
+
+  .mobile-product-buy-bar__info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mobile-product-buy-bar__name {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2c2a29;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+
+  .mobile-product-buy-bar__price {
+    margin: 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile-product-buy-bar__price-old {
+    font-size: 10px;
+    color: #a8a29e;
+    text-decoration: line-through;
+  }
+
+  .mobile-product-buy-bar__price-current {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--bahakahi-fg);
+  }
+
+  .mobile-product-buy-bar__price-currency {
+    font-size: 9px;
+    color: #78716c;
+  }
+
+  .mobile-product-buy-bar__cta {
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #c89c2b 0%, #a07514 100%);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: transform 100ms ease, opacity 180ms ease;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+
+  .mobile-product-buy-bar__cta:active {
+    transform: scale(0.96);
+  }
+
+  .mobile-product-buy-bar__cta--disabled {
+    background: #d6d3cf;
+    color: #78716c;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
   .glass-panel {
     @apply border border-gold/15 bg-matte-elevated/95 shadow-heritage backdrop-blur-md;
   }
@@ -953,16 +1366,20 @@
     @apply min-h-screen bg-matte;
   }
 
+  .info-page-shell {
+    @apply mx-auto max-w-5xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+  }
+
   .info-page-header {
-    @apply mb-8 text-center;
+    @apply mb-10 text-center;
   }
 
   .info-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-4xl;
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
   }
 
   .info-page-subtitle {
-    @apply mx-auto mt-3 max-w-xl text-sm leading-relaxed text-silver;
+    @apply mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
   }
 
   .info-page-content {
@@ -970,19 +1387,23 @@
   }
 
   .info-sections {
-    @apply space-y-10;
+    @apply space-y-4;
+  }
+
+  .info-section {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/65 p-5 shadow-sm md:p-7;
   }
 
   .info-section-title {
-    @apply font-display text-xl font-semibold text-ivory;
+    @apply font-display text-lg font-semibold text-ivory md:text-xl;
   }
 
   .info-section-p {
-    @apply mt-3 text-sm leading-[1.9] text-silver;
+    @apply mt-3 text-sm leading-[1.95] text-silver md:text-[15px];
   }
 
   .info-section-list {
-    @apply mt-3 list-disc space-y-2 ps-5 text-sm leading-relaxed text-silver;
+    @apply mt-3 list-disc space-y-2 ps-5 text-sm leading-relaxed text-silver md:text-[15px];
   }
 
   .info-contact-cards {
@@ -1018,11 +1439,11 @@
   }
 
   .faq-accordion {
-    @apply space-y-2;
+    @apply space-y-3;
   }
 
   .faq-accordion-item {
-    @apply overflow-hidden rounded-lg border border-gold/15 bg-matte-elevated/50;
+    @apply overflow-hidden rounded-heritage border border-gold/15 bg-white/80 shadow-sm;
   }
 
   .faq-accordion-trigger {
@@ -1043,32 +1464,436 @@
     @apply min-h-screen bg-matte;
   }
 
+  .blog-page-shell {
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+  }
+
   .blog-page-header {
     @apply mb-10 text-center;
   }
 
   .blog-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-4xl;
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
   }
 
   .blog-page-subtitle {
-    @apply mx-auto mt-3 max-w-xl text-sm leading-relaxed text-silver;
+    @apply mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
   }
 
   .blog-grid {
-    @apply grid gap-6 sm:grid-cols-2;
+    @apply grid gap-6 sm:grid-cols-2 xl:grid-cols-3;
   }
 
   .blog-empty {
-    @apply text-center text-silver;
+    @apply rounded-heritage-lg border border-gold/15 bg-white/70 px-4 py-10 text-center text-silver;
   }
 
   .blog-card {
-    @apply overflow-hidden rounded-xl border border-gold/15 bg-matte-elevated/80 transition-shadow hover:shadow-heritage;
+    @apply overflow-hidden rounded-xl border border-gold/15 bg-matte-elevated/85 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-heritage;
   }
 
   .blog-card-link {
     @apply block;
+  }
+
+  .support-page {
+    @apply bg-matte;
+  }
+
+  .support-page-shell {
+    @apply mx-auto max-w-4xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+  }
+
+  .support-page-header {
+    @apply mb-8 text-center;
+  }
+
+  .support-page-title {
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+  }
+
+  .support-page-subtitle {
+    @apply mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .support-page-content {
+    @apply mt-6;
+  }
+
+  .about-page {
+    @apply bg-matte;
+  }
+
+  .about-hero::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(ellipse at 50% 15%, rgba(184, 134, 11, 0.18), transparent 45%),
+      radial-gradient(ellipse at 80% 30%, rgba(26, 117, 105, 0.12), transparent 52%);
+  }
+
+  .about-hero-content {
+    @apply rounded-heritage-xl border border-gold/15 bg-matte-elevated/70 py-8 backdrop-blur-sm md:px-8;
+  }
+
+  .about-section-shell {
+    @apply rounded-heritage-xl border border-gold/10 bg-matte-elevated/70 p-6 shadow-heritage md:p-10;
+  }
+
+  .about-step-card {
+    @apply rounded-heritage-lg border border-gold/15 bg-white/70 shadow-sm transition-all hover:border-gold/25 hover:shadow-heritage;
+  }
+
+  .about-cta-shell {
+    @apply rounded-heritage-xl border border-gold/15 bg-matte-elevated/85 p-8 shadow-heritage md:p-10;
+  }
+
+  .artisans-page {
+    @apply bg-matte;
+  }
+
+  .artisans-page-shell {
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+  }
+
+  .artisans-page-header {
+    @apply mb-10 text-center;
+  }
+
+  .artisans-page-title {
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+  }
+
+  .artisans-page-subtitle {
+    @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .artisans-grid {
+    @apply grid gap-6 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .artisan-card {
+    @apply overflow-hidden rounded-heritage-lg border border-gold/15 bg-white/80 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-heritage;
+  }
+
+  .artisan-card-link {
+    @apply block;
+  }
+
+  .artisan-card-image {
+    @apply relative aspect-[4/3] bg-parchment/30;
+  }
+
+  .artisan-card-body {
+    @apply p-4 md:p-5;
+  }
+
+  .artisan-card-name {
+    @apply font-display text-lg font-semibold text-ivory;
+  }
+
+  .artisan-card-title {
+    @apply mt-1 text-sm text-gold-dark;
+  }
+
+  .artisan-card-specialty {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .artisan-card-exp {
+    @apply mt-3 text-xs text-turquoise-dark;
+  }
+
+  .artisan-detail-page {
+    @apply bg-matte;
+  }
+
+  .artisan-detail-shell {
+    @apply mx-auto max-w-5xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 p-5 shadow-heritage md:p-10;
+  }
+
+  .artisan-detail-top {
+    @apply grid gap-6 md:grid-cols-[220px_minmax(0,1fr)] md:gap-8;
+  }
+
+  .artisan-detail-image {
+    @apply relative aspect-[4/5] overflow-hidden rounded-heritage-lg border border-gold/15 bg-parchment/30;
+  }
+
+  .artisan-detail-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-widest text-gold-dark;
+  }
+
+  .artisan-detail-name {
+    @apply mt-2 font-display text-3xl text-ivory md:text-4xl;
+  }
+
+  .artisan-detail-title {
+    @apply mt-2 text-base text-gold-dark;
+  }
+
+  .artisan-detail-specialty {
+    @apply mt-2 text-sm text-turquoise-dark;
+  }
+
+  .artisan-detail-bio {
+    @apply mt-4 text-sm leading-[1.95] text-silver md:text-[15px];
+  }
+
+  .artisan-detail-tags {
+    @apply mt-5 flex flex-wrap gap-2;
+  }
+
+  .artisan-detail-tag {
+    @apply rounded-full border border-gold/15 bg-parchment/30 px-3 py-1 text-xs text-silver;
+  }
+
+  .artisan-detail-meta {
+    @apply mt-5 flex flex-wrap items-center gap-2 text-sm text-silver;
+  }
+
+  .artisan-detail-meta-sep {
+    @apply text-gold/60;
+  }
+
+  .artisan-detail-actions {
+    @apply mt-8 flex flex-wrap items-center gap-3;
+  }
+
+  .artisan-detail-back-link {
+    @apply inline-flex items-center rounded-full border border-gold/20 bg-white/70 px-4 py-2 text-sm text-silver transition-colors hover:border-gold/35 hover:text-ivory;
+  }
+
+  .artisan-detail-cta-link {
+    @apply inline-flex items-center rounded-full border border-turquoise/25 bg-turquoise/10 px-4 py-2 text-sm text-turquoise-dark transition-colors hover:bg-turquoise/15;
+  }
+
+  .product-detail-artisans-panel {
+    @apply mt-4;
+  }
+
+  .product-artisans-panel {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage;
+  }
+
+  .product-artisans-panel__head {
+    @apply mb-3;
+  }
+
+  .product-artisans-panel__title {
+    @apply font-display text-base font-semibold text-ivory;
+  }
+
+  .product-artisans-panel__subtitle {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-artisans-panel__list {
+    @apply space-y-3;
+  }
+
+  .product-artisans-panel__item {
+    @apply flex items-center gap-3 rounded-heritage border border-gold/10 bg-white/70 p-2.5;
+  }
+
+  .product-artisans-panel__media {
+    @apply relative h-14 w-14 shrink-0 overflow-hidden rounded-heritage border border-gold/15 bg-parchment/30;
+  }
+
+  .product-artisans-panel__body {
+    @apply min-w-0;
+  }
+
+  .product-artisans-panel__role {
+    @apply text-[11px] text-gold-dark;
+  }
+
+  .product-artisans-panel__name {
+    @apply block truncate text-sm font-semibold text-ivory transition-colors hover:text-turquoise-dark;
+  }
+
+  .product-artisans-panel__meta {
+    @apply text-xs text-silver;
+  }
+
+  .product-artisans-panel__footer {
+    @apply mt-3;
+  }
+
+  .product-artisans-panel__all-link {
+    @apply text-xs text-turquoise-dark hover:text-turquoise;
+  }
+
+  .unified-empty-state {
+    @apply mx-auto flex max-w-2xl flex-col items-center rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-6 py-8 text-center shadow-heritage md:px-10 md:py-10;
+  }
+
+  .unified-empty-state__visual {
+    @apply relative mb-5 h-40 w-full max-w-[280px];
+  }
+
+  .unified-empty-state__title {
+    @apply font-display text-2xl text-ivory;
+  }
+
+  .unified-empty-state__desc {
+    @apply mt-2 max-w-xl text-sm leading-relaxed text-silver;
+  }
+
+  .unified-empty-state__action {
+    @apply mt-6 flex flex-wrap items-center justify-center gap-3;
+  }
+
+  .product-detail-stone-insight {
+    @apply mt-4;
+  }
+
+  .product-stone-insight {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage;
+  }
+
+  .product-stone-insight__title {
+    @apply font-display text-base font-semibold text-ivory;
+  }
+
+  .product-stone-insight__subtitle {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .product-stone-insight__grid {
+    @apply mt-3 grid gap-3 sm:grid-cols-2;
+  }
+
+  .product-stone-insight__h3 {
+    @apply mb-1 text-xs font-semibold text-gold-dark;
+  }
+
+  .product-stone-insight__list {
+    @apply space-y-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-stone-insight__footer {
+    @apply mt-3;
+  }
+
+  .product-stone-insight__link {
+    @apply text-xs text-turquoise-dark hover:text-turquoise;
+  }
+
+  .stones-page {
+    @apply bg-matte;
+  }
+
+  .stones-page-shell {
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+  }
+
+  .stones-page-header {
+    @apply mb-10 text-center;
+  }
+
+  .stones-page-title {
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+  }
+
+  .stones-page-subtitle {
+    @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .stones-grid {
+    @apply grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .stone-card {
+    @apply rounded-heritage-lg border border-gold/15 bg-white/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-heritage;
+  }
+
+  .stone-card-link {
+    @apply block;
+  }
+
+  .stone-card-dot {
+    @apply mb-3 h-3.5 w-3.5 rounded-full ring-2 ring-white;
+  }
+
+  .stone-card-title {
+    @apply font-display text-xl text-ivory;
+  }
+
+  .stone-card-tagline {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .stone-card-meta {
+    @apply mt-3 text-xs text-silver;
+  }
+
+  .stones-page-footer-link {
+    @apply mt-8 text-center text-sm;
+  }
+
+  .stones-page-footer-link a {
+    @apply text-turquoise-dark hover:text-turquoise;
+  }
+
+  .stone-detail-page {
+    @apply bg-matte;
+  }
+
+  .stone-detail-shell {
+    @apply mx-auto max-w-5xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 p-5 shadow-heritage md:p-10;
+  }
+
+  .stone-detail-head {
+    @apply mb-8 text-center;
+  }
+
+  .stone-detail-dot {
+    @apply mx-auto mb-3 block h-4 w-4 rounded-full ring-2 ring-white;
+  }
+
+  .stone-detail-title {
+    @apply font-display text-3xl text-ivory md:text-5xl;
+  }
+
+  .stone-detail-subtitle {
+    @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .stone-detail-section {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/70 p-5 text-sm leading-[1.95] text-silver md:p-7;
+  }
+
+  .stone-detail-section h2 {
+    @apply mb-3 font-display text-2xl text-ivory;
+  }
+
+  .stone-detail-grid {
+    @apply mt-4 grid gap-4 md:grid-cols-2;
+  }
+
+  .stone-detail-card {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/70 p-5;
+  }
+
+  .stone-detail-card h3 {
+    @apply mb-2 font-display text-lg text-ivory;
+  }
+
+  .stone-detail-card ul {
+    @apply space-y-1 text-sm leading-relaxed text-silver;
+  }
+
+  .stone-detail-actions {
+    @apply mt-7 flex flex-wrap items-center gap-3;
+  }
+
+  .stone-detail-back {
+    @apply inline-flex items-center rounded-full border border-gold/20 bg-white/70 px-4 py-2 text-sm text-silver transition-colors hover:border-gold/35 hover:text-ivory;
+  }
+
+  .stone-detail-shop {
+    @apply inline-flex items-center rounded-full border border-turquoise/25 bg-turquoise/10 px-4 py-2 text-sm text-turquoise-dark transition-colors hover:bg-turquoise/15;
   }
 
   .blog-card-image {
@@ -1645,13 +2470,13 @@
   }
 
   .shop-product-grid {
-    @apply grid grid-cols-2 gap-3 sm:gap-3.5 lg:grid-cols-4 lg:gap-4;
-  }
-
-  @media (max-width: 1435px) {
-    .shop-product-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    /* الگوی یکدست کارت محصول در کل پروژه:
+       موبایل: 1
+       sm: 2
+       md: 3
+       lg: 4
+       xl: 5 */
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
   }
 
   .shop-product-range {
@@ -1975,7 +2800,7 @@
 
   .shop-product-card-heading-row {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.65rem;
   }
@@ -2607,6 +3432,10 @@
     @apply mt-0 rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-5;
   }
 
+  .product-detail-sales-stat {
+    @apply mt-3;
+  }
+
   .product-detail-side-panel .product-detail-discount-countdown {
     @apply mt-3;
   }
@@ -2766,7 +3595,105 @@
   }
 
   .product-detail-specs-content .product-specs__list {
-    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated/60 p-4 md:p-5;
+    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated/60 p-2 md:p-3;
+  }
+
+  /* ——— گروه‌بندی مشخصات (Materials, Stone, Dimensions, …) ——— */
+
+  .product-specs--grouped .product-specs__groups {
+    @apply grid gap-3 sm:grid-cols-2 sm:gap-4;
+  }
+
+  .product-specs--grouped .product-specs__group {
+    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated/60 p-3 md:p-4;
+  }
+
+  .product-specs--grouped .product-specs__group .product-specs__list {
+    @apply rounded-none border-0 bg-transparent p-0;
+  }
+
+  .product-specs--grouped .product-specs__group-title {
+    @apply mb-2 font-display text-sm font-semibold text-gold-dark md:text-base;
+  }
+
+  /* ——— نکات کلیدی (About this item) ——— */
+
+  .product-detail-highlights {
+    @apply mb-6;
+  }
+
+  .product-highlights {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-6;
+  }
+
+  .product-detail-highlights--top {
+    @apply mt-12 md:mt-14;
+  }
+
+  .product-highlights__head {
+    @apply mb-4 flex flex-col gap-1 border-b border-gold/10 pb-3 md:flex-row md:items-end md:justify-between;
+  }
+
+  .product-highlights__title {
+    @apply font-display text-xl font-semibold text-ivory md:text-2xl;
+  }
+
+  .product-highlights__subtitle {
+    @apply text-xs text-silver md:text-sm;
+  }
+
+  .product-highlights__list {
+    /* پیش‌فرض: ۵ ستون کنار هم، در عرض کم به‌صورت responsive می‌شکند */
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-5;
+  }
+
+  .product-highlights__item {
+    @apply flex items-start gap-3 rounded-heritage border border-gold/10 bg-parchment/20 p-3;
+  }
+
+  .product-highlights__icon {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/25 bg-ivory/5 text-gold-dark;
+  }
+
+  .product-highlights__body {
+    @apply flex flex-col gap-1 leading-relaxed;
+  }
+
+  .product-highlights__group {
+    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-dark;
+  }
+
+  .product-highlights__text {
+    @apply text-sm text-ivory;
+  }
+
+  .product-highlights__footer {
+    @apply mt-4 flex flex-col gap-3 border-t border-gold/10 pt-3 md:flex-row md:items-center md:justify-between;
+  }
+
+  .product-highlights__meta {
+    @apply inline-flex items-center gap-2 text-xs text-silver;
+  }
+
+  .product-highlights__meta-key {
+    @apply font-medium;
+  }
+
+  .product-highlights__meta-val {
+    @apply rounded-heritage border border-gold/25 bg-ivory/5 px-2 py-0.5 font-semibold text-ivory;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .product-highlights__occasions {
+    @apply flex flex-wrap items-center gap-2 text-xs text-silver;
+  }
+
+  .product-highlights__occasion-chips {
+    @apply flex flex-wrap gap-1.5;
+  }
+
+  .product-highlights__occasion-chip {
+    @apply inline-flex items-center rounded-full border border-gold/20 bg-ivory/5 px-2.5 py-1 text-[11px] text-ivory transition-colors hover:border-turquoise/40 hover:text-turquoise-dark;
   }
 
   .product-section-nav-list {
@@ -2803,7 +3730,7 @@
   }
 
   .product-detail-related-grid {
-    @apply grid gap-3 sm:grid-cols-2 sm:gap-3.5 lg:grid-cols-4 lg:gap-4;
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
   }
 
   .product-gallery {
@@ -3026,6 +3953,128 @@
   .product-sales-count-icon {
     @apply text-[10px] text-gold/70;
   }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     شمارگر فروش حرفه‌ای (Product Sales Stat)
+     — اثبات اجتماعی مشابه آمازون/دیجی‌کالا
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+  .product-sales-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background:
+      linear-gradient(180deg, rgba(26, 117, 105, 0.05) 0%, rgba(26, 117, 105, 0.01) 100%),
+      rgba(255, 252, 247, 0.85);
+    border: 1px solid rgba(26, 117, 105, 0.18);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 4px 16px -10px rgba(26, 117, 105, 0.18);
+  }
+
+  .product-sales-stat__icon-wrap {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f5249;
+    background: rgba(26, 117, 105, 0.10);
+    border: 1px solid rgba(26, 117, 105, 0.20);
+    position: relative;
+  }
+
+  /* نقطهٔ سبز نبض‌دار — حس فعال‌بودن فروش */
+  .product-sales-stat__icon-wrap::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-end: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2a9d8f;
+    border: 1.5px solid rgba(255, 252, 247, 0.95);
+    box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.6);
+    animation: product-sales-stat-pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes product-sales-stat-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(42, 157, 143, 0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(42, 157, 143, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(42, 157, 143, 0); }
+  }
+
+  .product-sales-stat__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .product-sales-stat__title {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #2c2a29;
+    font-weight: 500;
+  }
+
+  .product-sales-stat__count {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f5249;
+    font-variant-numeric: tabular-nums;
+    margin-inline-end: 2px;
+  }
+
+  .product-sales-stat__sub {
+    margin: 0;
+    font-size: 11px;
+    color: #78716c;
+    line-height: 1.4;
+  }
+
+  .product-sales-stat__chip {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #c89c2b 0%, #a07514 100%);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 8px -2px rgba(184, 134, 11, 0.4);
+  }
+
+  /* نسخهٔ compact برای کارت محصول یا کنار rating */
+  .product-sales-stat--compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(26, 117, 105, 0.08);
+    border: 1px solid rgba(26, 117, 105, 0.18);
+    color: #0f5249;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .product-sales-stat--compact .product-sales-stat__count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f5249;
+    margin: 0;
+  }
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
   .product-comments-list {

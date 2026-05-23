@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { COMMENTS_PAGE_SIZE } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 const COMMENT_BODY_MIN = 10;
 const COMMENT_BODY_MAX = 600;
@@ -265,10 +266,12 @@ export function ProductComments({ productId }: ProductCommentsProps) {
               />
             </>
           ) : (
-            <div className="product-comments-empty">
-              <p className="product-comments-empty-title">{fa.product.commentsEmpty}</p>
-              <p className="product-comments-empty-text">{fa.product.commentsBeFirst}</p>
-            </div>
+            <UnifiedEmptyState
+              visual="reviews"
+              title={fa.product.commentsEmpty}
+              description={fa.product.commentsBeFirst}
+              className="product-comments-empty"
+            />
           )}
         </div>
       </div>

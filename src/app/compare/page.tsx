@@ -7,6 +7,7 @@ import { useApp } from "@/lib/context/AppContext";
 import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { fa } from "@/lib/i18n/fa";
 import { Button } from "@/components/ui/Button";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 export default function ComparePage() {
   const { compareList } = useApp();
@@ -30,13 +31,17 @@ export default function ComparePage() {
         </header>
 
         {products.length === 0 ? (
-          <div className="compare-page__empty">
-            <h2>{fa.compare.emptyTitle}</h2>
-            <p>{fa.compare.emptyHint}</p>
-            <Link href="/shop">
-              <Button>{fa.compare.browseShop}</Button>
-            </Link>
-          </div>
+          <UnifiedEmptyState
+            visual="compare"
+            title={fa.compare.emptyTitle}
+            description={fa.compare.emptyHint}
+            className="compare-page__empty"
+            action={
+              <Link href="/shop">
+                <Button>{fa.compare.browseShop}</Button>
+              </Link>
+            }
+          />
         ) : (
           <ProductCompareTable products={products} />
         )}

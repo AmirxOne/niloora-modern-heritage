@@ -20,6 +20,7 @@ const COLS = [
     title: fa.footer.house,
     links: [
       { href: "/about",                      label: fa.footer.ourStory },
+      { href: "/artisans",                   label: fa.footer.artisans },
       { href: "/about#craftsmanship",        label: fa.footer.craftsmanship },
       { href: "/blog",                       label: fa.nav.blog },
       { href: "/account",                    label: fa.footer.myAccount },
@@ -28,6 +29,7 @@ const COLS = [
   {
     title: fa.footer.support,
     links: [
+      { href: "/stones",   label: "دانشنامه سنگ‌ها" },
       { href: "/faq",      label: fa.footer.faq },
       { href: "/terms",    label: fa.footer.terms },
       { href: "/privacy",  label: fa.footer.privacy },

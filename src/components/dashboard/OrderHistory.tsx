@@ -14,6 +14,7 @@ import { OrderStatusTimeline } from "@/components/orders/OrderStatusTimeline";
 import { Pagination } from "@/components/ui/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { ORDERS_PAGE_SIZE } from "@/lib/pagination";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 const statusLabels: Record<Order["status"], string> = {
   pending_payment: fa.dashboard.orderStatus.pending_payment,
@@ -246,13 +247,17 @@ export function OrderHistory({ orders, isLoading = false }: OrderHistoryProps) {
 
   if (orders.length === 0) {
     return (
-      <div className="order-history-empty">
-        <p className="font-display text-xl text-ivory">{fa.dashboard.noOrders}</p>
-        <p className="mt-2 text-sm text-silver">{fa.dashboard.noOrdersHint}</p>
-        <Link href="/shop" className="mt-6 inline-block">
-          <Button variant="outline">{fa.dashboard.browseCollection}</Button>
-        </Link>
-      </div>
+      <UnifiedEmptyState
+        visual="orders"
+        title={fa.dashboard.noOrders}
+        description={fa.dashboard.noOrdersHint}
+        className="order-history-empty"
+        action={
+          <Link href="/shop">
+            <Button variant="outline">{fa.dashboard.browseCollection}</Button>
+          </Link>
+        }
+      />
     );
   }
 

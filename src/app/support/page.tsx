@@ -16,16 +16,20 @@ export const metadata: Metadata = buildPageMetadata({
 export default function SupportPage() {
   return (
     <PageTransition>
-      <div className="pre-owned-sell-page min-h-screen pb-16 pt-24 md:pt-28">
-        <div className="site-container max-w-xl">
-          <header className="pre-owned-sell-header">
-            <span className="heritage-eyebrow">{s.eyebrow}</span>
-            <h1 className="pre-owned-sell-title">{s.title}</h1>
-            <p className="pre-owned-sell-subtitle">{s.subtitle}</p>
-          </header>
-          <Suspense fallback={<div className="sk h-96 w-full rounded-heritage-lg" />}>
-            <SupportRequestForm />
-          </Suspense>
+      <div className="support-page min-h-screen pb-24 pt-28 md:pt-32">
+        <div className="site-container">
+          <section className="support-page-shell">
+            <header className="support-page-header">
+              <span className="heritage-eyebrow">{s.eyebrow}</span>
+              <h1 className="support-page-title">{s.title}</h1>
+              <p className="support-page-subtitle">{s.subtitle}</p>
+            </header>
+            <div className="support-page-content">
+              <Suspense fallback={<div className="sk h-96 w-full rounded-heritage-lg" />}>
+                <SupportRequestForm />
+              </Suspense>
+            </div>
+          </section>
         </div>
       </div>
     </PageTransition>

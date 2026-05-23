@@ -10,6 +10,8 @@ import { TomanPrice, TomanPriceWithSuffix } from "@/components/commerce/TomanPri
 import { getProductStatusConfig } from "@/lib/product-status";
 import type { CartItem, ProductAvailability } from "@/lib/types";
 import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabilityBadge";
+import { PieceNumber } from "@/components/product/PieceNumber";
+import { resolvePieceCode } from "@/lib/products/piece-code";
 
 interface CartLineItemProps {
   item: CartItem;
@@ -54,6 +56,14 @@ export function CartLineItem({ item, onDecrease, onIncrease, onRemove }: CartLin
             ) : (
               <h3 className="cart-line-title">{item.name}</h3>
             )}
+            {item.productId && !isCustom ? (
+              <div className="mt-1">
+                <PieceNumber
+                  code={resolvePieceCode({ id: item.productId })}
+                  variant="inline"
+                />
+              </div>
+            ) : null}
             <p className="cart-line-unit">
               <TomanPrice amount={item.price} size="xs" />
               {item.listPrice != null && item.listPrice > item.price ? (
