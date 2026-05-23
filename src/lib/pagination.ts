@@ -2,6 +2,7 @@
 export const SHOP_PAGE_SIZE = 12;
 
 export const COMMENTS_PAGE_SIZE = 5;
+export const QUESTIONS_PAGE_SIZE = 5;
 export const ORDERS_PAGE_SIZE = 4;
 export const MODERATION_PAGE_SIZE = 6;
 

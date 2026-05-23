@@ -16,6 +16,7 @@
 - Account data sync: `hooks/useAccount.ts`
 - Preferences sync: `hooks/useUserPreferencesSync.ts` + `hooks/usePersistUserPreferences.ts`
 - App composition: `context/AppContext.tsx`
+- Product Q&A client flow: `hooks/useProductQuestions.ts`
 
 ## Redux Slice Overview
 - `auth`, `cart`, `wishlist`, `compareList`, `recentlyViewed`, `designs`, `promo`, `customizer`, `productSales`

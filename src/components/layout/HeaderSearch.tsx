@@ -109,159 +109,146 @@ export function HeaderSearch({ open, onClose }: HeaderSearchProps) {
   }, [query, open]);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {open ? (
-        <>
-          <motion.button
-            type="button"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[60] bg-stone-900/40 backdrop-blur-md"
-            aria-label={fa.common.close}
-            onClick={onClose}
-          />
-
-          <motion.div
-            role="search"
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="header-glass-solid fixed inset-x-0 top-[var(--header-height)] z-[60] border-b border-gold/15 shadow-heritage"
-          >
-            <div className="site-container mx-auto max-w-site py-5 md:py-6">
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[11px] font-medium tracking-wide text-turquoise-dark">
-                    {fa.nav.collection}
-                  </p>
-                  <h2 className="font-display text-lg font-semibold text-ivory md:text-xl">
-                    {fa.nav.search}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="inline-flex h-control-sm w-control-sm shrink-0 items-center justify-center rounded-full border border-gold/15 bg-matte-elevated text-silver transition-colors hover:border-gold/30 hover:text-ivory"
-                  aria-label={fa.common.close}
-                >
-                  <X size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-                </button>
-              </div>
-
-              <form onSubmit={handleSearch}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                  <div className="relative min-w-0 flex-1">
-                    <Search
-                      className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gold/70"
-                      variant={ICON_VARIANT}
-                      aria-hidden
-                    />
-                    <TextBox
-                      type="search"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder={fa.nav.searchPlaceholder}
-                      autoFocus
-                      autoComplete="off"
-                      inputClassName="w-full ps-12"
-                      className="w-full"
-                    />
-                  </div>
-                  <Button type="submit" size="lg" className="shrink-0 sm:min-w-[6.5rem]">
-                    <Search size={iconSizes.sm} variant={ICON_VARIANT} className="shrink-0" aria-hidden />
-                    {fa.nav.search}
-                  </Button>
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-silver">{fa.nav.searchHint}</p>
-              </form>
-
-              {query.trim().length >= PREVIEW_MIN_CHARS ? (
-                <div className="header-search-preview mt-5 border-t border-gold/10 pt-4">
-                  <p className="mb-2.5 text-[10px] font-medium tracking-heritage text-silver">
-                    {fa.shop.searchPreviewTitle}
-                  </p>
-                  {previewLoading ? (
-                    <p className="text-xs text-silver" aria-live="polite">
-                      {fa.shop.searchLoading}
-                    </p>
-                  ) : preview.length === 0 ? (
-                    <p className="text-xs text-silver">{fa.shop.searchPreviewEmpty}</p>
-                  ) : (
-                    <>
-                      <ul className="header-search-preview-list">
-                        {preview.map((product) => (
-                          <li key={product.id}>
-                            <Link
-                              href={`/product/${product.id}`}
-                              onClick={onClose}
-                              className="header-search-preview-item"
-                            >
-                              <span className="header-search-preview-thumb">
-                                <Image
-                                  src={product.image}
-                                  alt=""
-                                  fill
-                                  className="object-cover"
-                                  sizes="48px"
-                                />
-                              </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate text-sm font-medium text-ivory">
-                                  {product.namePersian || product.name}
-                                </span>
-                                <span className="block truncate">
-                                  <TomanPrice amount={product.price} size="xs" />
-                                </span>
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                      {previewTotal > PREVIEW_LIMIT ? (
-                        <button
-                          type="button"
-                          className="header-search-preview-all mt-2 text-xs text-turquoise-dark hover:text-turquoise"
-                          onClick={() => goToShopSearch(query)}
-                        >
-                          {fa.shop.searchViewAll(previewTotal)}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="header-search-preview-all mt-2 text-xs text-turquoise-dark hover:text-turquoise"
-                          onClick={() => goToShopSearch(query)}
-                        >
-                          {fa.shop.searchPageTitle}
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              ) : null}
-
-              <div className="mt-5 border-t border-gold/10 pt-4">
-                <p className="mb-2.5 text-[10px] font-medium tracking-heritage text-silver">
-                  {fa.nav.searchQuickLinks}
+        <motion.div
+          role="search"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          className="header-search-inline header-glass-solid overflow-hidden border-t border-gold/10"
+        >
+          <div className="site-container mx-auto max-w-site py-4 md:py-5">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-medium tracking-wide text-turquoise-dark">
+                  {fa.nav.collection}
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {quickLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={onClose}
-                      className="rounded-full border border-gold/15 bg-parchment/60 px-3.5 py-1.5 text-xs text-ivory-light transition-colors hover:border-gold/25 hover:bg-parchment hover:text-turquoise-dark"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                <h2 className="font-display text-lg font-semibold text-ivory md:text-xl">
+                  {fa.nav.search}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-control-sm w-control-sm shrink-0 items-center justify-center rounded-full border border-gold/15 bg-matte-elevated text-silver transition-colors hover:border-gold/30 hover:text-ivory"
+                aria-label={fa.common.close}
+              >
+                <X size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+              </button>
+            </div>
+
+            <form onSubmit={handleSearch}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
+                <div className="relative min-w-0 flex-1">
+                  <Search
+                    className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gold/70"
+                    variant={ICON_VARIANT}
+                    aria-hidden
+                  />
+                  <TextBox
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={fa.nav.searchPlaceholder}
+                    autoFocus
+                    autoComplete="off"
+                    inputClassName="w-full ps-12"
+                    className="w-full"
+                  />
                 </div>
+                <Button type="submit" size="lg" className="shrink-0 sm:min-w-[6.5rem]">
+                  <Search size={iconSizes.sm} variant={ICON_VARIANT} className="shrink-0" aria-hidden />
+                  {fa.nav.search}
+                </Button>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-silver">{fa.nav.searchHint}</p>
+            </form>
+
+            {query.trim().length >= PREVIEW_MIN_CHARS ? (
+              <div className="header-search-preview mt-5 border-t border-gold/10 pt-4">
+                <p className="mb-2.5 text-[10px] font-medium tracking-heritage text-silver">
+                  {fa.shop.searchPreviewTitle}
+                </p>
+                {previewLoading ? (
+                  <p className="text-xs text-silver" aria-live="polite">
+                    {fa.shop.searchLoading}
+                  </p>
+                ) : preview.length === 0 ? (
+                  <p className="text-xs text-silver">{fa.shop.searchPreviewEmpty}</p>
+                ) : (
+                  <>
+                    <ul className="header-search-preview-list">
+                      {preview.map((product) => (
+                        <li key={product.id}>
+                          <Link
+                            href={`/product/${product.id}`}
+                            onClick={onClose}
+                            className="header-search-preview-item"
+                          >
+                            <span className="header-search-preview-thumb">
+                              <Image
+                                src={product.image}
+                                alt=""
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium text-ivory">
+                                {product.namePersian || product.name}
+                              </span>
+                              <span className="block truncate">
+                                <TomanPrice amount={product.price} size="xs" />
+                              </span>
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    {previewTotal > PREVIEW_LIMIT ? (
+                      <button
+                        type="button"
+                        className="header-search-preview-all mt-2 text-xs text-turquoise-dark hover:text-turquoise"
+                        onClick={() => goToShopSearch(query)}
+                      >
+                        {fa.shop.searchViewAll(previewTotal)}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="header-search-preview-all mt-2 text-xs text-turquoise-dark hover:text-turquoise"
+                        onClick={() => goToShopSearch(query)}
+                      >
+                        {fa.shop.searchPageTitle}
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : null}
+
+            <div className="mt-5 border-t border-gold/10 pt-4">
+              <p className="mb-2.5 text-[10px] font-medium tracking-heritage text-silver">
+                {fa.nav.searchQuickLinks}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {quickLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={onClose}
+                    className="rounded-full border border-gold/15 bg-parchment/60 px-3.5 py-1.5 text-xs text-ivory-light transition-colors hover:border-gold/25 hover:bg-parchment hover:text-turquoise-dark"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </div>
-          </motion.div>
-        </>
+          </div>
+        </motion.div>
       ) : null}
     </AnimatePresence>
   );

@@ -41,6 +41,7 @@ export function mapDbProduct(product: DbProduct): Product {
     id: product.id,
     name: product.name,
     namePersian: product.namePersian,
+    introVideoUrl: product.introVideoUrl ?? undefined,
     listing: {
       tier: product.listing?.tier === "economy" ? "economy" : "premium",
       headline: product.listing?.headline ?? "",

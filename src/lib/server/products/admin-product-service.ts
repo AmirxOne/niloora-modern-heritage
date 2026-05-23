@@ -18,6 +18,7 @@ function productDataFromPayload(data: AdminProductPayload): Prisma.ProductCreate
     id: data.id,
     name: data.name,
     namePersian: data.namePersian,
+    introVideoUrl: data.introVideoUrl,
     price: data.price,
     listPrice: data.listPrice,
     discountPercent: data.discountPercent,
@@ -106,6 +107,7 @@ export async function updateAdminProduct(id: string, data: AdminProductPayload) 
       data: {
         name: data.name,
         namePersian: data.namePersian,
+        introVideoUrl: data.introVideoUrl,
         price: data.price,
         listPrice: data.listPrice,
         discountPercent: data.discountPercent,

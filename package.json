@@ -48,6 +48,7 @@
     "swiper": "^12.1.4",
     "telegram": "^2.26.22",
     "three": "^0.184.0",
+    "vaul": "^1.1.2",
     "yup": "^1.7.1"
   },
   "devDependencies": {

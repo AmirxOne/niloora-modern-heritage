@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/Button";
 import { OrderHistory } from "@/components/dashboard/OrderHistory";
 import { QuoteRequestHistory } from "@/components/dashboard/QuoteRequestHistory";
 import { CommentModeration } from "@/components/dashboard/CommentModeration";
+import { ProductQuestionsModeration } from "@/components/dashboard/ProductQuestionsModeration";
 import { useCatalogProducts } from "@/lib/hooks/useCatalogProducts";
 import { useAccount } from "@/lib/hooks/useAccount";
 import { AccountShell } from "@/components/account/AccountShell";
@@ -120,6 +121,10 @@ export default function AccountPage() {
         id: "moderation",
         label: fa.dashboard.commentModeration,
         badge: comments.pendingCount,
+      });
+      items.push({
+        id: "questions-moderation",
+        label: fa.dashboard.questionModeration,
       });
     }
     if (auth.user?.role === "admin") {
@@ -380,6 +385,17 @@ export default function AccountPage() {
           subtitle={fa.dashboard.commentModerationHint}
         >
           <CommentModeration />
+        </AccountSectionContainer>
+      );
+    }
+
+    if (activeSection === "questions-moderation") {
+      return (
+        <AccountSectionContainer
+          title={fa.dashboard.questionModeration}
+          subtitle={fa.dashboard.questionModerationHint}
+        >
+          <ProductQuestionsModeration />
         </AccountSectionContainer>
       );
     }

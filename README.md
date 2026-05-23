@@ -7,11 +7,13 @@ A production-grade Next.js 14 e-commerce platform for Persian (RTL) jewelry stor
 - Full RTL Persian-first storefront and account experience
 - Modern Heritage design system across layout, cards, and components
 - Advanced shop listing with filters, sorting, wishlist, compare, and pagination
-- Product detail pages with status handling, discounts, and commerce actions
+- Product detail pages with status handling, stacked pricing, section tabs, Q&A, and trust strips
+- Optional product intro video support (`introVideoUrl`) with admin management
 - Cart validation/sanitization API for unavailable, sold, or deleted products
 - Checkout pipeline with shipping methods, order timeline, and notifications
 - Admin APIs and dashboards for products, orders, promos, posts, support requests
 - Prisma + PostgreSQL backend layer with typed server services
+- Centralized modal system based on `vaul` (`src/components/ui/Modal.tsx`)
 - Integrated optional channels: OTP/SMS, Zarinpal payment, Sentry, Telegram sync
 
 ## Tech Stack
@@ -29,6 +31,8 @@ A production-grade Next.js 14 e-commerce platform for Persian (RTL) jewelry stor
 - `/` - Home
 - `/shop` - Catalog with filtering/sorting
 - `/product/[id]` - Product details
+- `/api/product-questions` - Product Q&A (list approved / submit question)
+- `/api/product-questions/[id]/answers` - Submit answer for a question
 - `/cart` - Cart
 - `/customize` - Ring customizer
 - `/account` - User account and order history
@@ -143,7 +147,7 @@ For faster onboarding of new team members:
 1. `README.md` (project overview and setup)
 2. `src/app/api/README.md` (API routes and server handlers)
 3. `src/lib/README.md` (business logic and utilities)
-4. `src/components/README.md` (UI and component organization)
+4. `src/components/README.md` (UI organization, shared Modal contract)
 
 ## Security
 

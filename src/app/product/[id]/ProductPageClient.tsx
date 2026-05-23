@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
-import { Heart } from "@/components/icons";
 import { ProductPriceDisplay } from "@/components/product/ProductPriceDisplay";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
@@ -17,17 +16,19 @@ import { ProductAvailabilityPanel } from "@/components/product/ProductAvailabili
 import { isProductPurchasable } from "@/lib/products/purchasability";
 import { getProductStatusConfig } from "@/lib/product-status";
 import { ProductComments } from "@/components/product/ProductComments";
+import { ProductQuestions } from "@/components/product/ProductQuestions";
+import { ProductSectionNav } from "@/components/product/ProductSectionNav";
+import { SalesTrustStrip } from "@/components/commerce/SalesTrustStrip";
 import { ProductCompareButton } from "@/components/product/ProductCompareButton";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 import { RecentlyViewedStrip } from "@/components/product/RecentlyViewedStrip";
 import { ProductRating } from "@/components/product/ProductRating";
 import { ProductSalesCount } from "@/components/product/ProductSalesCount";
-import { ICON_VARIANT, iconSizes } from "@/lib/icons";
-import { cn } from "@/lib/utils";
 import { PreOwnedBadge } from "@/components/pre-owned/PreOwnedBadge";
 import { PreOwnedProductPanel } from "@/components/pre-owned/PreOwnedProductPanel";
 import { ProductContentBrief } from "@/components/product/ProductContentBrief";
 import { ProductSpecs } from "@/components/product/ProductSpecs";
+import { ProductIntroVideo } from "@/components/product/ProductIntroVideo";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
 
 type Props = {
@@ -119,7 +120,6 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   }
 
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
-  const wished = wishlist.isWishlisted(product.id);
   const status = getProductStatusConfig(product.availability);
   const canBuy = isProductPurchasable(
     {
@@ -141,95 +141,99 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
           </div>
 
           <div className="product-detail-info">
-            <header className="product-detail-header">
-              <div className="product-detail-badges mb-3 flex flex-wrap gap-2">
-                {isPreOwnedProduct(product) ? <PreOwnedBadge size="md" /> : null}
-                {product.collection ? (
-                  <Badge variant="turquoise" className="w-fit">
-                    {product.collection}
-                  </Badge>
+            <div className="product-detail-top-layout">
+              <header className="product-detail-header">
+                <div className="product-detail-badges mb-3 flex flex-wrap gap-2">
+                  {isPreOwnedProduct(product) ? <PreOwnedBadge size="md" /> : null}
+                  {product.collection ? (
+                    <Badge variant="turquoise" className="w-fit">
+                      {product.collection}
+                    </Badge>
+                  ) : null}
+                </div>
+                <p className="product-detail-name-persian">{product.namePersian}</p>
+                <h1 className="product-detail-title">{product.name}</h1>
+                <div className="product-detail-meta">
+                  <ProductRating productId={product.id} size="md" />
+                  <ProductSalesCount productId={product.id} />
+                </div>
+                <ProductContentBrief listing={product.listing} className="product-detail-description" />
+                {product.introVideoUrl ? (
+                  <ProductIntroVideo
+                    url={product.introVideoUrl}
+                    title={product.namePersian || product.name}
+                    className="product-detail-intro-video"
+                  />
                 ) : null}
-              </div>
-              <p className="product-detail-name-persian">{product.namePersian}</p>
-              <h1 className="product-detail-title">{product.name}</h1>
-              <div className="product-detail-meta">
-                <ProductRating productId={product.id} size="md" />
-                <ProductSalesCount productId={product.id} />
-              </div>
-              <div className="product-detail-price">
-                <ProductPriceDisplay product={product} size="lg" layout="stack" />
-                <DiscountCountdown
-                  productId={product.id}
-                  endsAt={product.discountEndsAt}
-                  className="product-detail-discount-countdown"
-                />
-              </div>
-            </header>
+              </header>
 
-            <ProductContentBrief listing={product.listing} className="product-detail-description" />
+              <aside className="product-detail-side-panel">
+                <div className="product-detail-price">
+                  <ProductPriceDisplay product={product} size="lg" layout="stack" />
+                  <DiscountCountdown
+                    productId={product.id}
+                    endsAt={product.discountEndsAt}
+                    className="product-detail-discount-countdown"
+                  />
+                </div>
 
-            <section className="product-detail-section" aria-labelledby="product-features-heading">
-              <h2 id="product-features-heading" className="product-detail-section-title">
-                {fa.product.featuresTitle}
-              </h2>
-              <ProductSpecs product={product} />
-            </section>
+                <div className="product-detail-actions">
+                  <Button
+                    size="lg"
+                    className="product-detail-actions-primary product-detail-actions-btn"
+                    disabled={!canBuy}
+                    onClick={() => cart.addProduct(product.id)}
+                  >
+                    {canBuy ? (
+                      <>
+                        <span className="md:hidden">{fa.product.addToCart}</span>
+                        <span className="hidden md:inline">{status.addToCartLabel}</span>
+                      </>
+                    ) : (
+                      fa.commerce.quickAddSoldOut
+                    )}
+                  </Button>
+                  <div className="product-detail-actions-secondary">
+                    <ProductCompareButton productId={product.id} variant="detail" />
+                  </div>
+                </div>
+
+                <p className="product-detail-checkout-hint">{fa.commerce.productCheckoutHint}</p>
+
+                <section className="product-detail-side-section" aria-labelledby="product-availability-heading">
+                  <h2 id="product-availability-heading" className="product-detail-section-title">
+                    {fa.product.availabilityTitle}
+                  </h2>
+                  <ProductAvailabilityPanel availability={product.availability} />
+                </section>
+              </aside>
+            </div>
+
+            <div id="product-section-intro" />
 
             <PreOwnedProductPanel product={product} />
 
-            <section className="product-detail-section" aria-labelledby="product-availability-heading">
-              <h2 id="product-availability-heading" className="product-detail-section-title">
-                {fa.product.availabilityTitle}
-              </h2>
-              <ProductAvailabilityPanel availability={product.availability} />
-            </section>
-
-            <div className="product-detail-actions">
-              <Button
-                size="lg"
-                className="product-detail-actions-primary product-detail-actions-btn"
-                disabled={!canBuy}
-                onClick={() => cart.addProduct(product.id)}
-              >
-                {canBuy ? (
-                  <>
-                    <span className="md:hidden">{fa.product.addToCart}</span>
-                    <span className="hidden md:inline">{status.addToCartLabel}</span>
-                  </>
-                ) : (
-                  fa.commerce.quickAddSoldOut
-                )}
-              </Button>
-              <div className="product-detail-actions-secondary">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className={cn(
-                    "product-detail-actions-wishlist product-detail-actions-btn",
-                    wished && "product-detail-actions-wishlist--active"
-                  )}
-                  onClick={() => wishlist.toggle(product.id)}
-                  aria-pressed={wished}
-                >
-                  <Heart
-                    size={iconSizes.sm}
-                    variant={ICON_VARIANT}
-                    className={cn("shrink-0", wished && "fill-gold text-gold")}
-                    fill={wished ? "currentColor" : "none"}
-                    aria-hidden
-                  />
-                  <span>{wished ? fa.product.wishlisted : fa.product.wishlist}</span>
-                </Button>
-                <ProductCompareButton productId={product.id} variant="detail" />
-              </div>
-            </div>
-
-            <p className="product-detail-checkout-hint">{fa.commerce.productCheckoutHint}</p>
           </div>
         </div>
 
-        <section className="product-detail-comments">
+        <ProductSectionNav className="product-detail-section-nav" />
+
+        <section
+          id="product-section-specs"
+          className="product-detail-specs-content"
+          aria-label={fa.product.featuresTitle}
+        >
+          <ProductSpecs product={product} />
+        </section>
+
+        <SalesTrustStrip variant="dense" className="product-detail-trust" />
+
+        <section id="product-section-comments" className="product-detail-comments">
           <ProductComments productId={product.id} />
+        </section>
+
+        <section id="product-section-questions" className="product-detail-questions">
+          <ProductQuestions productId={product.id} />
         </section>
 
         <RecentlyViewedStrip

@@ -8,6 +8,7 @@ export const ACCOUNT_SECTION_IDS = [
   "recently-viewed",
   "designs",
   "moderation",
+  "questions-moderation",
 ] as const;
 
 export type AccountSectionId = (typeof ACCOUNT_SECTION_IDS)[number];

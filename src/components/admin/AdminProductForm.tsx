@@ -103,6 +103,14 @@ export function AdminProductForm({
           disabled={isSaving}
           inputClassName="auth-input-ltr"
         />
+        <TextBox
+          label={fa.admin.products.introVideoUrl}
+          value={values.introVideoUrl}
+          onChange={(e) => set("introVideoUrl", e.target.value)}
+          disabled={isSaving}
+          inputClassName="auth-input-ltr"
+          placeholder="https://cdn.example.com/product-intro.mp4"
+        />
         <SelectBox
           label={fa.admin.products.collection}
           value={values.collectionId}

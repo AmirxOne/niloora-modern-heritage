@@ -178,6 +178,26 @@
     z-index: 1;
   }
 
+  .footer-bazaar-head {
+    @apply mb-4 flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .footer-bazaar-top-btn {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-gold/20 bg-white/70 px-3 py-1.5 text-xs text-[#78716C] transition-colors hover:border-gold/35 hover:text-[#2C2A29];
+  }
+
+  .footer-bazaar-support-row {
+    @apply mb-7 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#78716C];
+  }
+
+  .footer-bazaar-support-sep {
+    @apply hidden text-[#b8b0a5] md:inline;
+  }
+
+  .footer-bazaar-trust {
+    @apply mb-8;
+  }
+
   .text-gradient-gold {
     @apply bg-gradient-to-l from-gold-light via-gold to-gold-dark bg-clip-text text-transparent;
   }
@@ -2557,19 +2577,71 @@
   }
 
   .product-detail-grid {
-    @apply grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-14 xl:gap-16;
+    @apply grid gap-10 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-start lg:gap-12 xl:gap-14;
   }
 
   .product-detail-media {
-    @apply flex flex-col gap-8;
+    @apply flex flex-col gap-6;
+  }
+
+  .product-detail-media .product-gallery {
+    @apply mx-auto w-full max-w-[23rem] sm:max-w-[26rem] md:max-w-[28rem] lg:max-w-[30rem];
+  }
+
+  .product-detail-media .product-gallery-frame {
+    @apply aspect-square;
+  }
+
+  .product-detail-media .product-gallery-nav {
+    @apply h-11 w-11;
+  }
+
+  .product-detail-media .product-gallery-thumb {
+    @apply h-[4.5rem] w-[4.5rem];
   }
 
   .product-detail-info {
-    @apply flex flex-col lg:sticky lg:top-24 lg:self-start;
+    @apply min-w-0 flex flex-col lg:sticky lg:top-24 lg:self-start;
+  }
+
+  .product-detail-top-layout {
+    @apply flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-8;
   }
 
   .product-detail-header {
     @apply border-b border-gold/10 pb-6;
+  }
+
+  .product-detail-side-panel {
+    @apply flex flex-col gap-6;
+  }
+
+  .product-detail-side-panel .product-detail-price {
+    @apply mt-0 rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-5;
+  }
+
+  .product-detail-side-panel .product-detail-discount-countdown {
+    @apply mt-3;
+  }
+
+  .product-detail-side-section {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-5;
+  }
+
+  .product-detail-side-section .product-detail-section-title {
+    @apply mb-3;
+  }
+
+  .product-detail-side-section .product-availability-panel {
+    @apply rounded-none border-none bg-transparent p-0 shadow-none;
+  }
+
+  .product-detail-side-panel .product-detail-actions {
+    @apply mt-0;
+  }
+
+  .product-detail-side-panel .product-detail-checkout-hint {
+    @apply mt-0;
   }
 
   .product-detail-name-persian {
@@ -2577,7 +2649,7 @@
   }
 
   .product-detail-title {
-    @apply mt-2 font-display text-3xl font-semibold leading-tight text-ivory md:text-4xl lg:text-[2.5rem];
+    @apply mt-2 font-display text-xl font-semibold leading-tight text-ivory md:text-2xl lg:text-[1.625rem];
   }
 
   .product-detail-meta {
@@ -2590,6 +2662,24 @@
 
   .product-detail-description {
     @apply mt-6;
+  }
+
+  .product-detail-intro-video {
+    @apply mt-4;
+  }
+
+  .product-intro-video {
+    @apply relative w-full overflow-hidden rounded-heritage-lg border border-gold/15 bg-matte;
+    aspect-ratio: 16 / 9;
+  }
+
+  .product-intro-video-element,
+  .product-intro-video-embed {
+    @apply h-full w-full;
+  }
+
+  .product-intro-video-embed {
+    @apply border-0;
   }
 
   .product-content-brief {
@@ -2661,7 +2751,7 @@
   }
 
   .product-detail-actions-compare {
-    @apply w-full gap-2;
+    @apply col-span-full w-full justify-center gap-2;
   }
 
   .product-detail-checkout-hint {
@@ -2673,7 +2763,47 @@
   }
 
   .product-detail-comments {
+    @apply mt-16 pt-0 md:mt-20 md:pt-0;
+  }
+
+  .product-detail-section-nav {
+    @apply sticky top-[4.5rem] z-20 mt-12 border-y border-gold/10 bg-matte/95 py-2 backdrop-blur-md md:top-20 md:mt-16;
+  }
+
+  .product-detail-specs-content {
+    @apply pt-6;
+  }
+
+  .product-detail-specs-content .product-specs {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .product-detail-specs-content .product-specs__list {
+    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated/60 p-4 md:p-5;
+  }
+
+  .product-section-nav-list {
+    @apply flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  }
+
+  .product-section-nav-btn {
+    @apply shrink-0 rounded-full border border-transparent px-4 py-2 text-sm text-silver transition-colors hover:text-ivory;
+  }
+
+  .product-section-nav-btn--active {
+    @apply border-gold/30 bg-gold/10 font-medium text-ivory;
+  }
+
+  .product-detail-questions {
     @apply mt-16 border-t border-gold/10 pt-16 md:mt-20 md:pt-20;
+  }
+
+  .product-detail-trust {
+    @apply mt-16 border-t border-gold/10 pt-10 md:mt-20 md:pt-12;
+  }
+
+  .product-detail-trust .site-container {
+    @apply px-0;
   }
 
   .product-detail-related {
@@ -3024,6 +3154,148 @@
 
   .product-comment-success-action {
     @apply mt-3 text-sm font-medium text-turquoise-dark underline-offset-4 hover:text-turquoise hover:underline;
+  }
+
+  /* ——— پرسش‌های محصول ——— */
+
+  .product-questions {
+    @apply w-full;
+  }
+
+  .product-questions-header {
+    @apply mb-8 md:mb-10;
+  }
+
+  .product-questions-title {
+    @apply font-display text-2xl font-semibold text-ivory md:text-3xl;
+  }
+
+  .product-questions-subtitle {
+    @apply mt-2 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .product-questions-layout {
+    @apply grid gap-8 lg:grid-cols-[minmax(0,20rem)_1fr] lg:gap-10 xl:grid-cols-[minmax(0,22rem)_1fr] xl:gap-12;
+  }
+
+  .product-questions-aside {
+    @apply flex flex-col gap-6;
+  }
+
+  .product-questions-main {
+    @apply min-w-0;
+  }
+
+  .product-questions-toolbar {
+    @apply mb-5 flex flex-col gap-3 border-b border-gold/10 pb-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .product-questions-toolbar-count {
+    @apply text-sm font-medium text-ivory;
+  }
+
+  .product-questions-list {
+    @apply space-y-4;
+  }
+
+  .product-question-form-wrap {
+    @apply rounded-heritage-lg border border-gold/15 bg-parchment/25 p-5 shadow-heritage md:p-6;
+  }
+
+  .product-question-form-title {
+    @apply font-display text-lg font-medium text-ivory;
+  }
+
+  .product-question-form-hint {
+    @apply mt-2 text-xs leading-relaxed text-silver;
+  }
+
+  .product-question-form {
+    @apply mt-5 space-y-5;
+  }
+
+  .product-question-success {
+    @apply mt-4 rounded-heritage border border-turquoise/25 bg-turquoise/5 px-4 py-4 text-sm leading-relaxed text-turquoise-dark;
+  }
+
+  .product-question-success-action {
+    @apply mt-3 text-sm font-medium text-turquoise-dark underline-offset-4 hover:text-turquoise hover:underline;
+  }
+
+  .product-questions-empty {
+    @apply flex min-h-[16rem] flex-col items-center justify-center rounded-heritage-lg border border-dashed border-gold/20 bg-parchment/20 px-6 py-12 text-center;
+  }
+
+  .product-questions-empty-title {
+    @apply font-display text-xl text-ivory;
+  }
+
+  .product-questions-empty-text {
+    @apply mt-2 max-w-md text-sm leading-relaxed text-silver;
+  }
+
+  .product-question-card {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/80 p-5 shadow-heritage md:p-6;
+  }
+
+  .product-question-body {
+    @apply text-base leading-relaxed text-ivory;
+  }
+
+  .product-question-meta {
+    @apply mt-2 text-xs text-silver;
+  }
+
+  .product-question-answers {
+    @apply mt-5 space-y-4 border-t border-gold/10 pt-5;
+  }
+
+  .product-question-answer {
+    @apply me-0 ms-4 border-s-2 border-gold/20 ps-4;
+  }
+
+  .product-question-answer-header {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .product-question-answer-author {
+    @apply text-sm font-medium text-ivory;
+  }
+
+  .product-question-official-badge {
+    @apply rounded-full border border-turquoise/25 bg-turquoise/10 px-2 py-0.5 text-[10px] font-medium text-turquoise-dark;
+  }
+
+  .product-question-answer-body {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .product-question-answer-date {
+    @apply mt-2 block text-[11px] text-silver/80;
+  }
+
+  .product-question-more-answers {
+    @apply mt-3 text-sm font-medium text-turquoise-dark underline-offset-4 hover:text-turquoise hover:underline;
+  }
+
+  .product-question-answer-cta {
+    @apply mt-4 text-sm font-medium text-gold transition-colors hover:text-gold-dark;
+  }
+
+  .product-question-answer-form {
+    @apply mt-4 space-y-4 border-t border-gold/10 pt-4;
+  }
+
+  .product-question-answer-form-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .product-question-answer-pending {
+    @apply mt-4 text-xs leading-relaxed text-turquoise-dark;
+  }
+
+  .product-questions-pagination {
+    @apply mt-8;
   }
 
   /* ——— مدیریت نظرات (ادمین) ——— */

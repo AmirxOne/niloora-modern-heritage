@@ -20,4 +20,15 @@ Domain-driven UI folders. Read only the folder related to your task.
 ## Hard Rules
 - Import form fields from `@/components/inputs`
 - Import icons from `@/components/icons`
+- Import modal/dialog from `@/components/ui/Modal` (centralized on `vaul`)
 - Prefer composing domain components over duplicating markup
+
+## Modal Contract
+- Canonical modal lives in `src/components/ui/Modal.tsx`
+- Props:
+  - `isOpen: boolean`
+  - `onClose: () => void`
+  - `title?: string`
+  - `size?: "sm" | "md" | "lg" | "xl"`
+  - `panelClassName?: string`
+- Do not introduce ad-hoc modal wrappers in feature folders unless absolutely required.

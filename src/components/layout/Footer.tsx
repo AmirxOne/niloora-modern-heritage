@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowUpLeft } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
+import { SalesTrustStrip } from "@/components/commerce/SalesTrustStrip";
+import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 
 const COLS = [
   {
@@ -35,9 +38,40 @@ const COLS = [
 ];
 
 export function Footer() {
+  const scrollToTop = () => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <footer className="footer-bazaar w-full">
       <div className="mx-auto max-w-[1639px] px-4 py-14 md:px-8 md:py-20">
+        <div className="footer-bazaar-head">
+          <Link
+            href="/"
+            className="inline-flex items-center text-xl font-bold text-[#2C2A29] transition-colors hover:text-[#B8860B] md:text-2xl"
+          >
+            {fa.brand.name}
+          </Link>
+          <button type="button" onClick={scrollToTop} className="footer-bazaar-top-btn">
+            <span>{fa.footer.backToTop}</span>
+            <ArrowUpLeft size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+          </button>
+        </div>
+
+        <div className="footer-bazaar-support-row">
+          <p>{`تلفن پشتیبانی ${fa.footer.supportPrimaryPhone}`}</p>
+          <span className="footer-bazaar-support-sep" aria-hidden>
+            |
+          </span>
+          <p dir="ltr">{fa.footer.supportSecondaryPhone}</p>
+          <span className="footer-bazaar-support-sep" aria-hidden>
+            |
+          </span>
+          <p>{fa.footer.supportHours}</p>
+        </div>
+
+        <SalesTrustStrip className="footer-bazaar-trust" />
 
         {/* ── شبکه 4 ستونه ── */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">

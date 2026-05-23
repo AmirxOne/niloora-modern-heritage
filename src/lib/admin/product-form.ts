@@ -13,6 +13,7 @@ export type AdminProductFormValues = {
   id: string;
   name: string;
   namePersian: string;
+  introVideoUrl: string;
   price: string;
   listPrice: string;
   discountPercent: string;
@@ -37,6 +38,7 @@ export function emptyAdminProductForm(): AdminProductFormValues {
     id: "",
     name: "",
     namePersian: "",
+    introVideoUrl: "",
     price: "",
     listPrice: "",
     discountPercent: "",
@@ -63,6 +65,7 @@ export function adminProductToForm(product: AdminProductDto): AdminProductFormVa
     id: product.id,
     name: product.name,
     namePersian: product.namePersian,
+    introVideoUrl: product.introVideoUrl ?? "",
     price: String(product.price),
     listPrice: product.listPrice != null ? String(product.listPrice) : "",
     discountPercent:
@@ -89,6 +92,7 @@ export function adminProductFormToPayload(values: AdminProductFormValues) {
     id: values.id,
     name: values.name,
     namePersian: values.namePersian,
+    introVideoUrl: values.introVideoUrl || null,
     price: values.price,
     listPrice: values.listPrice || null,
     discountPercent: values.discountPercent || null,

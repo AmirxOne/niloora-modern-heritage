@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { orderHasReceipt, orderReceiptPath } from "@/lib/orders/order-receipt";
 import type { Order } from "@/lib/types";
-import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { TomanPrice, TomanPriceWithSuffix } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";

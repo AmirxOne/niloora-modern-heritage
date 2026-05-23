@@ -273,6 +273,20 @@ export function Header() {
 
         <HeaderSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
       </header>
+      <AnimatePresence>
+        {searchOpen ? (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="fixed inset-0 z-40 bg-stone-900/30"
+            aria-label={fa.common.close}
+            onClick={() => setSearchOpen(false)}
+          />
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

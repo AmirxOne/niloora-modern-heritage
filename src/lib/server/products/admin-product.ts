@@ -48,6 +48,7 @@ export type AdminProductPayload = {
   id: string;
   name: string;
   namePersian: string;
+  introVideoUrl: string | null;
   price: number;
   listPrice: number | null;
   discountPercent: number | null;
@@ -89,6 +90,16 @@ function parseOptionalPercent(value: unknown): number | null {
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0 || n > 95) return null;
   return Math.round(n);
+}
+
+function parseOptionalVideoUrl(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  if (/^https?:\/\/\S+$/i.test(raw) || /^\/\S+/.test(raw)) {
+    return raw;
+  }
+  return undefined;
 }
 
 export function resolveProductPricing(input: {
@@ -166,6 +177,11 @@ export function parseAdminProductBody(
   }
 
   const pricing = resolveProductPricing({ price, listPrice, discountPercent });
+
+  const introVideoParsed = parseOptionalVideoUrl(body.introVideoUrl);
+  if (body.introVideoUrl !== undefined && introVideoParsed === undefined) {
+    return { ok: false, message: "آدرس ویدیو نامعتبر است." };
+  }
 
   const image = String(body.image ?? "").trim();
   if (!image.startsWith("/") && !image.startsWith("http")) {
@@ -246,6 +262,7 @@ export function parseAdminProductBody(
       id,
       name,
       namePersian,
+      introVideoUrl: introVideoParsed ?? null,
       price: pricing.price,
       listPrice: pricing.listPrice,
       discountPercent: pricing.discountPercent,

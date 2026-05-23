@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { Product } from "@/lib/types";
 import { getProductPricing } from "@/lib/pricing";

@@ -36,6 +36,12 @@ All handlers are in `route.ts`. Business logic should stay in `src/lib/server/*`
 - `GET /api/products` - catalog + max price
 - `GET /api/products/search?q=` - catalog + telegram text search (used by header preview and `/shop?q=`)
 - `GET /api/products/[id]` - product details + related
+- `GET /api/product-questions?productId=...&status=approved` - list approved product questions + answers
+- `POST /api/product-questions` - submit pending product question (requires session)
+- `POST /api/product-questions/[id]/answers` - submit pending answer for approved question (requires session)
+- `GET /api/product-questions/pending` - admin pending queue for questions and answers
+- `PATCH /api/product-questions/[id]` - admin approve/reject question
+- `PATCH /api/product-questions/answers/[id]` - admin approve/reject answer
 - `GET /api/products/pre-owned` - pre-owned catalog
 - `GET /api/products/sales` - sold quantity aggregation
 - `GET /api/collections` - collection metadata

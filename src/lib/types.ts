@@ -86,6 +86,7 @@ export interface Product {
   id: string;
   name: string;
   namePersian: string;
+  introVideoUrl?: string;
   listing: ProductListing;
   price: number;
   listPrice?: number;
@@ -233,6 +234,26 @@ export interface ProductComment {
   rating: number;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+}
+
+export interface ProductQuestionAnswer {
+  id: string;
+  questionId: string;
+  authorName: string;
+  body: string;
+  status: "pending" | "approved" | "rejected";
+  isOfficial: boolean;
+  createdAt: string;
+}
+
+export interface ProductQuestion {
+  id: string;
+  productId: string;
+  authorName: string;
+  body: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+  answers: ProductQuestionAnswer[];
 }
 
 export interface UserProfile {
