@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
-import type { AdminProductPayload } from "@/lib/server/products/admin-product";
+import { resolveProductPricing, type AdminProductBulkPayload, type AdminProductPayload } from "@/lib/server/products/admin-product";
 import {
   adminProductInclude,
   toAdminProductDto,
@@ -176,4 +176,58 @@ export async function updateAdminProduct(id: string, data: AdminProductPayload) 
 
 export async function deleteAdminProduct(id: string) {
   await prisma.product.delete({ where: { id } });
+}
+
+export async function bulkUpdateAdminProducts(data: AdminProductBulkPayload) {
+  const targets = await prisma.product.findMany({
+    where: { id: { in: data.ids } },
+    select: { id: true, price: true, listPrice: true, discountPercent: true },
+  });
+  if (targets.length === 0) {
+    return { updated: [], missingIds: data.ids };
+  }
+
+  const targetById = new Map(targets.map((item) => [item.id, item]));
+  const missingIds = data.ids.filter((id) => !targetById.has(id));
+
+  await prisma.$transaction(
+    targets.map((item) => {
+      const updateData: Prisma.ProductUpdateInput = {};
+
+      if (data.price !== undefined || data.discountPercent !== undefined) {
+        const nextPrice = data.price ?? item.price;
+        const pricing = resolveProductPricing({
+          price: nextPrice,
+          listPrice: item.listPrice,
+          discountPercent: data.discountPercent !== undefined ? data.discountPercent : item.discountPercent,
+        });
+        updateData.price = pricing.price;
+        updateData.listPrice = pricing.listPrice;
+        updateData.discountPercent = pricing.discountPercent;
+      }
+
+      if (data.stock !== undefined) {
+        updateData.stock = data.stock;
+      }
+      if (data.availability !== undefined) {
+        updateData.availability = data.availability;
+      }
+
+      return prisma.product.update({
+        where: { id: item.id },
+        data: updateData,
+      });
+    })
+  );
+
+  const updatedRows = await prisma.product.findMany({
+    where: { id: { in: targets.map((item) => item.id) } },
+    include: adminProductInclude,
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return {
+    updated: updatedRows.map(toAdminProductDto),
+    missingIds,
+  };
 }

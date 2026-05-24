@@ -9,6 +9,11 @@ const sliderProductInclude = {
   preOwnedInfo: true,
   images: { orderBy: { sortOrder: "asc" as const } },
   collection: true,
+  ugcMedia: {
+    where: { status: "approved" },
+    orderBy: { createdAt: "desc" as const },
+    take: 20,
+  },
 } satisfies Prisma.ProductInclude;
 
 export async function listAdminSliderItems(): Promise<HomeSliderItemDto[]> {

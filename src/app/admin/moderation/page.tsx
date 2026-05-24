@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { CommentModeration } from "@/components/dashboard/CommentModeration";
 import { ProductQuestionsModeration } from "@/components/dashboard/ProductQuestionsModeration";
+import { UgcModeration } from "@/components/dashboard/UgcModeration";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { fa } from "@/lib/i18n/fa";
@@ -32,6 +33,9 @@ export default function AdminModerationPage() {
                 <Link href="/admin/support-requests" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.supportRequests.navLabel}
                 </Link>
+                <Link href="/admin/back-in-stock-alerts" className="text-turquoise-dark hover:text-turquoise">
+                  {fa.admin.backInStockAlerts.navLabel}
+                </Link>
                 <Link href="/account" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.backToAccount}
                 </Link>
@@ -44,6 +48,10 @@ export default function AdminModerationPage() {
 
             <section>
               <ProductQuestionsModeration />
+            </section>
+
+            <section>
+              <UgcModeration />
             </section>
           </div>
         </div>

@@ -20,6 +20,7 @@ export function AdminPromoCodesPanel() {
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<AdminPromoFormValues>(emptyAdminPromoForm());
+  const [csvReport, setCsvReport] = useState<string[]>([]);
 
   useEffect(() => {
     if (admin.isAdmin) void admin.loadPromoCodes();
@@ -85,7 +86,36 @@ export function AdminPromoCodesPanel() {
         >
           {fa.admin.promoCodes.refresh}
         </Button>
+        <Button type="button" variant="outline" onClick={() => void admin.exportCsv()}>
+          خروجی CSV
+        </Button>
+        <label className="admin-csv-upload-btn">
+          ورود CSV
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            hidden
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const result = await admin.importCsv(file);
+              if (result?.errors?.length) {
+                setCsvReport(result.errors.slice(0, 20).map((item) => `ردیف ${item.row}: ${item.message}`));
+              } else {
+                setCsvReport([]);
+              }
+              e.currentTarget.value = "";
+            }}
+          />
+        </label>
       </div>
+      {csvReport.length > 0 ? (
+        <div className="admin-csv-report">
+          {csvReport.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+      ) : null}
 
       {mode ? (
         <section className="admin-order-card mb-6">

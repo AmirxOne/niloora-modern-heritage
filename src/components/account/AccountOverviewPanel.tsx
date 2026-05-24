@@ -7,6 +7,8 @@ import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { Button } from "@/components/ui/Button";
 import { AccountStatTiles } from "@/components/account/AccountStatTiles";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
+import type { LoyaltySummary } from "@/lib/types";
+import { AccountLoyaltyClubCard } from "./AccountLoyaltyClubCard";
 
 type AccountStats = {
   orderCount: number;
@@ -18,9 +20,11 @@ type AccountStats = {
 
 export function AccountOverviewPanel({
   stats,
+  loyalty,
   onNavigate,
 }: {
   stats: AccountStats;
+  loyalty: LoyaltySummary | null;
   onNavigate: (section: string) => void;
 }) {
   const shortcuts = [
@@ -67,6 +71,7 @@ export function AccountOverviewPanel({
       </div>
 
       <AccountStatTiles stats={stats} onTileClick={onNavigate} />
+      {loyalty ? <AccountLoyaltyClubCard loyalty={loyalty} /> : null}
 
       <div>
         <h3 className="account-subsection-title">دسترسی سریع</h3>

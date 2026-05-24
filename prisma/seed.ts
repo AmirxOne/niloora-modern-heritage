@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Prisma, PrismaClient } from "@prisma/client";
+import { createHash } from "node:crypto";
 import { normalizeCatalogProductPricing } from "../src/lib/catalog/product-catalog";
 import { DISCOUNT_COUNTDOWN } from "../src/lib/discounts-config";
 import {
@@ -19,6 +20,14 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 const jsonNull = Prisma.JsonNull;
+
+function seedReferralCode(phone: string): string {
+  return createHash("sha256")
+    .update(phone)
+    .digest("hex")
+    .slice(0, 8)
+    .toUpperCase();
+}
 
 async function seedCollections() {
   for (const collection of collections) {
@@ -177,6 +186,7 @@ async function main() {
         phone: adminPhone,
         role: "admin",
         passwordHash: "OTP_ONLY_ADMIN_SEEDED",
+        referralCode: seedReferralCode(adminPhone),
       },
       update: {
         role: "admin",

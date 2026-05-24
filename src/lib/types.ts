@@ -12,6 +12,17 @@ export type StoneType =
   | "durr-najaf"
   | "moral";
 
+export type KnownStoneGuideId =
+  | StoneType
+  | "amethyst"
+  | "topaz"
+  | "opal"
+  | "lapis-lazuli"
+  | "jade"
+  | "garnet"
+  | "pearl"
+  | "citrine";
+
 export type StoneShape = "round" | "oval" | "cushion" | "princess" | "pear" | "marquise";
 
 export type BandStyle = "classic" | "twisted" | "pave" | "filigree" | "hammered" | "channel";
@@ -216,6 +227,7 @@ export interface Product {
   freeResize?: boolean;
   /** تاریخ نخستین عرضه (ISO) — برای نمایش «در گالری از…» */
   firstAvailableAt?: string;
+  ugcMedia?: ProductUgcMedia[];
 }
 
 export interface PromoCodeDefinition {
@@ -226,6 +238,41 @@ export interface PromoCodeDefinition {
   value: number;
   minSubtotal: number;
   replacesSiteWide: boolean;
+}
+
+export type BundleOfferDiscountType = "percent" | "fixed";
+
+export interface BundleOfferDefinition {
+  id: string;
+  title: string;
+  description?: string;
+  discountType: BundleOfferDiscountType;
+  discountValue: number;
+  requiredProductIds: string[];
+  active: boolean;
+}
+
+export interface AppliedBundleOffer {
+  bundle: BundleOfferDefinition;
+  amount: number;
+}
+
+export interface AppliedGiftCard {
+  code: string;
+  appliedAmount: number;
+  remainingAmount?: number;
+}
+
+export interface GiftCard {
+  id: string;
+  code: string;
+  initialAmount: number;
+  remainingAmount: number;
+  active: boolean;
+  expiresAt?: string | null;
+  note?: string;
+  recipientName?: string;
+  recipientContact?: string;
 }
 
 export interface CartItem {
@@ -246,6 +293,9 @@ export interface OrderPaymentSummary {
   refId?: string;
   verifiedAt?: string;
 }
+
+export type CheckoutPaymentMethod = "zarinpal" | "bnpl";
+export type LoyaltyTier = "bronze" | "silver" | "gold" | "platinum";
 
 export interface OrderShipping {
   fullName: string;
@@ -274,7 +324,17 @@ export interface Order {
   total: number;
   subtotalList?: number;
   totalFurooh?: number;
+  bundleDiscount?: number;
+  appliedBundles?: Array<{ id: string; title: string; amount: number }>;
   promoCode?: string | null;
+  paymentMethod?: CheckoutPaymentMethod;
+  installmentMonths?: number;
+  installmentAmount?: number;
+  giftCardCode?: string | null;
+  giftCardAppliedAmount?: number;
+  loyaltyTier?: LoyaltyTier;
+  loyaltyDiscountAmount?: number;
+  loyaltyPointsEarned?: number;
   shipping?: OrderShipping;
   trackingCode?: string;
   payment?: OrderPaymentSummary;
@@ -290,12 +350,19 @@ export interface AdminOrder extends Order {
 
 export type ShopCollectionFilter = "all" | "bestseller" | "featured";
 export type ShopCollectionId = "royal-heritage" | "ancient-dynasty" | "modern-nobility";
+export type ShopWeightBand = "light" | "medium" | "heavy";
+export type ShopBudgetBand = "entry" | "mid" | "premium" | "luxury";
+export type ShopMetalStamp = "0.925" | "0.750" | "0.585";
 
 export interface ShopFilters {
   stones: StoneType[];
   priceRange: [number, number];
   styles: RingStyle[];
   engravingTypes: (EngravingStyle | "none")[];
+  weightBands: ShopWeightBand[];
+  metalStamps: ShopMetalStamp[];
+  budgetBands: ShopBudgetBand[];
+  occasions: ProductOccasion[];
   availabilities: ProductAvailability[];
   collections: Exclude<ShopCollectionFilter, "all">[];
   collectionIds: ShopCollectionId[];
@@ -320,11 +387,23 @@ export type CustomizerQuoteStatus =
   | "rejected"
   | "cancelled";
 
+export type CustomizerQuoteLiveStage =
+  | "received"
+  | "design-review"
+  | "material-prep"
+  | "workshop-crafting"
+  | "qc"
+  | "ready-dispatch";
+
 export interface CustomizerQuoteRequest {
   id: string;
   date: string;
   updatedAt: string;
   status: CustomizerQuoteStatus;
+  liveStage: CustomizerQuoteLiveStage;
+  etaDays?: number;
+  etaUpdatedAt?: string;
+  workshopLiveMessage?: string;
   title: string;
   estimateTotal: number;
   quotedTotal?: number;
@@ -339,8 +418,38 @@ export interface ProductComment {
   authorName: string;
   body: string;
   rating: number;
+  ratingBuildQuality: number;
+  ratingBeauty: number;
+  ratingValue: number;
+  ratingPackaging: number;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
+  isVerifiedBuyer?: boolean;
   status: "pending" | "approved" | "rejected";
   createdAt: string;
+}
+
+export interface ProductAuthenticityVerificationEvent {
+  id: string;
+  pieceCodeInput: string;
+  pieceCodeNormalized: string;
+  status: "verified" | "not_found" | "invalid";
+  productId?: string;
+  verifiedAt: string;
+}
+
+export interface ProductAuthenticitySummary {
+  pieceCodeInput: string;
+  pieceCodeNormalized: string;
+  status: "verified" | "not_found" | "invalid";
+  checkedAt: string;
+  product?: Product;
+  history: {
+    totalChecks: number;
+    successfulChecks: number;
+    lastVerifiedAt?: string;
+    recent: ProductAuthenticityVerificationEvent[];
+  };
 }
 
 export interface ProductQuestionAnswer {
@@ -367,6 +476,12 @@ export interface UserProfile {
   id: string;
   name: string;
   phone: string;
+  referralCode?: string;
+  referralCredit?: number;
+  referralEarnedTotal?: number;
+  loyaltyPoints?: number;
+  loyaltyTier?: LoyaltyTier;
+  loyaltyLifetimeSpend?: number;
   firstName?: string | null;
   lastName?: string | null;
   birthDate?: string | null;
@@ -377,9 +492,58 @@ export interface UserProfile {
   nationalCode?: string | null;
   landlinePhone?: string | null;
   gender?: "male" | "female" | "other" | null;
-  role?: "user" | "admin";
+  favoriteStone?: StoneType | null;
+  favoriteStyle?: RingStyle | null;
+  favoriteBudgetBand?: ShopBudgetBand | null;
+  role?: "user" | "editor" | "reviewer" | "admin";
   memberSince: string;
   tier: "gold" | "platinum" | "royal";
+}
+
+export interface PreferenceProfile {
+  favoriteStone?: StoneType;
+  favoriteStyle?: RingStyle;
+  favoriteBudgetBand?: ShopBudgetBand;
+}
+
+export interface LoyaltySummary {
+  points: number;
+  lifetimeSpend: number;
+  tier: LoyaltyTier;
+  tierDiscountPercent: number;
+  perks: string[];
+  nextTier?: LoyaltyTier;
+  amountToNextTier?: number;
+}
+
+export type ReferralInviteStatus = "registered" | "rewarded" | "blocked";
+
+export interface ReferralInviteSummaryItem {
+  id: string;
+  status: ReferralInviteStatus;
+  antiFraudReason?: string | null;
+  inviterReward: number;
+  inviteeReward: number;
+  createdAt: string;
+  rewardedAt?: string | null;
+  invitee: {
+    id: string;
+    phone: string;
+    name: string;
+  };
+}
+
+export interface ReferralSummary {
+  referralCode: string;
+  referralCredit: number;
+  referralEarnedTotal: number;
+  summary: {
+    totalInvites: number;
+    registeredCount: number;
+    rewardedCount: number;
+    blockedCount: number;
+  };
+  recentInvites: ReferralInviteSummaryItem[];
 }
 
 export type TradeInSubmissionStatus = "pending" | "reviewed" | "rejected";
@@ -404,6 +568,79 @@ export interface AdminTradeInSubmission extends TradeInSubmission {
 export type SupportRequestKind = "return" | "support";
 
 export type SupportRequestStatus = "pending" | "in_progress" | "resolved" | "rejected";
+
+export type BackInStockAlertChannel = "sms" | "email";
+export type BackInStockAlertStatus = "pending" | "sent" | "failed" | "cancelled";
+export type AbandonedCartRecoveryStatus = "pending" | "sent" | "recovered" | "cancelled" | "failed";
+export type ProductUgcMediaType = "image" | "video";
+export type ProductUgcMediaStatus = "pending" | "approved" | "rejected";
+
+export interface BackInStockAlert {
+  id: string;
+  productId: string;
+  userId?: string;
+  name?: string;
+  channel: BackInStockAlertChannel;
+  contact: string;
+  status: BackInStockAlertStatus;
+  sourceAvailability?: ProductAvailability;
+  requestedAt: string;
+  notifiedAt?: string;
+  notifyAttempts: number;
+  lastError?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminBackInStockAlert extends BackInStockAlert {
+  productName?: string;
+  productNamePersian?: string;
+  productImage?: string;
+}
+
+export interface AbandonedCartRecovery {
+  id: string;
+  token: string;
+  userId?: string;
+  name?: string;
+  channel: BackInStockAlertChannel;
+  contact: string;
+  status: AbandonedCartRecoveryStatus;
+  cartSnapshot: CartItem[];
+  shippingSnapshot?: Record<string, unknown>;
+  checkoutPath: string;
+  lastActivityAt: string;
+  nextReminderAt?: string;
+  reminderSentAt?: string;
+  reminderCount: number;
+  recoveredAt?: string;
+  lastError?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductUgcMedia {
+  id: string;
+  productId: string;
+  userId: string;
+  orderId?: string;
+  mediaUrl: string;
+  mediaType: ProductUgcMediaType;
+  caption?: string;
+  status: ProductUgcMediaStatus;
+  approvedAt?: string;
+  rejectedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductUgcMediaAdmin extends ProductUgcMedia {
+  productName?: string;
+  productNamePersian?: string;
+  productImage?: string;
+  userName?: string;
+  userPhone?: string;
+}
 
 export interface SupportRequest {
   id: string;

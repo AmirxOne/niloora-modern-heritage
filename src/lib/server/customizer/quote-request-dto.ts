@@ -4,6 +4,10 @@ import type { CustomizerQuoteRequest, CustomizerQuoteStatus, CustomizerState } f
 type DbQuote = {
   id: string;
   status: string;
+  liveStage: string;
+  etaDays: number | null;
+  etaUpdatedAt: Date | null;
+  workshopLiveMessage: string | null;
   title: string;
   configuration: Prisma.JsonValue;
   estimateTotal: number;
@@ -19,6 +23,10 @@ export function toQuoteRequestDto(row: DbQuote): CustomizerQuoteRequest {
     id: row.id,
     date: row.createdAt.toISOString(),
     status: row.status as CustomizerQuoteStatus,
+    liveStage: row.liveStage as CustomizerQuoteRequest["liveStage"],
+    etaDays: row.etaDays ?? undefined,
+    etaUpdatedAt: row.etaUpdatedAt?.toISOString(),
+    workshopLiveMessage: row.workshopLiveMessage ?? undefined,
     title: row.title,
     estimateTotal: row.estimateTotal,
     quotedTotal: row.quotedTotal ?? undefined,

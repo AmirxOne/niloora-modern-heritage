@@ -37,4 +37,7 @@ export const serverEnv = {
   resendApiKey: process.env.RESEND_API_KEY?.trim() ?? "",
   resendFromEmail: process.env.RESEND_FROM_EMAIL?.trim() ?? "",
   notifyEmailEnabled: process.env.NOTIFY_EMAIL_ENABLED === "true",
+  abandonedCartEnabled: process.env.ABANDONED_CART_ENABLED !== "false",
+  abandonedCartReminderDelayMinutes: readNumber("ABANDONED_CART_REMINDER_DELAY_MINUTES", 120),
+  abandonedCartCronSecret: process.env.ABANDONED_CART_CRON_SECRET?.trim() ?? "",
 };

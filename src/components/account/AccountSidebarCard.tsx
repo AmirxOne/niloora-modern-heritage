@@ -11,7 +11,8 @@ type AccountUser = {
   name: string;
   phone: string;
   tier: "gold" | "platinum" | "royal";
-  role?: "user" | "admin";
+  loyaltyTier?: "bronze" | "silver" | "gold" | "platinum";
+  role?: "user" | "editor" | "reviewer" | "admin";
   memberSince: string;
 };
 
@@ -27,6 +28,13 @@ const tierLabel: Record<AccountUser["tier"], string> = {
   royal: "رویال",
 };
 
+const loyaltyTierLabel: Record<NonNullable<AccountUser["loyaltyTier"]>, string> = {
+  bronze: "برنزی",
+  silver: "نقره‌ای",
+  gold: "طلایی",
+  platinum: "پلاتینیومی",
+};
+
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "؟";
@@ -38,7 +46,14 @@ export function AccountSidebarCard({ user }: { user: AccountUser }) {
   const displayName = user.name.trim() || formatIranPhoneDisplay(user.phone);
   const initials = initialsFromName(displayName);
   const role = user.role ?? "user";
-  const roleLabel = role === "admin" ? fa.dashboard.roleAdmin : fa.dashboard.roleUser;
+  const roleLabel =
+    role === "admin"
+      ? fa.dashboard.roleAdmin
+      : role === "editor"
+        ? fa.dashboard.roleEditor
+        : role === "reviewer"
+          ? fa.dashboard.roleReviewer
+          : fa.dashboard.roleUser;
 
   return (
     <section className={cn("account-sidebar-card", tierStyles[user.tier])}>
@@ -61,6 +76,11 @@ export function AccountSidebarCard({ user }: { user: AccountUser }) {
               <Crown size={12} variant={ICON_VARIANT} aria-hidden />
               {`${fa.dashboard.royalPatron} · ${tierLabel[user.tier]}`}
             </Badge>
+            {user.loyaltyTier ? (
+              <Badge variant="default" className="normal-case tracking-normal">
+                {`باشگاه: ${loyaltyTierLabel[user.loyaltyTier]}`}
+              </Badge>
+            ) : null}
             <Badge
               variant={role === "admin" ? "turquoise" : "default"}
               className="normal-case tracking-normal"

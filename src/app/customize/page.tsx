@@ -36,6 +36,15 @@ export default function CustomizePage() {
   const [wizardStep, setWizardStep] = useState<WizardStepId>("master");
 
   useEffect(() => {
+    const ringSizeParam = searchParams.get("ringSize");
+    if (!ringSizeParam) return;
+    const numeric = Number(ringSizeParam);
+    if (!Number.isFinite(numeric)) return;
+    if (numeric < 4 || numeric > 12) return;
+    update("size", numeric);
+  }, [searchParams, update]);
+
+  useEffect(() => {
     const encoded = searchParams.get("design");
     if (!encoded) return;
     try {

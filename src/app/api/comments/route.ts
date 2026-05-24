@@ -8,6 +8,12 @@ type PostBody = {
   authorName?: string;
   body?: string;
   rating?: number;
+  ratingBuildQuality?: number;
+  ratingBeauty?: number;
+  ratingValue?: number;
+  ratingPackaging?: number;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
 };
 
 export async function GET(request: Request) {
@@ -42,6 +48,13 @@ export async function GET(request: Request) {
         authorName: comment.authorName,
         body: comment.body,
         rating: comment.rating,
+        ratingBuildQuality: comment.ratingBuildQuality,
+        ratingBeauty: comment.ratingBeauty,
+        ratingValue: comment.ratingValue,
+        ratingPackaging: comment.ratingPackaging,
+        mediaUrl: comment.mediaUrl ?? undefined,
+        mediaType: (comment.mediaType as "image" | "video" | null) ?? undefined,
+        isVerifiedBuyer: comment.isVerifiedBuyer,
         status: comment.status,
         createdAt: comment.createdAt.toISOString(),
       })),
@@ -62,10 +75,31 @@ export async function POST(request: Request) {
     const authorName = payload.authorName?.trim() ?? "";
     const body = payload.body?.trim() ?? "";
     const rating = Math.min(5, Math.max(1, Math.round(payload.rating ?? 5)));
+    const ratingBuildQuality = Math.min(5, Math.max(1, Math.round(payload.ratingBuildQuality ?? rating)));
+    const ratingBeauty = Math.min(5, Math.max(1, Math.round(payload.ratingBeauty ?? rating)));
+    const ratingValue = Math.min(5, Math.max(1, Math.round(payload.ratingValue ?? rating)));
+    const ratingPackaging = Math.min(5, Math.max(1, Math.round(payload.ratingPackaging ?? rating)));
+    const mediaUrl = payload.mediaUrl?.trim() ?? "";
+    const mediaType = payload.mediaType;
 
     if (!productId || !authorName || body.length < 10 || body.length > 600) {
       return badRequest("Invalid comment payload");
     }
+    if (mediaUrl) {
+      if (!/^https?:\/\//i.test(mediaUrl)) return badRequest("Invalid mediaUrl");
+      if (mediaType !== "image" && mediaType !== "video") return badRequest("Invalid mediaType");
+    }
+
+    const hasPurchased = await prisma.orderItem.findFirst({
+      where: {
+        productId,
+        order: {
+          userId: user.id,
+          status: { in: ["processing", "crafting", "shipped", "delivered"] },
+        },
+      },
+      select: { id: true },
+    });
 
     const comment = await prisma.productComment.create({
       data: {
@@ -74,6 +108,13 @@ export async function POST(request: Request) {
         authorName,
         body,
         rating,
+        ratingBuildQuality,
+        ratingBeauty,
+        ratingValue,
+        ratingPackaging,
+        mediaUrl: mediaUrl || null,
+        mediaType: mediaUrl ? mediaType : null,
+        isVerifiedBuyer: Boolean(hasPurchased),
         status: "pending",
       },
     });
@@ -85,6 +126,13 @@ export async function POST(request: Request) {
         authorName: comment.authorName,
         body: comment.body,
         rating: comment.rating,
+        ratingBuildQuality: comment.ratingBuildQuality,
+        ratingBeauty: comment.ratingBeauty,
+        ratingValue: comment.ratingValue,
+        ratingPackaging: comment.ratingPackaging,
+        mediaUrl: comment.mediaUrl ?? undefined,
+        mediaType: (comment.mediaType as "image" | "video" | null) ?? undefined,
+        isVerifiedBuyer: comment.isVerifiedBuyer,
         status: comment.status,
         createdAt: comment.createdAt.toISOString(),
       },

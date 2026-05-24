@@ -19,7 +19,7 @@ export default async function BlogPage() {
 
   return (
     <PageTransition>
-      <div className="blog-page pb-24 pt-28 md:pt-32">
+      <div className="blog-page pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="blog-page-shell">
             <header className="blog-page-header">

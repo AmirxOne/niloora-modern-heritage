@@ -29,6 +29,7 @@ type HomeResponse = {
   sliders: Product[];
   bestsellers: Product[];
   featuredRail: Product[];
+  personalized: Product[];
   collections: HomeCollection[];
   testimonials: HomeTestimonial[];
   instagramPosts: HomeInstagramPost[];
@@ -39,6 +40,7 @@ const initialState: HomeResponse = {
   sliders: [],
   bestsellers: [],
   featuredRail: [],
+  personalized: [],
   collections: [],
   testimonials: [],
   instagramPosts: [],
@@ -59,6 +61,7 @@ export function useHomeData() {
         sliders: payload.sliders ?? [],
         bestsellers: payload.bestsellers ?? [],
         featuredRail: payload.featuredRail ?? [],
+        personalized: payload.personalized ?? [],
         collections: payload.collections ?? [],
         testimonials: payload.testimonials ?? [],
         instagramPosts: payload.instagramPosts ?? [],

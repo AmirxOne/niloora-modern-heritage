@@ -5,16 +5,20 @@ import { toast } from "sonner";
 import type { AdminPostRecord } from "@/lib/server/blog/post";
 import { useAuth } from "./useAuth";
 import { parseJsonResponse } from "./fetch-utils";
+import { canAccessContentWorkflow, canCreateContent, canDeleteContent } from "@/lib/auth/content-workflow";
 
 export function useAdminPosts() {
   const auth = useAuth();
-  const isAdmin = auth.user?.role === "admin";
+  const role = auth.user?.role;
+  const isWorkflowUser = canAccessContentWorkflow(role);
+  const canCreate = canCreateContent(role);
+  const canDelete = canDeleteContent(role);
   const [posts, setPosts] = useState<AdminPostRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const loadPosts = useCallback(async () => {
-    if (!isAdmin) return;
+    if (!isWorkflowUser) return;
     setIsLoading(true);
     try {
       const response = await fetch("/api/admin/posts");
@@ -27,11 +31,11 @@ export function useAdminPosts() {
     } finally {
       setIsLoading(false);
     }
-  }, [isAdmin]);
+  }, [isWorkflowUser]);
 
   const createPost = useCallback(
     async (payload: unknown) => {
-      if (!isAdmin) return null;
+      if (!canCreate) return null;
       setIsSaving(true);
       try {
         const response = await fetch("/api/admin/posts", {
@@ -51,12 +55,12 @@ export function useAdminPosts() {
         setIsSaving(false);
       }
     },
-    [isAdmin]
+    [canCreate]
   );
 
   const updatePost = useCallback(
     async (id: string, payload: unknown) => {
-      if (!isAdmin) return null;
+      if (!isWorkflowUser) return null;
       setIsSaving(true);
       try {
         const response = await fetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
@@ -76,12 +80,12 @@ export function useAdminPosts() {
         setIsSaving(false);
       }
     },
-    [isAdmin]
+    [isWorkflowUser]
   );
 
   const deletePost = useCallback(
     async (id: string) => {
-      if (!isAdmin) return false;
+      if (!canDelete) return false;
       setIsSaving(true);
       try {
         const response = await fetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
@@ -98,11 +102,14 @@ export function useAdminPosts() {
         setIsSaving(false);
       }
     },
-    [isAdmin]
+    [canDelete]
   );
 
   return {
-    isAdmin,
+    role,
+    isWorkflowUser,
+    canCreate,
+    canDelete,
     posts,
     isLoading,
     isSaving,

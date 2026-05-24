@@ -13,6 +13,7 @@ import { fa } from "@/lib/i18n/fa";
 import { TextBox, TextAreaBox, SelectBox } from "@/components/inputs";
 import { Button } from "@/components/ui/Button";
 import type { RingStyle } from "@/lib/types";
+import { AdminMediaPicker } from "@/components/admin/AdminMediaPicker";
 
 const styleOptions: { value: RingStyle; label: string }[] = [
   { value: "solitaire", label: fa.shop.styles.solitaire },
@@ -187,6 +188,12 @@ export function AdminProductForm({
             <Image src={values.image} alt="" fill className="object-cover" sizes="120px" />
           </div>
         ) : null}
+        <AdminMediaPicker
+          category="products"
+          value={values.image}
+          label="مدیریت رسانه محصول"
+          onPick={(url) => set("image", url)}
+        />
         <TextAreaBox
           label={fa.admin.products.galleryImages}
           value={values.galleryText}

@@ -3,6 +3,7 @@ import type { Product } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
 import { isProductPurchasable } from "@/lib/products/purchasability";
 import { absoluteUrl, buildPageMetadata } from "@/lib/seo/site";
+import { buildBreadcrumbJsonLd, buildFaqJsonLd } from "@/lib/seo/structured-data";
 
 export function productMetaDescription(product: Product): string {
   const headline = product.listing?.headline?.trim();
@@ -76,4 +77,77 @@ export function buildProductJsonLd(product: Product) {
   }
 
   return payload;
+}
+
+export function buildProductReviewJsonLd(input: {
+  product: Product;
+  comments: Array<{
+    id: string;
+    authorName: string;
+    body: string;
+    rating: number;
+    createdAt: Date;
+  }>;
+}) {
+  const comments = input.comments.filter((item) => item.rating >= 1 && item.rating <= 5);
+  const count = comments.length;
+  const average = count > 0 ? comments.reduce((sum, c) => sum + c.rating, 0) / count : 0;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": absoluteUrl(`/product/${input.product.id}#product`),
+    name: input.product.namePersian || input.product.name,
+    aggregateRating: count
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: Number(average.toFixed(1)),
+          reviewCount: count,
+        }
+      : undefined,
+    review: comments.slice(0, 10).map((comment) => ({
+      "@type": "Review",
+      reviewBody: comment.body,
+      datePublished: comment.createdAt.toISOString(),
+      author: {
+        "@type": "Person",
+        name: comment.authorName,
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: comment.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+    })),
+  };
+}
+
+export function buildProductFaqJsonLd(input: {
+  questions: Array<{
+    id: string;
+    body: string;
+    answers: Array<{ id: string; body: string; isOfficial: boolean; createdAt: Date }>;
+  }>;
+}) {
+  const items = input.questions
+    .map((q) => {
+      const answer = q.answers.find((a) => a.isOfficial) ?? q.answers[0];
+      if (!answer) return null;
+      return { question: q.body, answer: answer.body };
+    })
+    .filter((item): item is { question: string; answer: string } => item !== null)
+    .slice(0, 12);
+  if (items.length === 0) return null;
+  return buildFaqJsonLd(items);
+}
+
+export function buildProductBreadcrumbJsonLd(input: { product: Product }) {
+  return buildBreadcrumbJsonLd([
+    { name: "خانه", path: "/" },
+    { name: "فروشگاه", path: "/shop" },
+    {
+      name: input.product.namePersian || input.product.name,
+      path: `/product/${input.product.id}`,
+    },
+  ]);
 }

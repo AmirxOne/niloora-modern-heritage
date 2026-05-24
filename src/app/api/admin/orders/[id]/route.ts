@@ -10,6 +10,7 @@ import { toAdminOrderDto } from "@/lib/server/orders/admin-order-dto";
 import { orderInclude } from "@/lib/server/orders/order-dto";
 import { notifyOrderAdminUpdate } from "@/lib/server/notifications/order-notify";
 import { prisma } from "@/lib/server/prisma";
+import { writeAdminAuditLog } from "@/lib/server/audit-log";
 
 type Body = {
   status?: string;
@@ -76,6 +77,23 @@ export async function PATCH(
       newStatus: order.status,
       previousTracking: existing.trackingCode,
       newTracking: order.trackingCode,
+    });
+
+    await writeAdminAuditLog({
+      user,
+      request,
+      action: "admin.orders.update",
+      route: "/api/admin/orders/[id]",
+      entityType: "order",
+      entityId: id,
+      summary: `update order ${id}`,
+      payload: {
+        id,
+        previousStatus: existing.status,
+        nextStatus: order.status,
+        previousTracking: existing.trackingCode,
+        nextTracking: order.trackingCode,
+      },
     });
 
     return ok({ order: toAdminOrderDto(order) });

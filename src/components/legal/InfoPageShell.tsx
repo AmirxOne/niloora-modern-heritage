@@ -11,7 +11,7 @@ type InfoPageShellProps = {
 export function InfoPageShell({ eyebrow, title, subtitle, children }: InfoPageShellProps) {
   return (
     <PageTransition>
-      <div className="info-page pb-24 pt-28 md:pt-32">
+      <div className="info-page pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="info-page-shell">
             <header className="info-page-header">

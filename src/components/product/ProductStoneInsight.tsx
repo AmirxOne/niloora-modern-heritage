@@ -17,7 +17,9 @@ export function ProductStoneInsight({ product, className }: ProductStoneInsightP
     <section className={`product-stone-insight ${className ?? ""}`.trim()} aria-labelledby="product-stone-insight-title">
       <header className="product-stone-insight__head">
         <h2 id="product-stone-insight-title" className="product-stone-insight__title">
-          شناخت سنگ {guide.name}
+          <Link href={`/stones/${guide.slug}`} className="product-stone-insight__link">
+            شناخت سنگ {guide.name}
+          </Link>
         </h2>
         <p className="product-stone-insight__subtitle">{guide.shortTagline}</p>
       </header>

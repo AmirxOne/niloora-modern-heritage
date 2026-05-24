@@ -10,6 +10,7 @@ export type OrderReceiptLine = {
 };
 
 export type OrderReceiptBreakdown = {
+  order: Order;
   orderId: string;
   date: string;
   status: Order["status"];
@@ -57,6 +58,7 @@ export function buildOrderReceipt(order: Order): OrderReceiptBreakdown {
   const listSubtotal = order.subtotalList ?? itemsSubtotal + discountTotal;
 
   return {
+    order,
     orderId: order.id,
     date: order.date,
     status: order.status,

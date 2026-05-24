@@ -2,10 +2,14 @@ import type {
   EngravingStyle,
   ProductAvailability,
   ProductCondition,
+  ProductOccasion,
   RingStyle,
+  ShopBudgetBand,
   ShopCollectionFilter,
   ShopCollectionId,
   ShopFilters,
+  ShopMetalStamp,
+  ShopWeightBand,
   StoneType,
 } from "@/lib/types";
 import { createDefaultShopFilters } from "@/lib/shop-filter-utils";
@@ -39,6 +43,20 @@ const ENGRAVING_VALUES: (EngravingStyle | "none")[] = [
   "thuluth",
   "kufic",
   "modern",
+];
+const WEIGHT_VALUES: ShopWeightBand[] = ["light", "medium", "heavy"];
+const METAL_STAMP_VALUES: ShopMetalStamp[] = ["0.925", "0.750", "0.585"];
+const BUDGET_VALUES: ShopBudgetBand[] = ["entry", "mid", "premium", "luxury"];
+const OCCASION_VALUES: ProductOccasion[] = [
+  "engagement",
+  "wedding",
+  "anniversary",
+  "birthday",
+  "gift",
+  "eid",
+  "religious",
+  "graduation",
+  "everyday",
 ];
 
 const AVAILABILITY_VALUES: ProductAvailability[] = [
@@ -98,6 +116,10 @@ export function parseShopFiltersFromParams(
     stones: parseCsv(params.get("stones"), STONE_VALUES),
     styles: parseCsv(params.get("styles"), STYLE_VALUES),
     engravingTypes: parseCsv(params.get("engraving"), ENGRAVING_VALUES),
+    weightBands: parseCsv(params.get("weight"), WEIGHT_VALUES),
+    metalStamps: parseCsv(params.get("stamp"), METAL_STAMP_VALUES),
+    budgetBands: parseCsv(params.get("budget"), BUDGET_VALUES),
+    occasions: parseCsv(params.get("occasion"), OCCASION_VALUES),
     availabilities: parseCsv(params.get("availability"), AVAILABILITY_VALUES),
     collections: parseCsv(params.get("collection"), COLLECTION_VALUES),
     collectionIds: parseCsv(params.get("collectionId"), COLLECTION_ID_VALUES),
@@ -130,6 +152,10 @@ export function buildShopSearchParams(
   setOrDelete("stones", serializeCsv(filters.stones));
   setOrDelete("styles", serializeCsv(filters.styles));
   setOrDelete("engraving", serializeCsv(filters.engravingTypes));
+  setOrDelete("weight", serializeCsv(filters.weightBands));
+  setOrDelete("stamp", serializeCsv(filters.metalStamps));
+  setOrDelete("budget", serializeCsv(filters.budgetBands));
+  setOrDelete("occasion", serializeCsv(filters.occasions));
   setOrDelete("availability", serializeCsv(filters.availabilities));
   setOrDelete("collection", serializeCsv(filters.collections));
   setOrDelete("collectionId", serializeCsv(filters.collectionIds));

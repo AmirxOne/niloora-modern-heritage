@@ -61,8 +61,12 @@ export async function getPublishedPostBySlug(slug: string): Promise<PostDetail |
   return row ? mapDetail(row) : null;
 }
 
-export async function listAdminPosts(): Promise<AdminPostRecord[]> {
+export async function listAdminPosts(allowedStatuses?: string[]): Promise<AdminPostRecord[]> {
   const rows = await prisma.post.findMany({
+    where:
+      Array.isArray(allowedStatuses) && allowedStatuses.length > 0
+        ? { status: { in: allowedStatuses } }
+        : undefined,
     orderBy: [{ updatedAt: "desc" }],
   });
   return rows.map(mapAdminPost);

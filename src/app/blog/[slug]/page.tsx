@@ -57,7 +57,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   return (
     <PageTransition>
       <BlogJsonLd post={post} />
-      <article className="blog-article pb-24 pt-28 md:pt-32">
+      <article className="blog-article pb-24 pt-20 md:pt-24">
         <div className="site-container max-w-3xl">
           <nav className="blog-breadcrumb" aria-label="مسیر">
             <Link href="/blog">{fa.nav.blog}</Link>

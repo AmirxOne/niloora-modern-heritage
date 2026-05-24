@@ -42,7 +42,7 @@ export default async function ArtisanDetailPage({ params }: PageProps) {
 
   return (
     <PageTransition>
-      <div className="artisan-detail-page min-h-screen pb-24 pt-28 md:pt-32">
+      <div className="artisan-detail-page min-h-screen pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="artisan-detail-shell">
             <div className="artisan-detail-top">

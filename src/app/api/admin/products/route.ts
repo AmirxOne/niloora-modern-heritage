@@ -7,6 +7,7 @@ import {
   createAdminProduct,
   listAdminProducts,
 } from "@/lib/server/products/admin-product-service";
+import { writeAdminAuditLog } from "@/lib/server/audit-log";
 
 export async function GET() {
   try {
@@ -33,6 +34,16 @@ export async function POST(request: Request) {
 
     try {
       const product = await createAdminProduct(parsed.data);
+      await writeAdminAuditLog({
+        user,
+        request,
+        action: "admin.products.create",
+        route: "/api/admin/products",
+        entityType: "product",
+        entityId: product.id,
+        summary: `create product ${product.id}`,
+        payload: { id: product.id, price: product.price, availability: product.availability },
+      });
       return created({ product });
     } catch (error) {
       if (error instanceof Error) {

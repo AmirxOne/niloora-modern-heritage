@@ -43,7 +43,12 @@ export async function getEdgeSessionFromAccessToken(
     const sessionId = typeof payload.sid === "string" ? payload.sid : null;
     const userId = typeof payload.uid === "string" ? payload.uid : null;
     const role: SessionRole | null =
-      payload.role === "admin" ? "admin" : payload.role === "user" ? "user" : null;
+      payload.role === "admin" ||
+      payload.role === "editor" ||
+      payload.role === "reviewer" ||
+      payload.role === "user"
+        ? payload.role
+        : null;
 
     if (!sessionId || !userId || !role) return null;
 

@@ -7,6 +7,7 @@ import {
   validateCartAddOnServer,
   validateCartItemsOnServer,
 } from "@/lib/cart/validate-cart-client";
+import { trackFunnelEvent } from "@/lib/analytics/client";
 import type { CartItem, CustomizerState, ProductAvailability } from "../types";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
@@ -60,6 +61,7 @@ export function useCart() {
       let product: {
         id: string;
         name: string;
+        category?: string;
         image: string;
         availability: ProductAvailability;
         price: number;
@@ -73,6 +75,7 @@ export function useCart() {
             product?: {
               id: string;
               name: string;
+              category?: string;
               image: string;
               availability: ProductAvailability;
               price: number;
@@ -116,6 +119,22 @@ export function useCart() {
           availability: resolved,
         })
       );
+      const trackedName = options?.name ?? product?.name;
+      const trackedCategory = product?.category;
+      void trackFunnelEvent({
+        event_name: "add_to_cart",
+        value: pricing?.salePrice ?? options?.price ?? 0,
+        items: [
+          {
+            item_id: productId,
+            item_name: trackedName,
+            item_category: trackedCategory,
+            price: pricing?.salePrice ?? options?.price ?? 0,
+            quantity: 1,
+          },
+        ],
+        metadata: { source: "useCart.addProduct" },
+      });
       toast.success("محصول به سبد خرید اضافه شد.");
       if (options?.navigateToCart !== false) {
         router.push("/cart");

@@ -7,6 +7,7 @@ type PersistState = {
   designs: { designs: unknown; hydrated: boolean };
   promo: { appliedCode: unknown; hydrated: boolean };
   productSales: { byProductId: unknown; hydrated: boolean };
+  giftCard: { appliedCode: unknown; hydrated: boolean };
   auth: { user: unknown; hydrated: boolean };
   compareList: { ids: unknown; hydrated: boolean };
   recentlyViewed: { ids: unknown; hydrated: boolean };
@@ -18,6 +19,7 @@ const PERSIST_PREFIXES = [
   "designs/",
   "promo/",
   "productSales/",
+  "giftCard/",
   "auth/",
   "compareList/",
   "recentlyViewed/",
@@ -29,6 +31,7 @@ const SKIP_ACTIONS = new Set([
   "designs/hydrateDesigns",
   "promo/hydratePromo",
   "productSales/hydrateProductSales",
+  "giftCard/hydrateGiftCard",
   "auth/hydrateAuth",
   "compareList/hydrateCompareList",
   "recentlyViewed/hydrateRecentlyViewed",
@@ -64,6 +67,9 @@ export const persistMiddleware: Middleware<object, PersistState> =
     (type.startsWith("productSales/") || type === "orders/placeOrder")
   ) {
     saveJson(storageKeys.productSales, state.productSales.byProductId);
+  }
+  if (type.startsWith("giftCard/") && state.giftCard.hydrated) {
+    saveJson(storageKeys.giftCard, state.giftCard.appliedCode);
   }
   if (type.startsWith("compareList/") && state.compareList.hydrated) {
     saveJson(storageKeys.compareList, state.compareList.ids);

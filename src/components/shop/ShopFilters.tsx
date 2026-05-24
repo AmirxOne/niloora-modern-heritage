@@ -6,12 +6,16 @@ import type { ShopFilters as Filters } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
 import {
   availabilityFilterOptions,
+  budgetFilterOptions,
   collectionFilterOptions,
   collectionIdFilterOptions,
   conditionFilterOptions,
   engravingFilterOptions,
+  metalStampFilterOptions,
+  occasionFilterOptions,
   stoneFilterOptions,
   styleFilterOptions,
+  weightFilterOptions,
   hasActiveFilters,
   countActiveFilters,
 } from "@/lib/shop-filter-utils";
@@ -150,6 +154,34 @@ export function ShopFiltersPanel({
           options={engravingFilterOptions}
           value={filters.engravingTypes}
           onChange={(engravingTypes) => patch("engravingTypes", engravingTypes)}
+        />
+
+        <FilterMultiSelect
+          label={fa.shop.weight}
+          options={weightFilterOptions}
+          value={filters.weightBands}
+          onChange={(weightBands) => patch("weightBands", weightBands)}
+        />
+
+        <FilterMultiSelect
+          label={fa.shop.metalStamp}
+          options={metalStampFilterOptions}
+          value={filters.metalStamps}
+          onChange={(metalStamps) => patch("metalStamps", metalStamps)}
+        />
+
+        <FilterMultiSelect
+          label={fa.shop.budget}
+          options={budgetFilterOptions}
+          value={filters.budgetBands}
+          onChange={(budgetBands) => patch("budgetBands", budgetBands)}
+        />
+
+        <FilterMultiSelect
+          label={fa.shop.occasion}
+          options={occasionFilterOptions}
+          value={filters.occasions}
+          onChange={(occasions) => patch("occasions", occasions)}
         />
 
         <FilterMultiSelect

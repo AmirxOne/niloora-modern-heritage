@@ -4,6 +4,7 @@ import wishlistReducer from "./slices/wishlistSlice";
 import designsReducer from "./slices/designsSlice";
 import promoReducer from "./slices/promoSlice";
 import productSalesReducer from "./slices/productSalesSlice";
+import giftCardReducer from "./slices/giftCardSlice";
 import authReducer from "./slices/authSlice";
 import compareListReducer from "./slices/compareListSlice";
 import recentlyViewedReducer from "./slices/recentlyViewedSlice";
@@ -18,6 +19,7 @@ export const makeStore = () =>
       designs: designsReducer,
       promo: promoReducer,
       productSales: productSalesReducer,
+      giftCard: giftCardReducer,
       auth: authReducer,
       compareList: compareListReducer,
       recentlyViewed: recentlyViewedReducer,

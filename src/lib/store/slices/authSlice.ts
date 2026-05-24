@@ -9,7 +9,26 @@ export interface AuthUser {
   id: string;
   name: string;
   phone: string;
-  role?: "user" | "admin";
+  referralCode?: string;
+  referralCredit?: number;
+  referralEarnedTotal?: number;
+  loyaltyPoints?: number;
+  loyaltyTier?: "bronze" | "silver" | "gold" | "platinum";
+  loyaltyLifetimeSpend?: number;
+  favoriteStone?:
+    | "diamond"
+    | "emerald"
+    | "sapphire"
+    | "ruby"
+    | "turquoise"
+    | "onyx"
+    | "zabarjad"
+    | "yemen-aqeeq"
+    | "durr-najaf"
+    | "moral";
+  favoriteStyle?: "solitaire" | "halo" | "vintage" | "signet" | "eternity" | "stackable";
+  favoriteBudgetBand?: "entry" | "mid" | "premium" | "luxury";
+  role?: "user" | "editor" | "reviewer" | "admin";
   memberSince?: string;
   tier?: "gold" | "platinum" | "royal";
 }

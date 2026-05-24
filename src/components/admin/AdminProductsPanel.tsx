@@ -11,11 +11,11 @@ import {
 import type { AdminProductDto } from "@/lib/server/products/admin-product-dto";
 import { useAdminProducts } from "@/lib/hooks/useAdminProducts";
 import { formatPrice } from "@/lib/utils";
-import { getProductStatusConfig } from "@/lib/product-status";
+import { PRODUCT_AVAILABILITY_OPTIONS, getProductStatusConfig } from "@/lib/product-status";
 import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { TextBox } from "@/components/inputs";
+import { SelectBox, TextBox } from "@/components/inputs";
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
 
 export function AdminProductsPanel() {
@@ -24,6 +24,12 @@ export function AdminProductsPanel() {
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [formValues, setFormValues] = useState<AdminProductFormValues>(emptyAdminProductForm());
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkPrice, setBulkPrice] = useState("");
+  const [bulkStock, setBulkStock] = useState("");
+  const [bulkAvailability, setBulkAvailability] = useState("");
+  const [bulkDiscountPercent, setBulkDiscountPercent] = useState("");
+  const [csvReport, setCsvReport] = useState<string[]>([]);
 
   useEffect(() => {
     if (admin.isAdmin) void admin.loadAll();
@@ -40,6 +46,62 @@ export function AdminProductsPanel() {
         (p.collectionName ?? "").includes(search.trim())
     );
   }, [admin.products, search]);
+
+  const availabilityOptions = [
+    { value: "", label: fa.admin.products.bulkNoChange },
+    ...PRODUCT_AVAILABILITY_OPTIONS.map((value) => ({
+      value,
+      label: getProductStatusConfig(value).label,
+    })),
+  ];
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((p) => selectedIds.includes(p.id));
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  const toggleSelectAllFiltered = () => {
+    setSelectedIds((prev) => {
+      const filteredIds = filtered.map((item) => item.id);
+      if (filteredIds.every((id) => prev.includes(id))) {
+        return prev.filter((id) => !filteredIds.includes(id));
+      }
+      return Array.from(new Set([...prev, ...filteredIds]));
+    });
+  };
+
+  const clearBulkForm = () => {
+    setBulkPrice("");
+    setBulkStock("");
+    setBulkAvailability("");
+    setBulkDiscountPercent("");
+  };
+
+  const handleBulkApply = async () => {
+    if (selectedIds.length === 0) return;
+    const payload: {
+      ids: string[];
+      price?: number;
+      stock?: number;
+      availability?: string;
+      discountPercent?: number | null;
+    } = { ids: selectedIds };
+
+    if (bulkPrice.trim() !== "") payload.price = Number(bulkPrice);
+    if (bulkStock.trim() !== "") payload.stock = Number(bulkStock);
+    if (bulkAvailability.trim() !== "") payload.availability = bulkAvailability;
+    if (bulkDiscountPercent.trim() === "-") {
+      payload.discountPercent = null;
+    } else if (bulkDiscountPercent.trim() !== "") {
+      payload.discountPercent = Number(bulkDiscountPercent);
+    }
+
+    const result = await admin.bulkUpdateProducts(payload);
+    if (!result) return;
+    clearBulkForm();
+    setSelectedIds((prev) => prev.filter((id) => !result.missingIds?.includes(id)));
+  };
 
   const startCreate = () => {
     setMode("create");
@@ -110,6 +172,98 @@ export function AdminProductsPanel() {
           >
             {fa.admin.products.refresh}
           </Button>
+          <Button type="button" variant="outline" onClick={() => void admin.exportCsv()}>
+            خروجی CSV
+          </Button>
+          <label className="admin-csv-upload-btn">
+            ورود CSV
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              hidden
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const result = await admin.importCsv(file);
+                if (result?.errors?.length) {
+                  setCsvReport(result.errors.slice(0, 20).map((item) => `ردیف ${item.row}: ${item.message}`));
+                } else {
+                  setCsvReport([]);
+                }
+                e.currentTarget.value = "";
+              }}
+            />
+          </label>
+        </div>
+        {csvReport.length > 0 ? (
+          <div className="admin-csv-report">
+            {csvReport.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="admin-products-bulk-panel">
+          <div className="admin-products-bulk-head">
+            <label className="admin-product-check">
+              <input
+                type="checkbox"
+                checked={allFilteredSelected}
+                onChange={toggleSelectAllFiltered}
+              />
+              <span>{fa.admin.products.bulkSelectAll}</span>
+            </label>
+            <p className="text-xs text-silver">
+              {fa.admin.products.bulkSelectedCount(selectedIds.length)}
+            </p>
+          </div>
+          <div className="admin-products-bulk-grid">
+            <TextBox
+              label={fa.admin.products.bulkPriceLabel}
+              value={bulkPrice}
+              onChange={(e) => setBulkPrice(e.target.value)}
+              inputClassName="auth-input-ltr"
+              disabled={admin.isSaving}
+            />
+            <TextBox
+              label={fa.admin.products.bulkStockLabel}
+              value={bulkStock}
+              onChange={(e) => setBulkStock(e.target.value)}
+              inputClassName="auth-input-ltr"
+              disabled={admin.isSaving}
+            />
+            <SelectBox
+              label={fa.admin.products.bulkAvailabilityLabel}
+              value={bulkAvailability}
+              options={availabilityOptions}
+              onValueChange={setBulkAvailability}
+              disabled={admin.isSaving}
+            />
+            <TextBox
+              label={fa.admin.products.bulkDiscountLabel}
+              value={bulkDiscountPercent}
+              onChange={(e) => setBulkDiscountPercent(e.target.value)}
+              inputClassName="auth-input-ltr"
+              disabled={admin.isSaving}
+            />
+          </div>
+          <div className="admin-products-bulk-actions">
+            <Button
+              type="button"
+              onClick={() => void handleBulkApply()}
+              disabled={admin.isSaving || selectedIds.length === 0}
+            >
+              {fa.admin.products.bulkApply}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={admin.isSaving}
+              onClick={clearBulkForm}
+            >
+              {fa.admin.products.bulkClear}
+            </Button>
+          </div>
         </div>
 
         {admin.isLoading ? (
@@ -123,39 +277,44 @@ export function AdminProductsPanel() {
               const isActive = editingId === product.id;
               return (
                 <li key={product.id}>
-                  <button
-                    type="button"
-                    className={`admin-product-list-item${isActive ? " admin-product-list-item--active" : ""}`}
-                    onClick={() => startEdit(product)}
-                  >
-                    <div className="admin-product-list-thumb">
-                      <Image
-                        src={product.image}
-                        alt={product.namePersian}
-                        fill
-                        className="object-cover"
-                        sizes="64px"
+                  <div className={`admin-product-list-item${isActive ? " admin-product-list-item--active" : ""}`}>
+                    <label className="admin-product-list-check">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(product.id)}
+                        onChange={() => toggleSelect(product.id)}
                       />
-                    </div>
-                    <div className="admin-product-list-body">
-                      <p className="admin-product-list-name">{product.namePersian}</p>
-                      <p className="admin-product-list-meta">
-                        <span className="font-mono text-xs" dir="ltr">
-                          {product.id}
-                        </span>
-                        {product.collectionName ? ` · ${product.collectionName}` : ""}
-                      </p>
-                      <p className="admin-product-list-price">
-                        {formatPrice(product.price)}
-                        {product.listPrice && product.listPrice > product.price ? (
-                          <span className="text-silver line-through ms-2 text-xs">
-                            {formatPrice(product.listPrice)}
+                    </label>
+                    <button type="button" className="admin-product-list-main" onClick={() => startEdit(product)}>
+                      <div className="admin-product-list-thumb">
+                        <Image
+                          src={product.image}
+                          alt={product.namePersian}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      </div>
+                      <div className="admin-product-list-body">
+                        <p className="admin-product-list-name">{product.namePersian}</p>
+                        <p className="admin-product-list-meta">
+                          <span className="font-mono text-xs" dir="ltr">
+                            {product.id}
                           </span>
-                        ) : null}
-                      </p>
-                    </div>
-                    <Badge variant="gold">{status.shortLabel}</Badge>
-                  </button>
+                          {product.collectionName ? ` · ${product.collectionName}` : ""}
+                        </p>
+                        <p className="admin-product-list-price">
+                          {formatPrice(product.price)}
+                          {product.listPrice && product.listPrice > product.price ? (
+                            <span className="text-silver line-through ms-2 text-xs">
+                              {formatPrice(product.listPrice)}
+                            </span>
+                          ) : null}
+                        </p>
+                      </div>
+                      <Badge variant="gold">{status.shortLabel}</Badge>
+                    </button>
+                  </div>
                 </li>
               );
             })}

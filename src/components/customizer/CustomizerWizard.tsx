@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import type { CarvingStyle, CustomizerState, ShankMasterId, StoneType } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
 import { RING_SIZES, CARVING_OPTIONS } from "@/lib/constants";
@@ -275,21 +276,33 @@ export function CustomizerWizard({
           )}
 
           {currentStep === "size" && (
-            <div className="customizer-size-grid">
-              {RING_SIZES.map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => onUpdate("size", size)}
-                  className={cn(
-                    "customizer-size-btn",
-                    state.size === size && "customizer-size-btn--active"
-                  )}
-                  aria-pressed={state.size === size}
+            <div className="space-y-3">
+              <div className="customizer-size-grid">
+                {RING_SIZES.map((size) => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => onUpdate("size", size)}
+                    className={cn(
+                      "customizer-size-btn",
+                      state.size === size && "customizer-size-btn--active"
+                    )}
+                    aria-pressed={state.size === size}
+                  >
+                    {size.toLocaleString("fa-IR")}
+                  </button>
+                ))}
+              </div>
+              <div className="customizer-size-helper-link-wrap">
+                <Link
+                  href="/ring-size"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="customizer-size-helper-link"
                 >
-                  {size.toLocaleString("fa-IR")}
-                </button>
-              ))}
+                  نیاز به راهنمای دقیق سایز دارید؟ ابزار کامل تعیین سایز را باز کنید
+                </Link>
+              </div>
             </div>
           )}
 

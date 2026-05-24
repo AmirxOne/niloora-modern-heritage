@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getEdgeSessionFromRequest } from "@/lib/server/auth/session-edge";
 import { applySecurityHeaders } from "@/lib/server/security-headers";
+import { stripLocalePrefix } from "@/lib/i18n/locales";
+import { canAccessContentWorkflow } from "@/lib/auth/content-workflow";
 
-function redirectToAuth(request: NextRequest): NextResponse {
-  const login = new URL("/auth", request.url);
+function redirectToAuth(request: NextRequest, prefix: string): NextResponse {
+  const login = new URL(`${prefix}/auth`, request.url);
   const returnPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
   login.searchParams.set("redirect", returnPath);
   return NextResponse.redirect(login);
@@ -26,9 +28,12 @@ function jsonForbidden(): NextResponse {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const { locale, path } = stripLocalePrefix(pathname);
+  const hasLocalePrefix = pathname !== path;
+  const prefix = hasLocalePrefix ? `/${locale}` : "";
 
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) {
-    const dest = new URL("/account", request.url);
+  if (path === "/dashboard" || path.startsWith("/dashboard/")) {
+    const dest = new URL(`${prefix}/account`, request.url);
     dest.hash = request.nextUrl.hash;
     request.nextUrl.searchParams.forEach((value, key) => {
       dest.searchParams.set(key, value);
@@ -37,12 +42,14 @@ export async function middleware(request: NextRequest) {
   }
 
   const needsAuth =
-    pathname === "/account" ||
-    pathname.startsWith("/account/") ||
-    pathname.startsWith("/admin/");
+    path === "/account" ||
+    path.startsWith("/account/") ||
+    path.startsWith("/admin/");
 
-  const needsAdminPage = pathname.startsWith("/admin/");
-  const needsAdminApi = pathname.startsWith("/api/admin/");
+  const needsPostsWorkflowPage = path === "/admin/posts" || path.startsWith("/admin/posts/");
+  const needsAdminPage = path.startsWith("/admin/") && !needsPostsWorkflowPage;
+  const needsAdminApi = path.startsWith("/api/admin/");
+  const needsPostsWorkflowApi = path === "/api/admin/posts" || path.startsWith("/api/admin/posts/");
 
   if (!needsAuth && !needsAdminApi) {
     return applySecurityHeaders(NextResponse.next(), request);
@@ -54,6 +61,12 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       return applySecurityHeaders(jsonUnauthorized(), request);
     }
+    if (needsPostsWorkflowApi) {
+      if (!canAccessContentWorkflow(session.role)) {
+        return applySecurityHeaders(jsonForbidden(), request);
+      }
+      return applySecurityHeaders(NextResponse.next(), request);
+    }
     if (session.role !== "admin") {
       return applySecurityHeaders(jsonForbidden(), request);
     }
@@ -61,11 +74,15 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!session) {
-    return applySecurityHeaders(redirectToAuth(request), request);
+    return applySecurityHeaders(redirectToAuth(request, prefix), request);
+  }
+
+  if (needsPostsWorkflowPage && !canAccessContentWorkflow(session.role)) {
+    return applySecurityHeaders(NextResponse.redirect(new URL(`${prefix}/account`, request.url)), request);
   }
 
   if (needsAdminPage && session.role !== "admin") {
-    return applySecurityHeaders(NextResponse.redirect(new URL("/account", request.url)), request);
+    return applySecurityHeaders(NextResponse.redirect(new URL(`${prefix}/account`, request.url)), request);
   }
 
   return applySecurityHeaders(NextResponse.next(), request);

@@ -20,6 +20,7 @@ import type { PromoCodeDefinition } from "@/lib/types";
 type PreferencesResponse = {
   cartItems: import("@/lib/types").CartItem[];
   wishlistIds: string[];
+  wishlistPriceWatch: Record<string, number>;
   savedDesigns: import("@/lib/types").SavedDesign[];
   compareProductIds: string[];
   recentlyViewedIds: string[];

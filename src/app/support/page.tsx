@@ -16,7 +16,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default function SupportPage() {
   return (
     <PageTransition>
-      <div className="support-page min-h-screen pb-24 pt-28 md:pt-32">
+      <div className="support-page min-h-screen pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <section className="support-page-shell">
             <header className="support-page-header">

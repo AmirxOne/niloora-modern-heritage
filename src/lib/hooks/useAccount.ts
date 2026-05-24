@@ -3,13 +3,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAppDispatch } from "@/lib/store/hooks";
-import { setAuthUser } from "@/lib/store/slices/authSlice";
+import { setAuthUser, type AuthUser } from "@/lib/store/slices/authSlice";
 import { useAuth } from "@/lib/hooks/useAuth";
-import type { UserProfile } from "@/lib/types";
+import type { LoyaltySummary, ReferralSummary, UserProfile } from "@/lib/types";
 
 type AccountUser = Required<
   Pick<UserProfile, "id" | "name" | "phone" | "memberSince" | "tier">
 > &
+  Pick<
+    UserProfile,
+    | "referralCode"
+    | "referralCredit"
+    | "referralEarnedTotal"
+    | "loyaltyPoints"
+    | "loyaltyTier"
+    | "loyaltyLifetimeSpend"
+  > &
   Required<
     Pick<
       UserProfile,
@@ -23,6 +32,9 @@ type AccountUser = Required<
       | "nationalCode"
       | "landlinePhone"
       | "gender"
+      | "favoriteStone"
+      | "favoriteStyle"
+      | "favoriteBudgetBand"
     >
   > &
   Pick<UserProfile, "role">;
@@ -38,6 +50,9 @@ export type AccountProfilePayload = {
   nationalCode: string;
   landlinePhone: string;
   gender: "male" | "female" | "other" | "";
+  favoriteStone: string;
+  favoriteStyle: string;
+  favoriteBudgetBand: string;
 };
 
 type AccountStats = {
@@ -48,11 +63,24 @@ type AccountStats = {
   cartItemsCount: number;
 };
 
+type AccountResponse = { user: AccountUser; stats: AccountStats; loyalty: LoyaltySummary };
+
+function toAuthUser(user: AccountUser): AuthUser {
+  return {
+    ...user,
+    favoriteStone: user.favoriteStone ?? undefined,
+    favoriteStyle: user.favoriteStyle ?? undefined,
+    favoriteBudgetBand: user.favoriteBudgetBand ?? undefined,
+  };
+}
+
 export function useAccount() {
   const auth = useAuth();
   const dispatch = useAppDispatch();
   const [user, setUser] = useState<AccountUser | null>(null);
   const [stats, setStats] = useState<AccountStats | null>(null);
+  const [loyalty, setLoyalty] = useState<LoyaltySummary | null>(null);
+  const [referral, setReferral] = useState<ReferralSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +90,8 @@ export function useAccount() {
       setIsLoading(false);
       setUser(null);
       setStats(null);
+      setLoyalty(null);
+      setReferral(null);
       return;
     }
     setIsLoading(true);
@@ -73,10 +103,20 @@ export function useAccount() {
         toast.error("دریافت اطلاعات حساب انجام نشد.");
         return;
       }
-      const data = (await response.json()) as { user: AccountUser; stats: AccountStats };
+      const data = (await response.json()) as AccountResponse;
       setUser(data.user);
       setStats(data.stats);
-      dispatch(setAuthUser(data.user));
+      setLoyalty(data.loyalty);
+      dispatch(setAuthUser(toAuthUser(data.user)));
+      try {
+        const referralResponse = await fetch("/api/referrals/summary", { method: "GET" });
+        if (referralResponse.ok) {
+          const referralData = (await referralResponse.json()) as ReferralSummary;
+          setReferral(referralData);
+        }
+      } catch {
+        // Ignore referral load issues, keep account screen usable.
+      }
     } catch {
       setError("account_load_failed");
       toast.error("خطا در دریافت اطلاعات حساب.");
@@ -108,6 +148,9 @@ export function useAccount() {
             nationalCode: payload.nationalCode || undefined,
             landlinePhone: payload.landlinePhone || undefined,
             gender: payload.gender || undefined,
+            favoriteStone: payload.favoriteStone || undefined,
+            favoriteStyle: payload.favoriteStyle || undefined,
+            favoriteBudgetBand: payload.favoriteBudgetBand || undefined,
           }),
         });
         if (!response.ok) {
@@ -117,7 +160,7 @@ export function useAccount() {
         }
         const data = (await response.json()) as { user: AccountUser };
         setUser(data.user);
-        dispatch(setAuthUser(data.user));
+        dispatch(setAuthUser(toAuthUser(data.user)));
         toast.success("اطلاعات کاربری با موفقیت ذخیره شد.");
         return true;
       } catch {
@@ -134,6 +177,8 @@ export function useAccount() {
   return {
     user,
     stats,
+    loyalty,
+    referral,
     isLoading,
     isSaving,
     error,

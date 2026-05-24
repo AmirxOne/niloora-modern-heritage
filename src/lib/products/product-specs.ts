@@ -15,6 +15,8 @@ import {
 } from "@/lib/constants";
 import { fa } from "@/lib/i18n/fa";
 import { resolvePieceCode } from "@/lib/products/piece-code";
+import { getStoneGuideById } from "@/lib/stones";
+import { getArtisanByName } from "@/lib/artisans";
 
 /* -------------------------------------------------------------------------- */
 /*  Smart defaults                                                            */
@@ -66,7 +68,7 @@ const DEFAULT_OCCASIONS_BY_STYLE: Record<RingStyle, ProductOccasion[]> = {
 /*  Spec group output types                                                   */
 /* -------------------------------------------------------------------------- */
 
-export type SpecEntry = { key: string; value: string };
+export type SpecEntry = { key: string; value: string; href?: string };
 export type SpecGroup = { id: string; title: string; entries: SpecEntry[] };
 
 /* -------------------------------------------------------------------------- */
@@ -88,6 +90,16 @@ function metalLabel(metal: MetalType): string {
 
 function stoneLabel(stone: StoneType): string {
   return STONE_OPTIONS.find((s) => s.value === stone)?.label ?? "";
+}
+
+function stoneHref(stone: StoneType): string | undefined {
+  const guide = getStoneGuideById(stone);
+  return guide ? `/stones/${guide.slug}` : undefined;
+}
+
+function artisanHrefByName(name: string): string | undefined {
+  const artisan = getArtisanByName(name);
+  return artisan ? `/artisans/${artisan.slug}` : undefined;
 }
 
 function shapeLabel(shape: Product["stoneShape"]): string {
@@ -183,7 +195,11 @@ export function getProductSpecGroups(product: Product): SpecGroup[] {
 
   // ——— نگین ———
   const stoneEntries: SpecEntry[] = [
-    { key: t.stoneType, value: stoneLabel(product.stone) },
+    {
+      key: t.stoneType,
+      value: stoneLabel(product.stone),
+      href: stoneHref(product.stone),
+    },
     { key: t.stoneShape, value: shapeLabel(product.stoneShape) },
   ];
   if (r.stoneColorLabel) {
@@ -246,7 +262,11 @@ export function getProductSpecGroups(product: Product): SpecGroup[] {
     { key: t.craftedIn, value: r.craftedIn },
   ];
   if (r.craftedBy) {
-    craftEntries.push({ key: t.craftedBy, value: r.craftedBy });
+    craftEntries.push({
+      key: t.craftedBy,
+      value: r.craftedBy,
+      href: artisanHrefByName(r.craftedBy),
+    });
   }
   groups.push({ id: "crafting", title: t.groupCrafting, entries: craftEntries });
 

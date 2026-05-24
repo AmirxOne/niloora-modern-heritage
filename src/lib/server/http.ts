@@ -17,6 +17,10 @@ export function unauthorized(message = "Unauthorized", code?: string) {
   return NextResponse.json({ code: code ?? "unauthorized", message }, { status: 401 });
 }
 
+export function forbidden(message = "Forbidden", code?: string) {
+  return NextResponse.json({ code: code ?? "forbidden", message }, { status: 403 });
+}
+
 export function tooManyRequests(
   message = "Too Many Requests",
   retryAfterSec?: number,

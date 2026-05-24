@@ -45,7 +45,10 @@ export async function POST(request: Request) {
       return serviceUnavailable(getOtpApiMessage("sms_not_configured"), "sms_not_configured");
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { phone } });
+    const existingUser = await prisma.user.findUnique({
+      where: { phone },
+      select: { id: true },
+    });
     const { code, expiresAt } = await issueOtpCode(phone);
 
     if (!isDev) {

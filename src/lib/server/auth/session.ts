@@ -37,7 +37,8 @@ function parseSessionCookie(cookieValue: string): { rawRefreshToken: string; acc
 }
 
 function toSessionRole(role: string): SessionRole {
-  return role === "admin" ? "admin" : "user";
+  if (role === "admin" || role === "editor" || role === "reviewer") return role;
+  return "user";
 }
 
 async function signAccessToken(

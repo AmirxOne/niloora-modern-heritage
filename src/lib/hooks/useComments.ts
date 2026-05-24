@@ -43,14 +43,32 @@ export function useComments() {
     loadPending();
   }, [loadPending]);
 
-  const submit = useCallback(async (productId: string, authorName: string, body: string, rating: number) => {
-    const response = await fetch("/api/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, authorName, body, rating }),
-    });
-    return response.ok;
-  }, []);
+  const submit = useCallback(
+    async (
+      productId: string,
+      authorName: string,
+      body: string,
+      rating: number,
+      dimensionRatings?: {
+        ratingBuildQuality: number;
+        ratingBeauty: number;
+        ratingValue: number;
+        ratingPackaging: number;
+      },
+      media?: {
+        mediaUrl?: string;
+        mediaType?: "image" | "video";
+      }
+    ) => {
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, authorName, body, rating, ...dimensionRatings, ...media }),
+      });
+      return response.ok;
+    },
+    []
+  );
 
   const updateStatus = useCallback(async (id: string, action: "approve" | "reject") => {
     if (!canModerate) return;
@@ -106,11 +124,26 @@ export function useProductComments(productId: string) {
   }, [loadApproved]);
 
   const submit = useCallback(
-    async (id: string, authorName: string, body: string, rating: number) => {
+    async (
+      id: string,
+      authorName: string,
+      body: string,
+      rating: number,
+      dimensionRatings?: {
+        ratingBuildQuality: number;
+        ratingBeauty: number;
+        ratingValue: number;
+        ratingPackaging: number;
+      },
+      media?: {
+        mediaUrl?: string;
+        mediaType?: "image" | "video";
+      }
+    ) => {
       const response = await fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: id, authorName, body, rating }),
+        body: JSON.stringify({ productId: id, authorName, body, rating, ...dimensionRatings, ...media }),
       });
       const success = response.ok;
       if (success) {

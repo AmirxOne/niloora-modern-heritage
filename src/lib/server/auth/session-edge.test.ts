@@ -13,7 +13,7 @@ const secret = new TextEncoder().encode(process.env.SESSION_SECRET!);
 async function signTestAccessToken(claims: {
   sid: string;
   uid: string;
-  role: "user" | "admin";
+  role: "user" | "editor" | "reviewer" | "admin";
   sth: string;
 }) {
   return new SignJWT({ ...claims, uid: claims.uid, role: claims.role })

@@ -56,6 +56,11 @@ describe("createOrderFromCart", () => {
       totalFurooh: 100_000,
       payable: 1_000_000,
       promoCode: "GOLD10",
+      loyaltyTier: "bronze",
+      loyaltyDiscountAmount: 0,
+      loyaltyPointsEarned: 10,
+      bundleDiscount: 0,
+      appliedBundles: [],
     });
 
     vi.mocked(prisma.order.create).mockResolvedValue({
@@ -87,7 +92,9 @@ describe("createOrderFromCart", () => {
       shipping,
     });
 
-    expect(repriceOrderItems).toHaveBeenCalledWith([cartItem], "gold10");
+    expect(repriceOrderItems).toHaveBeenCalledWith([cartItem], "gold10", {
+      loyaltyTier: undefined,
+    });
     expect(prisma.order.create).toHaveBeenCalledOnce();
 
     const createArg = vi.mocked(prisma.order.create).mock.calls[0][0];
@@ -110,6 +117,11 @@ describe("createOrderFromCart", () => {
       totalFurooh: 0,
       payable: 0,
       promoCode: null,
+      loyaltyTier: "bronze",
+      loyaltyDiscountAmount: 0,
+      loyaltyPointsEarned: 0,
+      bundleDiscount: 0,
+      appliedBundles: [],
     });
 
     await expect(

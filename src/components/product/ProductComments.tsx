@@ -54,6 +54,12 @@ export function ProductComments({ productId }: ProductCommentsProps) {
   const [authorName, setAuthorName] = useState("");
   const [body, setBody] = useState("");
   const [rating, setRating] = useState(5);
+  const [ratingBuildQuality, setRatingBuildQuality] = useState(5);
+  const [ratingBeauty, setRatingBeauty] = useState(5);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingPackaging, setRatingPackaging] = useState(5);
+  const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [mediaUrl, setMediaUrl] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [bodyError, setBodyError] = useState<string | null>(null);
@@ -92,7 +98,15 @@ export function ProductComments({ productId }: ProductCommentsProps) {
       return;
     }
 
-    const success = await submitComment(productId, trimmedName, trimmedBody, rating);
+    const success = await submitComment(productId, trimmedName, trimmedBody, rating, {
+      ratingBuildQuality,
+      ratingBeauty,
+      ratingValue,
+      ratingPackaging,
+    }, {
+      mediaUrl: mediaUrl.trim() || undefined,
+      mediaType: mediaUrl.trim() ? mediaType : undefined,
+    });
     if (!success) {
       toast.error("ارسال نظر انجام نشد. ابتدا وارد حساب شوید یا دوباره تلاش کنید.");
       return;
@@ -101,6 +115,12 @@ export function ProductComments({ productId }: ProductCommentsProps) {
     setSubmitted(true);
     setBody("");
     setRating(5);
+    setRatingBuildQuality(5);
+    setRatingBeauty(5);
+    setRatingValue(5);
+    setRatingPackaging(5);
+    setMediaUrl("");
+    setMediaType("image");
   };
 
   const sortOptions: { value: CommentSort; label: string }[] = [
@@ -162,6 +182,61 @@ export function ProductComments({ productId }: ProductCommentsProps) {
                   <div className="product-comment-rating-field">
                     <p className="product-comment-field-label">{fa.product.commentRating}</p>
                     <StarRating value={rating} onChange={setRating} size="md" />
+                  </div>
+
+                  <div className="product-comment-dimension-grid">
+                    <div className="product-comment-rating-field">
+                      <p className="product-comment-field-label">{fa.product.commentRatingBuildQuality}</p>
+                      <StarRating value={ratingBuildQuality} onChange={setRatingBuildQuality} size="md" />
+                    </div>
+                    <div className="product-comment-rating-field">
+                      <p className="product-comment-field-label">{fa.product.commentRatingBeauty}</p>
+                      <StarRating value={ratingBeauty} onChange={setRatingBeauty} size="md" />
+                    </div>
+                    <div className="product-comment-rating-field">
+                      <p className="product-comment-field-label">{fa.product.commentRatingValue}</p>
+                      <StarRating value={ratingValue} onChange={setRatingValue} size="md" />
+                    </div>
+                    <div className="product-comment-rating-field">
+                      <p className="product-comment-field-label">{fa.product.commentRatingPackaging}</p>
+                      <StarRating value={ratingPackaging} onChange={setRatingPackaging} size="md" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="product-comment-media-type-row">
+                      <button
+                        type="button"
+                        className={cn(
+                          "product-comment-media-type-btn",
+                          mediaType === "image" && "product-comment-media-type-btn--active"
+                        )}
+                        onClick={() => setMediaType("image")}
+                      >
+                        تصویر
+                      </button>
+                      <button
+                        type="button"
+                        className={cn(
+                          "product-comment-media-type-btn",
+                          mediaType === "video" && "product-comment-media-type-btn--active"
+                        )}
+                        onClick={() => setMediaType("video")}
+                      >
+                        ویدیو
+                      </button>
+                    </div>
+                    <TextBox
+                      label={
+                        mediaType === "video"
+                          ? fa.product.commentMediaVideoLabel
+                          : fa.product.commentMediaImageLabel
+                      }
+                      placeholder={fa.product.commentMediaPlaceholder}
+                      value={mediaUrl}
+                      onChange={(e) => setMediaUrl(e.target.value)}
+                      inputClassName="auth-input-ltr"
+                    />
                   </div>
 
                   <div>

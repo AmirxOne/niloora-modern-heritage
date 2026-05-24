@@ -25,6 +25,9 @@ export default function AdminSupportRequestsPage() {
                 <Link href="/admin/home" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.home.navLabel}
                 </Link>
+                <Link href="/admin/back-in-stock-alerts" className="text-turquoise-dark hover:text-turquoise">
+                  {fa.admin.backInStockAlerts.navLabel}
+                </Link>
                 <Link href="/admin/moderation" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.moderation.navLabel}
                 </Link>

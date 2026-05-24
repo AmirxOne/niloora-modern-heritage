@@ -1,5 +1,7 @@
 import { SITE_WIDE_DISCOUNT } from "@/lib/discounts-config";
-import type { CartItem, Product, PromoCodeDefinition } from "@/lib/types";
+import type { BundleOfferDefinition, CartItem, Product, PromoCodeDefinition } from "@/lib/types";
+import { calculateAppliedBundles, totalBundleDiscount } from "@/lib/bundle/pricing";
+import { calculateLoyaltyDiscountAmount, normalizeLoyaltyTier } from "@/lib/loyalty/program";
 
 export type SiteWideDiscountInput = {
   enabled: boolean;
@@ -40,10 +42,18 @@ export interface CartPricingBreakdown {
   checkoutFurooh: number;
   totalFurooh: number;
   payable: number;
+  bundleFurooh: number;
+  loyaltyFurooh: number;
+  loyaltyTier: import("@/lib/types").LoyaltyTier;
+  loyaltyDiscountPercent: number;
+  appliedBundles: import("@/lib/types").AppliedBundleOffer[];
   siteWideActive: boolean;
   siteWidePercent: number;
   appliedPromo: PromoCodeDefinition | null;
   promoCodeInput: string | null;
+  giftCardApplied: number;
+  giftCardCode: string | null;
+  payableAfterGiftCard: number;
 }
 
 export function getProductPricing(product: Pick<Product, "price" | "listPrice" | "discountPercent">): ProductPricing {
@@ -71,7 +81,10 @@ export function calculateCartPricing(
   items: CartItem[],
   appliedPromo: PromoCodeDefinition | null,
   appliedPromoCode: string | null,
-  siteWide: SiteWideDiscountInput = SITE_WIDE_DISCOUNT
+  siteWide: SiteWideDiscountInput = SITE_WIDE_DISCOUNT,
+  bundles: BundleOfferDefinition[] = [],
+  giftCardInput?: { code: string | null; appliedAmount: number | null },
+  loyaltyInput?: { tier?: import("@/lib/types").LoyaltyTier | null }
 ): CartPricingBreakdown {
   const lines: CartLinePricing[] = items.map((item) => {
     const unitListPrice = item.listPrice ?? item.price;
@@ -108,8 +121,17 @@ export function calculateCartPricing(
   }
 
   const checkoutFurooh = siteWideFurooh + promoFurooh;
-  const totalFurooh = productFurooh + checkoutFurooh;
-  const payable = Math.max(0, subtotalSale - checkoutFurooh);
+  const appliedBundles = calculateAppliedBundles(items, bundles);
+  const bundleFurooh = totalBundleDiscount(appliedBundles);
+  const loyaltyTier = normalizeLoyaltyTier(loyaltyInput?.tier);
+  const loyaltyBase = Math.max(0, subtotalSale - checkoutFurooh - bundleFurooh);
+  const loyaltyFurooh = calculateLoyaltyDiscountAmount(loyaltyBase, loyaltyTier);
+  const loyaltyDiscountPercent =
+    loyaltyTier === "platinum" ? 6 : loyaltyTier === "gold" ? 4 : loyaltyTier === "silver" ? 2 : 0;
+  const totalFurooh = productFurooh + checkoutFurooh + bundleFurooh + loyaltyFurooh;
+  const payable = Math.max(0, subtotalSale - checkoutFurooh - bundleFurooh - loyaltyFurooh);
+  const giftCardApplied = Math.max(0, Math.min(payable, giftCardInput?.appliedAmount ?? 0));
+  const payableAfterGiftCard = Math.max(0, payable - giftCardApplied);
 
   return {
     lines,
@@ -121,9 +143,17 @@ export function calculateCartPricing(
     checkoutFurooh,
     totalFurooh,
     payable,
+    bundleFurooh,
+    loyaltyFurooh,
+    loyaltyTier,
+    loyaltyDiscountPercent,
+    appliedBundles,
     siteWideActive: siteWide.enabled && !promoValid?.replacesSiteWide,
     siteWidePercent: siteWide.percent,
     appliedPromo: promoValid,
     promoCodeInput: appliedPromoCode,
+    giftCardApplied,
+    giftCardCode: giftCardInput?.code ?? null,
+    payableAfterGiftCard,
   };
 }

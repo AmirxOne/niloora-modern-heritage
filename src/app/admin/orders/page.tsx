@@ -31,8 +31,20 @@ export default function AdminOrdersPage() {
                 >
                   {fa.admin.supportRequests.navLabel}
                 </Link>
+                <Link
+                  href="/admin/back-in-stock-alerts"
+                  className="text-turquoise-dark hover:text-turquoise"
+                >
+                  {fa.admin.backInStockAlerts.navLabel}
+                </Link>
                 <Link href="/admin/promo-codes" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.promoCodes.navLabel}
+                </Link>
+                <Link href="/admin/gift-cards" className="text-turquoise-dark hover:text-turquoise">
+                  {fa.admin.giftCards.navLabel}
+                </Link>
+                <Link href="/admin/bundles" className="text-turquoise-dark hover:text-turquoise">
+                  {fa.admin.bundles.navLabel}
                 </Link>
                 <Link href="/admin/products" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.products.navLabel}

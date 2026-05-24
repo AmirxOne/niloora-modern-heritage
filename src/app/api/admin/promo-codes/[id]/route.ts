@@ -9,6 +9,7 @@ import {
   updatePromoCode,
 } from "@/lib/server/promo/promo-code-service";
 import { prisma } from "@/lib/server/prisma";
+import { writeAdminAuditLog } from "@/lib/server/audit-log";
 
 export async function PATCH(
   request: Request,
@@ -28,6 +29,16 @@ export async function PATCH(
 
     try {
       const row = await updatePromoCode(id, parsed.data);
+      await writeAdminAuditLog({
+        user,
+        request,
+        action: "admin.promo.update",
+        route: "/api/admin/promo-codes/[id]",
+        entityType: "promo_code",
+        entityId: id,
+        summary: `update promo ${row.code}`,
+        payload: { id, code: row.code, type: row.type, value: row.value, active: row.active },
+      });
       return ok({ promoCode: toAdminPromoRecord(row) });
     } catch (error) {
       if (
@@ -59,6 +70,16 @@ export async function DELETE(
     if (!existing) return notFound("کد تخفیف یافت نشد.");
 
     await deletePromoCode(id);
+    await writeAdminAuditLog({
+      user,
+      request: _request,
+      action: "admin.promo.delete",
+      route: "/api/admin/promo-codes/[id]",
+      entityType: "promo_code",
+      entityId: id,
+      summary: `delete promo ${existing.code}`,
+      payload: { id, code: existing.code },
+    });
     return ok({ deleted: true });
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/promo-codes/[id]" });

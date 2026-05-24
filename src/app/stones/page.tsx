@@ -4,6 +4,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { listStoneGuides } from "@/lib/stones";
 import { fa } from "@/lib/i18n/fa";
 import { buildPageMetadata } from "@/lib/seo/site";
+import { StonesSearchGrid } from "./StonesSearchGrid";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "دانشنامه سنگ‌ها",
@@ -17,7 +18,7 @@ export default function StonesPage() {
 
   return (
     <PageTransition>
-      <div className="stones-page min-h-screen pb-24 pt-28 md:pt-32">
+      <div className="stones-page min-h-screen pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="stones-page-shell">
             <header className="stones-page-header">
@@ -29,20 +30,7 @@ export default function StonesPage() {
               </p>
             </header>
 
-            <div className="stones-grid">
-              {stones.map((stone) => (
-                <article key={stone.id} className="stone-card">
-                  <Link href={`/stones/${stone.slug}`} className="stone-card-link">
-                    <div className="stone-card-dot" style={{ backgroundColor: stone.colorHex }} aria-hidden />
-                    <h2 className="stone-card-title">{stone.name}</h2>
-                    <p className="stone-card-tagline">{stone.shortTagline}</p>
-                    <p className="stone-card-meta">
-                      نخستین کاربرد شاخص: <strong>{stone.firstMajorUsePeriod}</strong>
-                    </p>
-                  </Link>
-                </article>
-              ))}
-            </div>
+            <StonesSearchGrid stones={stones} />
 
             <div className="stones-page-footer-link">
               <Link href="/shop">{fa.blog.backToShop}</Link>

@@ -50,6 +50,27 @@ export function CartFuroohSummary({ pricing, hidePayable }: CartFuroohSummaryPro
         </div>
       ) : null}
 
+      {pricing.bundleFurooh > 0 ? (
+        <div className="cart-furooh-summary-row cart-furooh-summary-row--gain">
+          <span>{fa.cart.bundleDiscountLabel}</span>
+          <DiscountAmount amount={pricing.bundleFurooh} />
+        </div>
+      ) : null}
+
+      {pricing.loyaltyFurooh > 0 ? (
+        <div className="cart-furooh-summary-row cart-furooh-summary-row--gain">
+          <span>{fa.cart.loyaltyDiscountLabel(pricing.loyaltyDiscountPercent)}</span>
+          <DiscountAmount amount={pricing.loyaltyFurooh} />
+        </div>
+      ) : null}
+
+      {pricing.giftCardApplied > 0 ? (
+        <div className="cart-furooh-summary-row cart-furooh-summary-row--gain">
+          <span>{fa.cart.giftCardAppliedLabel}</span>
+          <DiscountAmount amount={pricing.giftCardApplied} />
+        </div>
+      ) : null}
+
       {pricing.totalFurooh > 0 ? (
         <div className="cart-furooh-total">
           <p className="cart-furooh-total-label">{fa.bahakahi.totalBlessing}</p>
@@ -63,7 +84,7 @@ export function CartFuroohSummary({ pricing, hidePayable }: CartFuroohSummaryPro
       {!hidePayable ? (
         <div className="cart-furooh-summary-row cart-furooh-summary-row--payable">
           <span className="font-medium text-ivory">{fa.cart.payable}</span>
-          <TomanPrice amount={pricing.payable} size="md" />
+          <TomanPrice amount={pricing.payableAfterGiftCard} size="md" />
         </div>
       ) : null}
     </div>

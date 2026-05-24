@@ -28,6 +28,7 @@ function UnifiedAuthPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/account";
+  const referralFromUrl = searchParams.get("ref") ?? "";
   const { auth } = useAuthPage(redirectTo);
 
   const [requestState, setRequestState] = useState<OtpRequestState | null>(null);
@@ -38,7 +39,7 @@ function UnifiedAuthPageInner() {
   const isOtpStep = Boolean(requestState);
 
   const phoneForm = useFormik({
-    initialValues: { phone: "" },
+    initialValues: { phone: "", referralCode: referralFromUrl },
     validationSchema: forgotRequestValidationSchema,
     validateOnBlur: true,
     validateOnChange: true,
@@ -60,7 +61,8 @@ function UnifiedAuthPageInner() {
   const handleVerifyOtp = async () => {
     if (!requestState) return;
     setIsVerifyingOtp(true);
-    const result = await auth.verifyOtp(requestState.phone, otpCode);
+    const referralCode = (phoneForm.values.referralCode ?? "").trim();
+    const result = await auth.verifyOtp(requestState.phone, otpCode, undefined, referralCode);
     setIsVerifyingOtp(false);
     if (!result) return;
     router.replace(redirectTo);
@@ -103,6 +105,15 @@ function UnifiedAuthPageInner() {
             inputMode="numeric"
             autoComplete="tel"
             placeholder={fa.auth.phonePlaceholder}
+            className="auth-input-ltr"
+          />
+          <FormikTextField
+            formik={phoneForm}
+            name="referralCode"
+            label={fa.auth.referralCodeLabel}
+            type="text"
+            autoComplete="off"
+            placeholder={fa.auth.referralCodePlaceholder}
             className="auth-input-ltr"
           />
 

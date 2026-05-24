@@ -34,6 +34,12 @@ export default function AdminTradeInPage() {
                 >
                   {fa.admin.supportRequests.navLabel}
                 </Link>
+                <Link
+                  href="/admin/back-in-stock-alerts"
+                  className="text-turquoise-dark hover:text-turquoise"
+                >
+                  {fa.admin.backInStockAlerts.navLabel}
+                </Link>
                 <Link href="/admin/home" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.home.navLabel}
                 </Link>

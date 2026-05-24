@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/types";
+import Link from "next/link";
 import { fa } from "@/lib/i18n/fa";
 import { cn } from "@/lib/utils";
 import {
@@ -34,10 +35,18 @@ export function ProductSpecs({ product, className, title, compact }: ProductSpec
       <section className={cn("product-specs", className)} aria-label={ariaLabel}>
         {title ? <h3 className="product-specs__title">{title}</h3> : null}
         <ul className="product-specs__list">
-          {entries.map(({ key, value }) => (
+          {entries.map(({ key, value, href }) => (
             <li key={`${key}-${value}`}>
               <span className="product-specs__key">{key}</span>
-              <span className="product-specs__val">{value}</span>
+              <span className="product-specs__val">
+                {href ? (
+                  <Link href={href} className="product-specs__val-link">
+                    {value}
+                  </Link>
+                ) : (
+                  value
+                )}
+              </span>
             </li>
           ))}
         </ul>
@@ -56,10 +65,18 @@ export function ProductSpecs({ product, className, title, compact }: ProductSpec
           <div key={group.id} className="product-specs__group">
             <h4 className="product-specs__group-title">{group.title}</h4>
             <ul className="product-specs__list">
-              {group.entries.map(({ key, value }) => (
+              {group.entries.map(({ key, value, href }) => (
                 <li key={`${group.id}-${key}`}>
                   <span className="product-specs__key">{key}</span>
-                  <span className="product-specs__val">{value}</span>
+                  <span className="product-specs__val">
+                    {href ? (
+                      <Link href={href} className="product-specs__val-link">
+                        {value}
+                      </Link>
+                    ) : (
+                      value
+                    )}
+                  </span>
                 </li>
               ))}
             </ul>

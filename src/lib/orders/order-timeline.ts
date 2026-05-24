@@ -27,6 +27,9 @@ const STEP_ORDER: OrderTimelineStepId[] = [
 ];
 
 function isOrderPaid(order: Order): boolean {
+  if (order.paymentMethod === "bnpl") {
+    return order.status !== "pending_payment" && order.status !== "payment_failed";
+  }
   if (order.payment?.status === "paid") return true;
   return !["pending_payment", "payment_failed"].includes(order.status);
 }

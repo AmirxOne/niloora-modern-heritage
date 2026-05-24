@@ -6,6 +6,11 @@ import { zarinpalVerifyPayment } from "@/lib/server/payment/zarinpal";
 import { logRouteError } from "@/lib/server/route-errors";
 import { notifyOrderPlaced } from "@/lib/server/notifications/order-notify";
 import { prisma } from "@/lib/server/prisma";
+import { rewardReferralOnPaidOrder } from "@/lib/server/referral/referral";
+import { consumeGiftCardForOrder, createGiftCard } from "@/lib/server/gift-card/gift-card-service";
+import { rewardLoyaltyOnPaidOrder } from "@/lib/server/loyalty/loyalty";
+import { scheduleOrderMaintenanceReminders } from "@/lib/server/notifications/maintenance-reminders";
+import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
 
 function redirect(path: string) {
   return NextResponse.redirect(`${getAppBaseUrl()}${path}`);
@@ -22,7 +27,11 @@ export async function GET(request: Request) {
 
   const payment = await prisma.payment.findUnique({
     where: { authority },
-    include: { order: { include: { items: true } } },
+    include: {
+      order: {
+        include: { items: true },
+      },
+    },
   });
 
   if (!payment) {
@@ -88,8 +97,8 @@ export async function GET(request: Request) {
       });
     }
 
-    await prisma.$transaction([
-      prisma.payment.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.update({
         where: { id: payment.id },
         data: {
           status: "paid",
@@ -100,12 +109,37 @@ export async function GET(request: Request) {
           errorCode: null,
           errorMessage: null,
         },
-      }),
-      prisma.order.update({
+      });
+      await tx.order.update({
         where: { id: payment.orderId },
-        data: { status: "processing" },
-      }),
-    ]);
+        data: {
+          status: "processing",
+          loyaltyPointsEarned: payment.order.loyaltyPointsEarned ?? 0,
+        },
+      });
+      if (payment.order.giftCardCode && (payment.order.giftCardAppliedAmount ?? 0) > 0) {
+        await consumeGiftCardForOrder({
+          code: payment.order.giftCardCode,
+          orderId: payment.orderId,
+          amount: payment.order.giftCardAppliedAmount ?? 0,
+          tx,
+        });
+      }
+      if (payment.order.orderType === "gift-card" && (payment.order.giftCardPurchaseAmount ?? 0) > 0) {
+        await createGiftCard({
+          amount: payment.order.giftCardPurchaseAmount ?? 0,
+          purchaserUserId: payment.order.userId,
+          orderId: payment.orderId,
+          recipientName: payment.order.giftCardRecipientName ?? null,
+          recipientContact: payment.order.giftCardRecipientContact ?? null,
+          note: "Gift card purchased online",
+          tx,
+        });
+      }
+      await rewardReferralOnPaidOrder(tx, payment.orderId);
+      await rewardLoyaltyOnPaidOrder(tx, payment.orderId);
+      await scheduleOrderMaintenanceReminders(tx, payment.orderId);
+    });
 
     await logPaymentEvent({
       paymentId: payment.id,
@@ -117,6 +151,30 @@ export async function GET(request: Request) {
     });
 
     notifyOrderPlaced(payment.orderId);
+    await writeFunnelEvent(
+      {
+        event_name: "purchase",
+        event_id: `server-purchase-${payment.orderId}`,
+        client_id: `server-${payment.order.userId}`,
+        session_id: `server-${payment.id}`,
+        page_location: "/api/payments/zarinpal/callback",
+        occurred_at: new Date().toISOString(),
+        user_id: payment.order.userId,
+        transaction_id: payment.orderId,
+        payment_method: "zarinpal",
+        currency: "IRR",
+        value: payment.order.total,
+        funnel_step: "purchase",
+        items: payment.order.items.map((item) => ({
+          item_id: item.productId ?? item.id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        metadata: { source: "zarinpal_callback" },
+      },
+      request
+    );
 
     const sessionToken = await createSession(payment.order.userId);
     await setSessionCookie(sessionToken);

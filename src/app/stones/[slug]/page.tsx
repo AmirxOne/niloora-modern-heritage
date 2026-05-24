@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -38,11 +39,19 @@ export default async function StoneDetailPage({ params }: PageProps) {
 
   return (
     <PageTransition>
-      <div className="stone-detail-page min-h-screen pb-24 pt-28 md:pt-32">
+      <div className="stone-detail-page min-h-screen pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="stone-detail-shell">
             <header className="stone-detail-head">
-              <span className="stone-detail-dot" style={{ backgroundColor: stone.colorHex }} aria-hidden />
+              <div className="stone-detail-image-wrap">
+                <Image
+                  src={stone.image}
+                  alt={stone.name}
+                  fill
+                  sizes="(max-width: 768px) 220px, 280px"
+                  className="stone-detail-image"
+                />
+              </div>
               <h1 className="stone-detail-title">{stone.name}</h1>
               <p className="stone-detail-subtitle">{stone.shortTagline}</p>
             </header>

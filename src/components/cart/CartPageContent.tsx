@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { ICON_VARIANT } from "@/lib/icons";
 import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { toast } from "sonner";
+import { useGiftCard } from "@/lib/hooks/useGiftCard";
 import {
   CartCheckoutTotals,
   useCheckoutGrandTotal,
@@ -30,6 +31,14 @@ import {
   checkoutProfileSummary,
   isCheckoutProfileReady,
 } from "@/lib/checkout/profile-ready";
+import { AbandonedCartRecoveryCard } from "@/components/cart/AbandonedCartRecoveryCard";
+import { GiftCardInput } from "@/components/cart/GiftCardInput";
+import {
+  INSTALLMENT_MONTH_OPTIONS,
+  calculateInstallmentAmount,
+  type InstallmentMonthOption,
+} from "@/lib/checkout/bnpl";
+import { trackFunnelEvent } from "@/lib/analytics/client";
 
 type CheckoutStep = "cart" | "checkout" | "success";
 
@@ -38,9 +47,12 @@ export function CartPageContent() {
   const searchParams = useSearchParams();
   const { cart, orders, auth } = useApp();
   const account = useAccount();
+  const giftCard = useGiftCard();
   const pricing = useCartPricing();
   const [step, setStep] = useState<CheckoutStep>("cart");
   const [paying, setPaying] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"zarinpal" | "bnpl">("zarinpal");
+  const [installmentMonths, setInstallmentMonths] = useState<InstallmentMonthOption>(3);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   const paymentHandled = useRef(false);
   const shippingFormRef = useRef<CheckoutShippingFormState | null>(null);
@@ -52,12 +64,29 @@ export function CartPageContent() {
   }, []);
 
   const { grandTotal, quote: shippingQuote } = useCheckoutGrandTotal(pricing, shippingForm);
+  const installmentAmountPreview = calculateInstallmentAmount(grandTotal, installmentMonths);
 
   useEffect(() => {
     if (searchParams.get("step") === "checkout" && cart.items.length > 0) {
       setStep("checkout");
     }
   }, [searchParams, cart.items.length]);
+
+  useEffect(() => {
+    if (step !== "checkout" || cart.items.length === 0) return;
+    void trackFunnelEvent({
+      event_name: "begin_checkout",
+      value: pricing.payableAfterGiftCard,
+      items: cart.items.map((item) => ({
+        item_id: item.productId ?? item.id,
+        item_name: item.name,
+        item_category: item.availability,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      dedupe_key: `begin_checkout:${cart.items.map((i) => i.id).join(",")}`,
+    });
+  }, [step, cart.items, pricing.payableAfterGiftCard]);
 
   const profileReady =
     auth.isLoggedIn && !account.isLoading && isCheckoutProfileReady(account.user);
@@ -122,10 +151,33 @@ export function CartPageContent() {
 
     setPaying(true);
     try {
+      void trackFunnelEvent({
+        event_name: "add_payment_info",
+        payment_method: paymentMethod,
+        value: grandTotal,
+        items: cart.items.map((item) => ({
+          item_id: item.productId ?? item.id,
+          item_name: item.name,
+          item_category: item.availability,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+      });
       const result = await orders.startZarinpalPayment(cart.items, {
         promoCode: pricing.appliedPromo?.code ?? null,
+        giftCardCode: giftCard.appliedCode,
+        paymentMethod,
+        installmentMonths: paymentMethod === "bnpl" ? installmentMonths : null,
         shipping,
       });
+      if (result.ok && paymentMethod === "bnpl" && result.bnpl) {
+        toast.success("درخواست خرید اقساطی ثبت شد. تیم فروش برای تکمیل قرارداد با شما تماس می‌گیرد.");
+        setConfirmedOrderId(null);
+        cart.clearCart();
+        await orders.loadOrders();
+        setStep("success");
+        return;
+      }
       if (result.ok && result.redirectUrl) {
         window.location.href = result.redirectUrl;
         return;
@@ -134,6 +186,16 @@ export function CartPageContent() {
       setPaying(false);
     }
   };
+
+  useEffect(() => {
+    const token = searchParams.get("recovery");
+    if (!token) return;
+    fetch("/api/abandoned-cart/recover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    }).catch(() => undefined);
+  }, [searchParams]);
 
   const titles: Record<CheckoutStep, string> = {
     cart: fa.cart.pageTitle,
@@ -232,12 +294,58 @@ export function CartPageContent() {
                   disabled={paying}
                 />
                 <div className="mt-6 rounded-heritage border border-gold/15 bg-parchment/30 px-4 py-4 text-sm text-ivory-light">
+                  <p className="font-medium text-ivory">روش پرداخت</p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      className={`checkout-shipping-method-card ${paymentMethod === "zarinpal" ? "checkout-shipping-method-card--selected" : ""}`}
+                      onClick={() => setPaymentMethod("zarinpal")}
+                    >
+                      <span className="font-medium text-ivory">پرداخت آنلاین زرین‌پال</span>
+                      <span className="mt-1 block text-xs text-silver">تسویه کامل در لحظه</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`checkout-shipping-method-card ${paymentMethod === "bnpl" ? "checkout-shipping-method-card--selected" : ""}`}
+                      onClick={() => setPaymentMethod("bnpl")}
+                    >
+                      <span className="font-medium text-ivory">{fa.cart.installmentMethodTitle}</span>
+                      <span className="mt-1 block text-xs text-silver">بررسی اولیه و شروع قرارداد اقساطی</span>
+                    </button>
+                  </div>
+                  {paymentMethod === "bnpl" ? (
+                    <div className="mt-4 rounded-heritage border border-gold/20 bg-white/60 p-3">
+                      <p className="text-xs text-silver">شرایط اقساط</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {INSTALLMENT_MONTH_OPTIONS.map((month) => (
+                          <button
+                            key={month}
+                            type="button"
+                            className={`rounded-full border px-3 py-1 text-xs ${
+                              installmentMonths === month
+                                ? "border-gold bg-gold/10 text-gold-dark"
+                                : "border-gold/20 text-silver"
+                            }`}
+                            onClick={() => setInstallmentMonths(month)}
+                          >
+                            {month.toLocaleString("fa-IR")} قسط
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-xs text-silver">
+                        {fa.cart.installmentEachLabel}: <span className="font-semibold text-ivory"><TomanPrice amount={installmentAmountPreview} size="xs" /></span>
+                      </p>
+                      <p className="mt-1 text-[11px] text-silver">
+                        {fa.cart.installmentValidationHint}
+                      </p>
+                    </div>
+                  ) : null}
                   <p className="font-medium text-ivory">پرداخت امن زرین‌پال</p>
                   <p className="mt-2 leading-relaxed text-silver">
                     {fa.cart.grandTotal}:{" "}
                     <span className="font-semibold text-price-sale">
                       <TomanPrice
-                        amount={shippingQuote.ready ? grandTotal : pricing.payable}
+                        amount={shippingQuote.ready ? grandTotal : pricing.payableAfterGiftCard}
                         size="sm"
                       />
                     </span>
@@ -281,6 +389,23 @@ export function CartPageContent() {
               </ul>
 
               <PromoCodeInput subtotalSale={pricing.subtotalSale} />
+              <GiftCardInput payableBeforeGiftCard={pricing.payable} />
+
+              {pricing.appliedBundles.length > 0 ? (
+                <div className="cart-bundle-list">
+                  <p className="cart-bundle-list__title">{fa.cart.bundleAppliedTitle}</p>
+                  <ul className="cart-bundle-list__items">
+                    {pricing.appliedBundles.map((entry) => (
+                      <li key={entry.bundle.id} className="cart-bundle-list__item">
+                        <span>{entry.bundle.title}</span>
+                        <span className="text-price-sale">
+                          <TomanPrice amount={entry.amount} size="xs" />
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
               <CartFuroohSummary pricing={pricing} hidePayable={step === "checkout"} />
 
@@ -290,6 +415,19 @@ export function CartPageContent() {
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm text-silver">{fa.cart.total}</span>
                   <TomanPrice amount={pricing.payable} size="md" />
+                </div>
+              ) : null}
+
+              {auth.user?.loyaltyTier ? (
+                <div className="cart-loyalty-cta">
+                  <p className="cart-loyalty-cta-title">
+                    {fa.loyalty.checkoutTierLabel(fa.loyalty.tierLabel[auth.user.loyaltyTier])}
+                  </p>
+                  <p className="cart-loyalty-cta-hint">
+                    {fa.loyalty.checkoutPointsHint(
+                      Math.max(0, Math.floor(pricing.payableAfterGiftCard / 100000))
+                    )}
+                  </p>
                 </div>
               ) : null}
 
@@ -345,8 +483,17 @@ export function CartPageContent() {
               ) : (
                 <div className="mt-6 space-y-3">
                   <Button className="w-full" size="lg" onClick={handlePay} disabled={paying}>
-                    {paying ? fa.cart.paymentProcessing : fa.cart.payWithZarinpal}
+                    {paying
+                      ? fa.cart.paymentProcessing
+                      : paymentMethod === "bnpl"
+                        ? fa.cart.payWithInstallments
+                        : fa.cart.payWithZarinpal}
                   </Button>
+                  <AbandonedCartRecoveryCard
+                    checkoutPath="/cart?step=checkout"
+                    cartItems={cart.items}
+                    shippingSnapshot={shippingForm as Record<string, unknown> | null}
+                  />
                   <button
                     type="button"
                     onClick={() => setStep("cart")}

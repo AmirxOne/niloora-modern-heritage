@@ -3,9 +3,11 @@
 import { fa } from "@/lib/i18n/fa";
 import type { AdminPostFormValues } from "@/lib/admin/post-form";
 import { SelectBox, TextAreaBox, TextBox } from "@/components/inputs";
+import { AdminMediaPicker } from "@/components/admin/AdminMediaPicker";
 
 const statusOptions = [
   { value: "draft", label: fa.admin.posts.statusDraft },
+  { value: "review", label: fa.admin.posts.statusReview },
   { value: "published", label: fa.admin.posts.statusPublished },
 ];
 
@@ -50,6 +52,12 @@ export function AdminPostForm({ values, onChange, disabled }: Props) {
         disabled={disabled}
         inputClassName="auth-input-ltr"
       />
+      <AdminMediaPicker
+        category="posts"
+        value={values.coverImage || undefined}
+        label="مدیریت رسانه بلاگ"
+        onPick={(url) => set("coverImage", url)}
+      />
       <TextBox
         label={fa.admin.posts.author}
         value={values.authorName}
@@ -78,6 +86,7 @@ export function AdminPostForm({ values, onChange, disabled }: Props) {
         disabled={disabled}
         rows={12}
       />
+      <p className="text-xs text-silver">{fa.blog.videoEmbedHelp}</p>
       <TextBox
         label={fa.admin.posts.metaTitle}
         value={values.metaTitle}

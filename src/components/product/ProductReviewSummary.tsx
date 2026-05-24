@@ -19,7 +19,7 @@ const STAR_LEVELS: (5 | 4 | 3 | 2 | 1)[] = [5, 4, 3, 2, 1];
 
 export function ProductReviewSummary({ productId, className }: ProductReviewSummaryProps) {
   const { approved, ratingSummary, isApprovedLoading } = useProductComments(productId);
-  const { average, count, displayStars } = ratingSummary;
+  const { average, count, displayStars, dimensions } = ratingSummary;
 
   const distribution = useMemo(() => computeRatingDistribution(approved), [approved]);
   const recommendPercent = useMemo(() => computeRecommendPercent(approved), [approved]);
@@ -66,6 +66,27 @@ export function ProductReviewSummary({ productId, className }: ProductReviewSumm
 
       {count > 0 && recommendPercent > 0 ? (
         <p className="product-review-summary-recommend">{fa.product.recommendPercent(recommendPercent)}</p>
+      ) : null}
+
+      {count > 0 ? (
+        <div className="product-review-dimensions" role="list" aria-label={fa.product.ratingDimensionsTitle}>
+          {[
+            { key: "buildQuality", label: fa.product.ratingDimensionBuildQuality, value: dimensions.buildQuality },
+            { key: "beauty", label: fa.product.ratingDimensionBeauty, value: dimensions.beauty },
+            { key: "value", label: fa.product.ratingDimensionValue, value: dimensions.value },
+            { key: "packaging", label: fa.product.ratingDimensionPackaging, value: dimensions.packaging },
+          ].map((item) => (
+            <div key={item.key} className="product-review-dimension-item" role="listitem">
+              <span className="product-review-dimension-label">{item.label}</span>
+              <span className="product-review-dimension-value">
+                {item.value.toLocaleString("fa-IR", {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                })}
+              </span>
+            </div>
+          ))}
+        </div>
       ) : null}
 
       <div

@@ -61,7 +61,11 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <>
-      <ProductJsonLd product={payload.product} />
+      <ProductJsonLd
+        product={payload.product}
+        comments={payload.approvedComments}
+        questions={payload.approvedQuestions}
+      />
       <ProductPageClient productId={id} initialPayload={payload} />
     </>
   );

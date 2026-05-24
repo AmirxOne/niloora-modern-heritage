@@ -69,6 +69,59 @@ export function useAdminOrders() {
     [isAdmin]
   );
 
+  const exportCsv = useCallback(async () => {
+    if (!isAdmin) return;
+    const response = await fetch("/api/admin/orders/csv");
+    if (!response.ok) {
+      toast.error("خروجی CSV سفارش‌ها انجام نشد.");
+      return;
+    }
+    const text = await response.text();
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "orders.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [isAdmin]);
+
+  const importCsv = useCallback(
+    async (file: File) => {
+      if (!isAdmin) return null;
+      setIsSaving(true);
+      try {
+        const content = await file.text();
+        const response = await fetch("/api/admin/orders/csv", {
+          method: "POST",
+          headers: { "Content-Type": "text/csv" },
+          body: content,
+        });
+        const data = await parseJsonResponse<{
+          totalRows: number;
+          updated?: number;
+          failed?: number;
+          errors?: Array<{ row: number; id?: string; message: string }>;
+          message?: string;
+        }>(response);
+        if (!response.ok || !data) {
+          toast.error(data?.message ?? "ورود CSV سفارش‌ها انجام نشد.");
+          return null;
+        }
+        await loadOrders(statusFilter);
+        toast.success(
+          `CSV سفارش‌ها پردازش شد: بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
+        );
+        return data;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isAdmin, loadOrders, statusFilter]
+  );
+
   return {
     isAdmin,
     orders,
@@ -78,5 +131,7 @@ export function useAdminOrders() {
     setStatusFilter,
     loadOrders,
     updateOrder,
+    exportCsv,
+    importCsv,
   };
 }

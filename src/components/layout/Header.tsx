@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -9,12 +10,22 @@ import { useApp } from "@/lib/context/AppContext";
 import { Compare, Menu, Search, ShoppingBag, X } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
-import { HeaderSearch } from "@/components/layout/HeaderSearch";
-import { HeaderAccountMenu } from "@/components/layout/HeaderAccountMenu";
+import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
+import { stripLocalePrefix } from "@/lib/i18n/locales";
+
+const HeaderSearch = dynamic(
+  () => import("@/components/layout/HeaderSearch").then((mod) => mod.HeaderSearch),
+  { ssr: false }
+);
+const HeaderAccountMenu = dynamic(
+  () => import("@/components/layout/HeaderAccountMenu").then((mod) => mod.HeaderAccountMenu),
+  { ssr: false }
+);
 
 const NAV_LINKS = [
   { href: "/",          label: fa.nav.home,      exact: true },
   { href: "/shop",      label: fa.nav.shop },
+  { href: "/guide/buying", label: fa.nav.buyingGuide },
   { href: "/customize", label: fa.nav.customize },
   { href: "/blog",      label: fa.nav.blog },
 ];
@@ -96,7 +107,8 @@ function IconBtn({
 }
 
 export function Header() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
+  const normalizedPath = stripLocalePrefix(pathname).path;
   const { cart, compareList } = useApp();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen]  = useState(false);
@@ -176,7 +188,7 @@ export function Header() {
                     key={link.href}
                     href={link.href}
                     className="heritage-nav-link"
-                    data-active={isActive(pathname, link.href, link.exact) ? "true" : "false"}
+                    data-active={isActive(normalizedPath, link.href, link.exact) ? "true" : "false"}
                   >
                     {link.label}
                   </Link>
@@ -185,6 +197,7 @@ export function Header() {
 
               {/* آیکون‌ها — سمت چپ (RTL = end) */}
               <div className="flex items-center gap-0.5 justify-self-end">
+                <LocaleSwitcher />
                 <IconBtn onClick={openSearch} label={fa.nav.search}>
                   <Search size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
                 </IconBtn>
@@ -227,7 +240,7 @@ export function Header() {
               <div className="mx-auto max-w-[1639px] px-4 py-4">
                 {/* لینک‌های ناوبری */}
                 {NAV_LINKS.map((link, i) => {
-                  const active = isActive(pathname, link.href, link.exact);
+                  const active = isActive(normalizedPath, link.href, link.exact);
                   return (
                     <motion.div
                       key={link.href}

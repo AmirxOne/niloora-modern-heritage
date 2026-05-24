@@ -8,10 +8,14 @@ import type {
   Product,
   ProductAvailability,
   ProductCondition,
+  ProductOccasion,
   RingStyle,
+  ShopBudgetBand,
   ShopCollectionFilter,
   ShopCollectionId,
   ShopFilters,
+  ShopMetalStamp,
+  ShopWeightBand,
   StoneType,
 } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
@@ -32,6 +36,30 @@ export function applyShopFilters(
         return p.engravingType === et;
       });
       if (!matches) return false;
+    }
+    if (filters.weightBands.length > 0) {
+      const grams = p.weightGrams ?? (p.price <= 50_000_000 ? 7 : p.price <= 130_000_000 ? 12 : 17);
+      const weightBand: ShopWeightBand = grams < 8 ? "light" : grams <= 15 ? "medium" : "heavy";
+      if (!filters.weightBands.includes(weightBand)) return false;
+    }
+    if (filters.metalStamps.length > 0) {
+      const stamp = (p.metalStamp as ShopMetalStamp | undefined) ?? "0.925";
+      if (!filters.metalStamps.includes(stamp)) return false;
+    }
+    if (filters.budgetBands.length > 0) {
+      const budgetBand: ShopBudgetBand =
+        p.price <= 40_000_000
+          ? "entry"
+          : p.price <= 90_000_000
+            ? "mid"
+            : p.price <= 180_000_000
+              ? "premium"
+              : "luxury";
+      if (!filters.budgetBands.includes(budgetBand)) return false;
+    }
+    if (filters.occasions.length > 0) {
+      const productOccasions = p.occasions ?? defaultOccasionsByStyle[p.category] ?? [];
+      if (!filters.occasions.some((occasion) => productOccasions.includes(occasion))) return false;
     }
     if (filters.availabilities.length > 0 && !filters.availabilities.includes(p.availability)) {
       return false;
@@ -74,6 +102,14 @@ const engravingLabels: Record<EngravingStyle | "none", string> = {
   kufic: fa.engravings.kufic,
   modern: fa.engravings.modern,
 };
+const defaultOccasionsByStyle: Record<RingStyle, ProductOccasion[]> = {
+  solitaire: ["engagement", "anniversary", "gift"],
+  halo: ["engagement", "anniversary", "gift"],
+  vintage: ["gift", "anniversary", "everyday"],
+  signet: ["graduation", "gift", "everyday"],
+  eternity: ["wedding", "anniversary"],
+  stackable: ["gift", "birthday", "everyday"],
+};
 
 export function createDefaultShopFilters(maxPrice: number): ShopFilters {
   return {
@@ -81,6 +117,10 @@ export function createDefaultShopFilters(maxPrice: number): ShopFilters {
     priceRange: [0, maxPrice],
     styles: [],
     engravingTypes: [],
+    weightBands: [],
+    metalStamps: [],
+    budgetBands: [],
+    occasions: [],
     availabilities: [],
     collections: [],
     collectionIds: [],
@@ -104,12 +144,43 @@ const conditionLabels: Record<ProductCondition, string> = {
   new: fa.shop.conditionOptions.new,
   "pre-owned": fa.shop.conditionOptions.preOwned,
 };
+const weightLabels: Record<ShopWeightBand, string> = {
+  light: fa.shop.weightOptions.light,
+  medium: fa.shop.weightOptions.medium,
+  heavy: fa.shop.weightOptions.heavy,
+};
+const metalStampLabels: Record<ShopMetalStamp, string> = {
+  "0.925": fa.shop.metalStampOptions["0.925"],
+  "0.750": fa.shop.metalStampOptions["0.750"],
+  "0.585": fa.shop.metalStampOptions["0.585"],
+};
+const budgetLabels: Record<ShopBudgetBand, string> = {
+  entry: fa.shop.budgetOptions.entry,
+  mid: fa.shop.budgetOptions.mid,
+  premium: fa.shop.budgetOptions.premium,
+  luxury: fa.shop.budgetOptions.luxury,
+};
+const occasionLabels: Record<ProductOccasion, string> = {
+  engagement: fa.occasions.engagement,
+  wedding: fa.occasions.wedding,
+  anniversary: fa.occasions.anniversary,
+  birthday: fa.occasions.birthday,
+  gift: fa.occasions.gift,
+  eid: fa.occasions.eid,
+  religious: fa.occasions.religious,
+  graduation: fa.occasions.graduation,
+  everyday: fa.occasions.everyday,
+};
 
 export function countActiveFilters(filters: ShopFilters, maxPrice: number): number {
   let n = 0;
   n += filters.stones.length;
   n += filters.styles.length;
   n += filters.engravingTypes.length;
+  n += filters.weightBands.length;
+  n += filters.metalStamps.length;
+  n += filters.budgetBands.length;
+  n += filters.occasions.length;
   n += filters.availabilities.length;
   n += filters.collections.length;
   n += filters.collectionIds.length;
@@ -166,6 +237,41 @@ export function buildFilterChips(
           ...filters,
           engravingTypes: removeFromArray(filters.engravingTypes, engraving),
         }),
+    });
+  }
+  for (const weight of filters.weightBands) {
+    chips.push({
+      id: `weight-${weight}`,
+      label: `${fa.shop.weight}: ${weightLabels[weight]}`,
+      onRemove: () =>
+        onChange({ ...filters, weightBands: removeFromArray(filters.weightBands, weight) }),
+    });
+  }
+  for (const stamp of filters.metalStamps) {
+    chips.push({
+      id: `metalStamp-${stamp}`,
+      label: `${fa.shop.metalStamp}: ${metalStampLabels[stamp]}`,
+      onRemove: () =>
+        onChange({
+          ...filters,
+          metalStamps: removeFromArray(filters.metalStamps, stamp),
+        }),
+    });
+  }
+  for (const budget of filters.budgetBands) {
+    chips.push({
+      id: `budget-${budget}`,
+      label: `${fa.shop.budget}: ${budgetLabels[budget]}`,
+      onRemove: () =>
+        onChange({ ...filters, budgetBands: removeFromArray(filters.budgetBands, budget) }),
+    });
+  }
+  for (const occasion of filters.occasions) {
+    chips.push({
+      id: `occasion-${occasion}`,
+      label: `${fa.shop.occasion}: ${occasionLabels[occasion]}`,
+      onRemove: () =>
+        onChange({ ...filters, occasions: removeFromArray(filters.occasions, occasion) }),
     });
   }
 
@@ -273,6 +379,37 @@ export const engravingFilterOptions: { value: EngravingStyle | "none"; label: st
   { value: "thuluth", label: fa.engravings.thuluth },
   { value: "kufic", label: fa.engravings.kufic },
   { value: "modern", label: fa.engravings.modern },
+];
+
+export const weightFilterOptions: { value: ShopWeightBand; label: string }[] = [
+  { value: "light", label: fa.shop.weightOptions.light },
+  { value: "medium", label: fa.shop.weightOptions.medium },
+  { value: "heavy", label: fa.shop.weightOptions.heavy },
+];
+
+export const metalStampFilterOptions: { value: ShopMetalStamp; label: string }[] = [
+  { value: "0.925", label: fa.shop.metalStampOptions["0.925"] },
+  { value: "0.750", label: fa.shop.metalStampOptions["0.750"] },
+  { value: "0.585", label: fa.shop.metalStampOptions["0.585"] },
+];
+
+export const budgetFilterOptions: { value: ShopBudgetBand; label: string }[] = [
+  { value: "entry", label: fa.shop.budgetOptions.entry },
+  { value: "mid", label: fa.shop.budgetOptions.mid },
+  { value: "premium", label: fa.shop.budgetOptions.premium },
+  { value: "luxury", label: fa.shop.budgetOptions.luxury },
+];
+
+export const occasionFilterOptions: { value: ProductOccasion; label: string }[] = [
+  { value: "engagement", label: fa.occasions.engagement },
+  { value: "wedding", label: fa.occasions.wedding },
+  { value: "anniversary", label: fa.occasions.anniversary },
+  { value: "birthday", label: fa.occasions.birthday },
+  { value: "gift", label: fa.occasions.gift },
+  { value: "eid", label: fa.occasions.eid },
+  { value: "religious", label: fa.occasions.religious },
+  { value: "graduation", label: fa.occasions.graduation },
+  { value: "everyday", label: fa.occasions.everyday },
 ];
 
 export const stoneFilterOptions = STONE_OPTIONS.map((s) => ({

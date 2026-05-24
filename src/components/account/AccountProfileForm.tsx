@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import type { AccountProfilePayload } from "@/lib/hooks/useAccount";
 import { DatePickerBox, SelectBox, TextAreaBox, TextBox } from "@/components/inputs";
 import { iconSizes, ICON_VARIANT, type IconComponent } from "@/lib/icons";
+import { STONE_OPTIONS } from "@/lib/constants";
+import { styleFilterOptions, budgetFilterOptions } from "@/lib/shop-filter-utils";
 
 type AccountUser = {
   name: string;
@@ -22,6 +24,9 @@ type AccountUser = {
   nationalCode?: string | null;
   landlinePhone?: string | null;
   gender?: "male" | "female" | "other" | null;
+  favoriteStone?: string | null;
+  favoriteStyle?: string | null;
+  favoriteBudgetBand?: string | null;
 };
 
 function ProfileFieldGroup({
@@ -73,6 +78,9 @@ export function AccountProfileForm({
     nationalCode: user.nationalCode ?? "",
     landlinePhone: user.landlinePhone ?? "",
     gender: user.gender ?? "",
+    favoriteStone: user.favoriteStone ?? "",
+    favoriteStyle: user.favoriteStyle ?? "",
+    favoriteBudgetBand: user.favoriteBudgetBand ?? "",
   });
 
   const canSave = useMemo(
@@ -122,6 +130,42 @@ export function AccountProfileForm({
             { value: "male", label: "آقا" },
             { value: "female", label: "خانم" },
             { value: "other", label: "سایر" },
+          ]}
+        />
+      </ProfileFieldGroup>
+
+      <ProfileFieldGroup
+        title="پروفایل سلیقه"
+        description="برای پیشنهادهای شخصی‌سازی‌شده در خانه و فروشگاه"
+        icon={UserRound}
+      >
+        <SelectBox
+          label="سنگ محبوب"
+          value={form.favoriteStone}
+          onValueChange={(value) => setField("favoriteStone", value)}
+          options={[
+            { value: "", label: "انتخاب نشده" },
+            ...STONE_OPTIONS.map((stone) => ({ value: stone.value, label: stone.label })),
+          ]}
+          searchable
+          searchPlaceholder="جستجوی سنگ"
+        />
+        <SelectBox
+          label="سبک محبوب"
+          value={form.favoriteStyle}
+          onValueChange={(value) => setField("favoriteStyle", value)}
+          options={[
+            { value: "", label: "انتخاب نشده" },
+            ...styleFilterOptions.map((style) => ({ value: style.value, label: style.label })),
+          ]}
+        />
+        <SelectBox
+          label="بودجه محبوب"
+          value={form.favoriteBudgetBand}
+          onValueChange={(value) => setField("favoriteBudgetBand", value)}
+          options={[
+            { value: "", label: "انتخاب نشده" },
+            ...budgetFilterOptions.map((budget) => ({ value: budget.value, label: budget.label })),
           ]}
         />
       </ProfileFieldGroup>

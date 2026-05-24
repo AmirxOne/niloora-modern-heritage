@@ -34,3 +34,28 @@ export type HomeInstagramPostDto = {
   likes: number;
   sortOrder: number;
 };
+
+export type HomeKpiBucketDto = {
+  label: string;
+  value: number;
+};
+
+export type HomeStoneSalesDto = {
+  stone: string;
+  quantity: number;
+  revenue: number;
+};
+
+export type AdminHomeKpiDto = {
+  conversionRatePercent: number;
+  averageBasketValue: number;
+  successfulOrders: number;
+  attemptedOrders: number;
+  salesToday: number;
+  salesWeek: number;
+  salesMonth: number;
+  dailySales: HomeKpiBucketDto[];
+  weeklySales: HomeKpiBucketDto[];
+  monthlySales: HomeKpiBucketDto[];
+  stoneSales: HomeStoneSalesDto[];
+};

@@ -1,23 +1,23 @@
 import { absoluteUrl } from "@/lib/seo/site";
+import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "@/lib/seo/structured-data";
 import type { PostDetail } from "@/lib/server/blog/post";
 
 export function BlogJsonLd({ post }: { post: PostDetail }) {
-  const payload = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
+  const article = buildArticleJsonLd({
+    title: post.title,
     description: post.metaDescription ?? post.excerpt ?? post.title,
-    image: post.coverImage ? absoluteUrl(post.coverImage) : undefined,
-    datePublished: post.publishedAt ?? post.createdAt,
-    dateModified: post.updatedAt,
-    author: post.authorName
-      ? { "@type": "Person", name: post.authorName }
-      : { "@type": "Organization", name: "ابراهیم آذری" },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": absoluteUrl(`/blog/${post.slug}`),
-    },
-  };
+    path: `/blog/${post.slug}`,
+    image: post.coverImage,
+    publishedAt: post.publishedAt ?? post.createdAt,
+    updatedAt: post.updatedAt,
+    authorName: post.authorName,
+  });
+  const breadcrumb = buildBreadcrumbJsonLd([
+    { name: "خانه", path: "/" },
+    { name: "بلاگ", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
+  const payload = [article, breadcrumb];
 
   return (
     <script

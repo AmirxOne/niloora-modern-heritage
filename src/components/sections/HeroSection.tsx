@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { SITE_IMAGE_1 } from "@/lib/images";
 import { fa } from "@/lib/i18n/fa";
+import { useAbExperiment } from "@/lib/hooks/useAbExperiment";
+import { trackAbEvent } from "@/lib/ab/tracker";
 
 const stats = [
   { value: "۹۲۵", label: fa.home.heroMetric1 },
@@ -34,6 +36,24 @@ export function HeroSection() {
   });
   const visualY = useTransform(scrollYProgress, [0, 1], [0, 60]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, 30]);
+  const ctaExperiment = useAbExperiment("hero_cta_v1");
+  const ctaPrimaryHref = ctaExperiment.variantId === "customize_first" ? "/customize" : "/shop";
+  const ctaPrimaryLabel =
+    ctaExperiment.variantId === "customize_first" ? fa.home.designRing : fa.commerce.heroShopPrimary;
+  const ctaSecondaryHref = ctaExperiment.variantId === "customize_first" ? "/shop" : "/customize";
+  const ctaSecondaryLabel =
+    ctaExperiment.variantId === "customize_first" ? fa.commerce.heroShopPrimary : fa.home.designRing;
+
+  const trackCtaConversion = (slot: "primary" | "secondary") => {
+    void trackAbEvent({
+      experimentId: ctaExperiment.experimentId,
+      variantId: ctaExperiment.variantId,
+      identity: ctaExperiment.identity,
+      type: "conversion",
+      page: "/",
+      metadata: { slot },
+    });
+  };
 
   return (
     <section ref={sectionRef} className="heritage-hero" aria-label={fa.home.heroEyebrow}>
@@ -100,14 +120,23 @@ export function HeroSection() {
               animate="visible"
               className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start"
             >
-              <Link href="/shop" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full shadow-luxury-gold sm:min-w-[11.5rem]">
-                  {fa.commerce.heroShopPrimary}
+              <Link href={ctaPrimaryHref} className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  className="w-full shadow-luxury-gold sm:min-w-[11.5rem]"
+                  onClick={() => trackCtaConversion("primary")}
+                >
+                  {ctaPrimaryLabel}
                 </Button>
               </Link>
-              <Link href="/customize" className="w-full sm:w-auto">
-                <Button variant="outline" size="lg" className="w-full sm:min-w-[10rem]">
-                  {fa.home.designRing}
+              <Link href={ctaSecondaryHref} className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:min-w-[10rem]"
+                  onClick={() => trackCtaConversion("secondary")}
+                >
+                  {ctaSecondaryLabel}
                 </Button>
               </Link>
             </motion.div>

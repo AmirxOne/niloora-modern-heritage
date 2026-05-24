@@ -20,6 +20,9 @@ import { SliderHorizontal } from "@/components/icons";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
+import { useApp } from "@/lib/context/AppContext";
+import type { ProductOccasion, RingStyle, StoneType } from "@/lib/types";
+import { useAbExperiment } from "@/lib/hooks/useAbExperiment";
 
 type ShopSortKey =
   | "bestselling"
@@ -85,12 +88,30 @@ export function ShopPageClient() {
   );
 }
 
-function ShopPageContent() {
+type SeoLandingInput = {
+  facet: "stone" | "style" | "occasion";
+  slug: StoneType | RingStyle | ProductOccasion;
+  title: string;
+  intro: string;
+  fallbackQueryHref: string;
+};
+
+export function ShopPageClientWithSeoLanding({ seoLanding }: { seoLanding: SeoLandingInput }) {
+  return (
+    <Suspense fallback={<div className="shop-page min-h-screen bg-matte" aria-hidden />}>
+      <ShopPageContent seoLanding={seoLanding} />
+    </Suspense>
+  );
+}
+
+function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sort, setSort] = useState<ShopSortKey>("bestselling");
   const { products, maxPrice, isLoading: isCatalogLoading } = useCatalogProducts();
   const { filters, setFilters, page, setPage, resetFilters } = useShopFiltersUrl(maxPrice);
   const search = useProductSearch(filters.query);
+  const { auth } = useApp();
+  const cardLayoutExperiment = useAbExperiment("shop_card_layout_v1");
 
   const isSearchMode = search.hasQuery;
   const sourceProducts = useMemo(
@@ -105,40 +126,94 @@ function ShopPageContent() {
       }),
     [sourceProducts, filters, isSearchMode]
   );
-  const sorted = useMemo(() => sortShopProducts(filtered, sort), [filtered, sort]);
-  const cardUiQaMode = true;
-  const qaProducts = useMemo(() => {
-    if (!cardUiQaMode) return sorted;
-    return sorted.map((product, idx) => {
-      const group = idx % 4;
-      const withDiscount = group === 0 || group === 1;
-      const discountPercent = withDiscount
-        ? product.discountPercent && product.discountPercent > 0
-          ? product.discountPercent
-          : 20
-        : 0;
-      const listPrice = product.listPrice ?? product.price;
-      const discountAmount = Math.round(listPrice * (discountPercent / 100));
-      const salePrice = withDiscount ? Math.max(1, listPrice - discountAmount) : listPrice;
-      return {
-        ...product,
-        discountPercent,
-        listPrice,
-        price: salePrice,
-      };
+  const landingFiltered = useMemo(() => {
+    if (!seoLanding) return filtered;
+    return filtered.filter((p) => {
+      if (seoLanding.facet === "stone") return p.stone === seoLanding.slug;
+      if (seoLanding.facet === "style") return p.category === seoLanding.slug;
+      const occasions = p.occasions ?? [];
+      return occasions.includes(seoLanding.slug as ProductOccasion);
     });
-  }, [cardUiQaMode, sorted]);
-  const displayProducts = cardUiQaMode ? qaProducts : sorted;
+  }, [filtered, seoLanding]);
+  const preferenceSorted = useMemo(() => {
+    const prefStone = auth.user?.favoriteStone;
+    const prefStyle = auth.user?.favoriteStyle;
+    const prefBudget = auth.user?.favoriteBudgetBand;
+    if (!prefStone && !prefStyle && !prefBudget) return landingFiltered;
+
+    const budgetOf = (price: number): "entry" | "mid" | "premium" | "luxury" => {
+      if (price <= 40_000_000) return "entry";
+      if (price <= 90_000_000) return "mid";
+      if (price <= 180_000_000) return "premium";
+      return "luxury";
+    };
+
+    return [...landingFiltered].sort((a, b) => {
+      const score = (p: Product) => {
+        let s = 0;
+        if (prefStone && p.stone === prefStone) s += 5;
+        if (prefStyle && p.category === prefStyle) s += 5;
+        if (prefBudget && budgetOf(p.price) === prefBudget) s += 4;
+        if (p.featured) s += 2;
+        if (p.bestseller) s += 1;
+        return s;
+      };
+      const delta = score(b) - score(a);
+      if (delta !== 0) return delta;
+      return 0;
+    });
+  }, [landingFiltered, auth.user?.favoriteStone, auth.user?.favoriteStyle, auth.user?.favoriteBudgetBand]);
+  const sorted = useMemo(() => sortShopProducts(preferenceSorted, sort), [preferenceSorted, sort]);
+  const personalizedPicks = useMemo(() => {
+    const prefStone = auth.user?.favoriteStone;
+    const prefStyle = auth.user?.favoriteStyle;
+    const prefBudget = auth.user?.favoriteBudgetBand;
+    if (!prefStone && !prefStyle && !prefBudget) return [];
+    if (isSearchMode) return [];
+
+    const budgetOf = (price: number): "entry" | "mid" | "premium" | "luxury" => {
+      if (price <= 40_000_000) return "entry";
+      if (price <= 90_000_000) return "mid";
+      if (price <= 180_000_000) return "premium";
+      return "luxury";
+    };
+
+    const score = (p: Product) => {
+      let s = 0;
+      if (prefStone && p.stone === prefStone) s += 5;
+      if (prefStyle && p.category === prefStyle) s += 5;
+      if (prefBudget && budgetOf(p.price) === prefBudget) s += 4;
+      if (p.featured) s += 2;
+      if (p.bestseller) s += 1;
+      return s;
+    };
+
+    return [...products]
+      .map((product) => ({ product, score: score(product) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4)
+      .map((item) => item.product);
+  }, [
+    products,
+    isSearchMode,
+    auth.user?.favoriteStone,
+    auth.user?.favoriteStyle,
+    auth.user?.favoriteBudgetBand,
+  ]);
+  const cardUiQaMode = false;
+  const displayProducts = sorted;
   const timerOverridesByProductId = useMemo(() => {
     if (!cardUiQaMode) return undefined;
     return Object.fromEntries(
-      qaProducts.map((product, idx) => {
+      sorted.map((product, idx) => {
         const group = idx % 4;
         const hasTimer = group === 0 || group === 2;
         return [product.id, hasTimer];
       })
     ) as Record<string, boolean>;
-  }, [cardUiQaMode, qaProducts]);
+  }, [cardUiQaMode, sorted]);
+  const cardVariant = cardLayoutExperiment.variantId === "compact_grid" ? "compact" : "grid";
 
   const isLoading = isCatalogLoading || (isSearchMode && search.isSearching);
   const showSearchError = isSearchMode && search.searchFailed && !search.isSearching;
@@ -176,6 +251,11 @@ function ShopPageContent() {
   }, [showSearchError, isSearchMode, isLoading, filtered.length]);
 
   const priceRangeReady = !isCatalogLoading && maxPrice > 0;
+  const seoLandingActive = Boolean(seoLanding);
+
+  const hasPreferenceProfile = Boolean(
+    auth.user?.favoriteStone || auth.user?.favoriteStyle || auth.user?.favoriteBudgetBand
+  );
 
   return (
     <PageTransition>
@@ -215,6 +295,28 @@ function ShopPageContent() {
               />
 
               <div className="shop-sort-inline mb-4 md:mb-5">
+                {seoLandingActive ? (
+                  <section className="shop-seo-landing-intro mb-4" aria-label={seoLanding?.title}>
+                    <h1>{seoLanding?.title}</h1>
+                    <p>{seoLanding?.intro}</p>
+                    <a href={seoLanding?.fallbackQueryHref}>{fa.shop.seoLandingViewAsFilter}</a>
+                  </section>
+                ) : null}
+                {personalizedPicks.length > 0 ? (
+                  <section className="shop-personalized-picks mb-5" aria-label={fa.shop.personalizedPicksTitle}>
+                    <div className="shop-personalized-picks-head">
+                      <h2>{fa.shop.personalizedPicksTitle}</h2>
+                      <p>{fa.shop.personalizedPicksSubtitle}</p>
+                    </div>
+                    <ShopProductGrid products={personalizedPicks} />
+                  </section>
+                ) : null}
+                {hasPreferenceProfile && !isSearchMode ? (
+                  <div className="shop-preference-hint mb-3" role="status">
+                    <strong>{fa.shop.personalizedPanelTitle}</strong>
+                    <p>{fa.shop.personalizedPanelHint}</p>
+                  </div>
+                ) : null}
                 <div className="shop-sort-box" role="group" aria-label={fa.shop.sortLabel}>
                   <span className="shop-sort-box-label">
                     <SliderHorizontal
@@ -292,6 +394,13 @@ function ShopPageContent() {
                     ) : null}
                     <ShopProductGrid
                       products={pagedProducts}
+                      cardVariant={cardVariant}
+                      abTest={{
+                        experimentId: cardLayoutExperiment.experimentId,
+                        variantId: cardLayoutExperiment.variantId,
+                        identity: cardLayoutExperiment.identity,
+                        page: "/shop",
+                      }}
                       timerOverridesByProductId={timerOverridesByProductId}
                     />
                     <Pagination

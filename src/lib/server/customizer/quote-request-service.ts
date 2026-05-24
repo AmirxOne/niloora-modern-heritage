@@ -54,6 +54,7 @@ export async function createCustomizerQuoteRequest(input: {
       id: createQuoteRequestId(),
       userId: input.userId,
       status: "pending-quote",
+      liveStage: "received",
       title,
       configuration: configuration as unknown as Prisma.InputJsonValue,
       estimateTotal,

@@ -1,8 +1,10 @@
 export const ACCOUNT_SECTION_IDS = [
   "overview",
+  "referrals",
   "profile",
   "orders",
   "quotes",
+  "ugc",
   "wishlist",
   "compare",
   "recently-viewed",

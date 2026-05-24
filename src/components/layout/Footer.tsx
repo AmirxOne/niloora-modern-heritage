@@ -30,6 +30,7 @@ const COLS = [
     title: fa.footer.support,
     links: [
       { href: "/stones",   label: "دانشنامه سنگ‌ها" },
+      { href: "/workshop-transparency", label: "شفافیت کارگاه" },
       { href: "/faq",      label: fa.footer.faq },
       { href: "/terms",    label: fa.footer.terms },
       { href: "/privacy",  label: fa.footer.privacy },

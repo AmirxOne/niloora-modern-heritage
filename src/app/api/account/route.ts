@@ -4,6 +4,8 @@ import { badRequest, ok, serverError, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { toSessionUser } from "@/lib/server/auth/dto";
 import { readUserPreferences } from "@/lib/server/preferences";
+import { getUserLoyaltySummary } from "@/lib/server/loyalty/loyalty";
+import type { ShopBudgetBand, RingStyle, StoneType } from "@/lib/types";
 
 type PatchBody = {
   firstName?: string;
@@ -16,6 +18,9 @@ type PatchBody = {
   nationalCode?: string;
   landlinePhone?: string;
   gender?: "male" | "female" | "other";
+  favoriteStone?: StoneType;
+  favoriteStyle?: RingStyle;
+  favoriteBudgetBand?: ShopBudgetBand;
 };
 
 export async function GET() {
@@ -24,13 +29,14 @@ export async function GET() {
     const user = await readSessionUser();
     if (!user) return unauthorized();
 
-    const [prefs, orderStats] = await Promise.all([
+    const [prefs, orderStats, loyalty] = await Promise.all([
       readUserPreferences(user.id),
       prisma.order.aggregate({
         where: { userId: user.id },
         _count: { id: true },
         _sum: { total: true },
       }),
+      getUserLoyaltySummary(user.id),
     ]);
 
     return ok({
@@ -42,6 +48,7 @@ export async function GET() {
         savedDesignsCount: prefs.savedDesigns.length,
         cartItemsCount: prefs.cartItems.reduce((sum, item) => sum + item.quantity, 0),
       },
+      loyalty,
     });
   } catch (error) {
     return handleRouteError(error, { route: "/api/account" });
@@ -64,6 +71,9 @@ export async function PATCH(request: Request) {
     const nationalCodeRaw = body.nationalCode?.trim() ?? "";
     const landlineRaw = body.landlinePhone?.trim() ?? "";
     const gender = body.gender;
+    const favoriteStone = body.favoriteStone;
+    const favoriteStyle = body.favoriteStyle;
+    const favoriteBudgetBand = body.favoriteBudgetBand;
 
     if (firstName && (firstName.length < 2 || firstName.length > 50)) return badRequest("invalid_first_name");
     if (lastName && (lastName.length < 2 || lastName.length > 60)) return badRequest("invalid_last_name");
@@ -82,6 +92,32 @@ export async function PATCH(request: Request) {
 
     if (gender && gender !== "male" && gender !== "female" && gender !== "other") {
       return badRequest("invalid_gender");
+    }
+    if (
+      favoriteStone &&
+      ![
+        "diamond",
+        "emerald",
+        "sapphire",
+        "ruby",
+        "turquoise",
+        "onyx",
+        "zabarjad",
+        "yemen-aqeeq",
+        "durr-najaf",
+        "moral",
+      ].includes(favoriteStone)
+    ) {
+      return badRequest("invalid_favorite_stone");
+    }
+    if (
+      favoriteStyle &&
+      !["solitaire", "halo", "vintage", "signet", "eternity", "stackable"].includes(favoriteStyle)
+    ) {
+      return badRequest("invalid_favorite_style");
+    }
+    if (favoriteBudgetBand && !["entry", "mid", "premium", "luxury"].includes(favoriteBudgetBand)) {
+      return badRequest("invalid_favorite_budget");
     }
 
     let birthDate: Date | null = null;
@@ -110,6 +146,9 @@ export async function PATCH(request: Request) {
         nationalCode: nationalDigits || null,
         landlinePhone: landlineDigits || null,
         gender: gender ?? null,
+        favoriteStone: favoriteStone ?? null,
+        favoriteStyle: favoriteStyle ?? null,
+        favoriteBudgetBand: favoriteBudgetBand ?? null,
       },
     });
 

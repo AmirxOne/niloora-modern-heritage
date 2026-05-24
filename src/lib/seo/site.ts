@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { fa } from "@/lib/i18n/fa";
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, localePath, type AppLocale } from "@/lib/i18n/locales";
 
 const DEFAULT_SITE_URL = "http://localhost:3000";
 const DEFAULT_OG_IMAGE = "/Picsart_26-04-26_15-15-33-128.jpg";
@@ -65,6 +66,14 @@ export function rootSiteMetadata(): Metadata {
       description: defaultDescription,
       images: [getDefaultOgImageUrl()],
     },
+    alternates: {
+      canonical: absoluteUrl("/"),
+      languages: {
+        "fa-IR": absoluteUrl("/"),
+        "en-US": absoluteUrl("/en"),
+        "ar-SA": absoluteUrl("/ar"),
+      },
+    },
   };
 }
 
@@ -75,20 +84,29 @@ type PageMetaInput = {
   image?: string | null;
   noIndex?: boolean;
   ogType?: "website" | "article";
+  locale?: AppLocale;
 };
 
 export function buildPageMetadata(input: PageMetaInput): Metadata {
-  const url = absoluteUrl(input.path);
+  const locale = input.locale ?? DEFAULT_LOCALE;
+  const localizedPath = localePath(locale, input.path);
+  const url = absoluteUrl(localizedPath);
   const image = input.image ? absoluteUrl(input.image) : getDefaultOgImageUrl();
+  const languages = {
+    "fa-IR": absoluteUrl(localePath("fa", input.path)),
+    "en-US": absoluteUrl(localePath("en", input.path)),
+    "ar-SA": absoluteUrl(localePath("ar", input.path)),
+  };
+  const ogLocale = locale === "fa" ? "fa_IR" : locale === "ar" ? "ar_SA" : "en_US";
 
   return {
     title: input.title,
     description: input.description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages },
     robots: input.noIndex ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: {
       type: input.ogType ?? "website",
-      locale: "fa_IR",
+      locale: ogLocale,
       siteName: fa.brand.name,
       url,
       title: input.title,

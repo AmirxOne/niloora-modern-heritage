@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { shippingMethodLabel } from "@/lib/orders/shipping-methods";
 import type { CartItem, OrderShipping } from "@/lib/types";
+import { normalizeLoyaltyTier } from "@/lib/loyalty/program";
 
 type OrderWithItems = {
   id: string;
@@ -8,7 +9,17 @@ type OrderWithItems = {
   total: number;
   subtotalList: number | null;
   totalFurooh: number | null;
+  bundleDiscount: number | null;
+  appliedBundles: Prisma.JsonValue;
   promoCode: string | null;
+  paymentMethod: string | null;
+  installmentMonths: number | null;
+  installmentAmount: number | null;
+  giftCardCode: string | null;
+  giftCardAppliedAmount: number | null;
+  loyaltyTier: string | null;
+  loyaltyDiscountAmount: number | null;
+  loyaltyPointsEarned: number | null;
   shippingName?: string | null;
   shippingPhone?: string | null;
   shippingProvince?: string | null;
@@ -73,7 +84,23 @@ export function toOrderDto(order: OrderWithItems) {
     total: order.total,
     subtotalList: order.subtotalList ?? undefined,
     totalFurooh: order.totalFurooh ?? undefined,
+    bundleDiscount: order.bundleDiscount ?? undefined,
+    appliedBundles:
+      (Array.isArray(order.appliedBundles)
+        ? (order.appliedBundles as Array<{ id: string; title: string; amount: number }>)
+        : undefined),
     promoCode: order.promoCode,
+    paymentMethod:
+      order.paymentMethod === "bnpl" || order.paymentMethod === "zarinpal"
+        ? order.paymentMethod
+        : undefined,
+    installmentMonths: order.installmentMonths ?? undefined,
+    installmentAmount: order.installmentAmount ?? undefined,
+    giftCardCode: order.giftCardCode ?? undefined,
+    giftCardAppliedAmount: order.giftCardAppliedAmount ?? undefined,
+    loyaltyTier: normalizeLoyaltyTier(order.loyaltyTier),
+    loyaltyDiscountAmount: order.loyaltyDiscountAmount ?? undefined,
+    loyaltyPointsEarned: order.loyaltyPointsEarned ?? undefined,
     shipping,
     trackingCode: order.trackingCode ?? undefined,
     payment,

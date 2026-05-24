@@ -34,8 +34,17 @@ export default function AdminProductsPage() {
                 >
                   {fa.admin.supportRequests.navLabel}
                 </Link>
+                <Link
+                  href="/admin/back-in-stock-alerts"
+                  className="text-turquoise-dark hover:text-turquoise"
+                >
+                  {fa.admin.backInStockAlerts.navLabel}
+                </Link>
                 <Link href="/admin/promo-codes" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.promoCodes.navLabel}
+                </Link>
+                <Link href="/admin/bundles" className="text-turquoise-dark hover:text-turquoise">
+                  {fa.admin.bundles.navLabel}
                 </Link>
                 <Link href="/admin/moderation" className="text-turquoise-dark hover:text-turquoise">
                   {fa.admin.moderation.navLabel}

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { User } from "@prisma/client";
 import { normalizeIranPhone } from "@/lib/auth/phone";
 import { prisma } from "@/lib/server/prisma";
+import { buildReferralCode } from "@/lib/server/referral/referral";
 
 function splitFullName(fullName: string): { firstName: string; lastName: string | null } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -29,6 +30,7 @@ export async function resolveCheckoutUser(input: {
       email: string;
       firstName: string;
       lastName: string;
+      loyaltyTier: string;
     }> = {};
 
     if (email && !existing.email) {
@@ -55,7 +57,9 @@ export async function resolveCheckoutUser(input: {
       lastName: lastName,
       email,
       role: "user",
+      loyaltyTier: "bronze",
       passwordHash: `GUEST_${randomUUID()}`,
+      referralCode: buildReferralCode(),
     },
   });
 }

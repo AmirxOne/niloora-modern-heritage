@@ -9,6 +9,8 @@ import type { HomeBannerDto } from "@/lib/types/home-content";
 import { Button } from "@/components/ui/Button";
 import { TextAreaBox, TextBox } from "@/components/inputs";
 import { Badge } from "@/components/ui/Badge";
+import { AdminMediaPicker } from "@/components/admin/AdminMediaPicker";
+import { AdminHomeKpiPanel } from "@/components/admin/AdminHomeKpiPanel";
 
 export function AdminHomeContentPanel() {
   const admin = useAdminHomeContent();
@@ -70,6 +72,7 @@ export function AdminHomeContentPanel() {
 
   return (
     <div className="admin-orders-panel space-y-8">
+      <AdminHomeKpiPanel />
       <div className="admin-orders-toolbar">
         <Button
           type="button"
@@ -351,6 +354,12 @@ export function AdminHomeContentPanel() {
             value={instagramForm.image}
             onChange={(e) => setInstagramForm({ ...instagramForm, image: e.target.value })}
             inputClassName="auth-input-ltr"
+          />
+          <AdminMediaPicker
+            category="home"
+            value={instagramForm.image || undefined}
+            label="مدیریت رسانه خانه"
+            onPick={(url) => setInstagramForm({ ...instagramForm, image: url })}
           />
           <div className="flex flex-wrap gap-3">
             <TextBox

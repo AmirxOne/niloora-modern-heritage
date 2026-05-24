@@ -8,6 +8,7 @@ import {
   getAdminProductById,
   updateAdminProduct,
 } from "@/lib/server/products/admin-product-service";
+import { writeAdminAuditLog } from "@/lib/server/audit-log";
 
 export async function GET(
   _request: Request,
@@ -47,6 +48,16 @@ export async function PATCH(
 
     try {
       const product = await updateAdminProduct(id, parsed.data);
+      await writeAdminAuditLog({
+        user,
+        request,
+        action: "admin.products.update",
+        route: "/api/admin/products/[id]",
+        entityType: "product",
+        entityId: id,
+        summary: `update product ${id}`,
+        payload: { id, price: product.price, availability: product.availability, stock: product.stock },
+      });
       return ok({ product });
     } catch (error) {
       if (error instanceof Error) {
@@ -75,6 +86,16 @@ export async function DELETE(
     if (!existing) return notFound("محصول یافت نشد.");
 
     await deleteAdminProduct(id);
+    await writeAdminAuditLog({
+      user,
+      request: _request,
+      action: "admin.products.delete",
+      route: "/api/admin/products/[id]",
+      entityType: "product",
+      entityId: id,
+      summary: `delete product ${id}`,
+      payload: { id },
+    });
     return ok({ deleted: true, id });
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/products/[id]" });

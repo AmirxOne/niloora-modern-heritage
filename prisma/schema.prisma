@@ -10,6 +10,16 @@ model User {
   id            String               @id @default(cuid())
   name          String
   phone         String               @unique
+  referralCode  String               @unique
+  signupIpHash  String?
+  referredById  String?
+  referredBy    User?                @relation("UserReferralTree", fields: [referredById], references: [id], onDelete: SetNull)
+  referredUsers User[]               @relation("UserReferralTree")
+  referralCredit Int                 @default(0)
+  referralEarnedTotal Int            @default(0)
+  loyaltyPoints   Int                @default(0)
+  loyaltyTier     String             @default("bronze")
+  loyaltyLifetimeSpend Int           @default(0)
   passwordHash  String
   firstName     String?
   lastName      String?
@@ -21,18 +31,30 @@ model User {
   nationalCode  String?
   landlinePhone String?
   gender        String?
+  favoriteStone String?
+  favoriteStyle String?
+  favoriteBudgetBand String?
   role          String               @default("user")
   memberSince   DateTime             @default(now())
   tier          String?
   sessions      Session[]
   resetTokens   PasswordResetToken[]
   email         String?              @unique
+  journeyEvents AutomatedJourneyEvent[]
+  maintenanceReminders MaintenanceReminder[]
+  priceDropUnsubscribeTokens PriceDropUnsubscribeToken[]
   orders                 Order[]
   supportRequests        SupportRequest[]
   customizerQuoteRequests CustomizerQuoteRequest[]
   comments               ProductComment[]
   productQuestions       ProductQuestion[]
   productQuestionAnswers ProductQuestionAnswer[]
+  ugcMedia              ProductUgcMedia[]
+  backInStockAlerts      BackInStockAlert[]
+  abandonedCartRecoveries AbandonedCartRecovery[]
+  referralInvitesSent    ReferralInvite[]   @relation("ReferralInviter")
+  referralInviteReceived ReferralInvite[]   @relation("ReferralInvitee")
+  purchasedGiftCards     GiftCard[]         @relation("GiftCardPurchaser")
   preferences   UserPreference?
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
@@ -109,6 +131,9 @@ model Product {
   orderItems        OrderItem[]
   comments          ProductComment[]
   questions         ProductQuestion[]
+  ugcMedia          ProductUgcMedia[]
+  authenticityVerifications ProductAuthenticityVerification[]
+  backInStockAlerts BackInStockAlert[]
   homeSliderItems   HomeSliderItem[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
@@ -117,6 +142,130 @@ model Product {
   @@index([condition])
   @@index([bestseller])
   @@index([featured])
+}
+
+model ProductUgcMedia {
+  id         String   @id @default(cuid())
+  productId  String
+  userId     String
+  orderId    String?
+  mediaUrl   String
+  mediaType  String
+  caption    String?
+  status     String   @default("pending")
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order      Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([productId, status, createdAt])
+  @@index([userId, status, createdAt])
+  @@index([status, createdAt])
+}
+
+model ProductAuthenticityVerification {
+  id                  String   @id @default(cuid())
+  pieceCodeInput      String
+  pieceCodeNormalized String
+  status              String
+  productId           String?
+  ipHash              String?
+  userAgent           String?
+  verifiedAt          DateTime @default(now())
+  product             Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([pieceCodeNormalized, verifiedAt])
+  @@index([status, verifiedAt])
+  @@index([productId, verifiedAt])
+}
+
+model BackInStockAlert {
+  id                 String   @id @default(cuid())
+  productId          String
+  userId             String?
+  name               String?
+  channel            String
+  contact            String
+  status             String   @default("pending")
+  sourceAvailability String?
+  requestedAt        DateTime @default(now())
+  notifiedAt         DateTime?
+  notifyAttempts     Int      @default(0)
+  lastError          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, channel, contact])
+  @@index([productId, status, requestedAt])
+  @@index([status, requestedAt])
+  @@index([userId, requestedAt])
+}
+
+model AbandonedCartRecovery {
+  id              String   @id @default(cuid())
+  token           String   @unique
+  userId          String?
+  name            String?
+  channel         String
+  contact         String
+  status          String   @default("pending")
+  cartSnapshot    Json
+  shippingSnapshot Json?
+  checkoutPath    String   @default("/cart?step=checkout")
+  lastActivityAt  DateTime @default(now())
+  nextReminderAt  DateTime?
+  reminderSentAt  DateTime?
+  reminderCount   Int      @default(0)
+  recoveredAt     DateTime?
+  lastError       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([channel, contact])
+  @@index([status, lastActivityAt])
+  @@index([status, nextReminderAt])
+  @@index([userId, updatedAt])
+}
+
+model BundleOffer {
+  id                 String   @id @default(cuid())
+  title              String
+  description        String?
+  discountType       String
+  discountValue      Int
+  requiredProductIds Json
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([active, updatedAt])
+}
+
+model ReferralInvite {
+  id               String   @id @default(cuid())
+  inviterId        String
+  inviteeId        String   @unique
+  referralCodeUsed String
+  status           String   @default("registered")
+  antiFraudReason  String?
+  inviteeFirstOrderId String?
+  inviterReward    Int      @default(0)
+  inviteeReward    Int      @default(0)
+  inviteIpHash     String?
+  createdAt        DateTime @default(now())
+  rewardedAt       DateTime?
+  updatedAt        DateTime @updatedAt
+  inviter          User     @relation("ReferralInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee          User     @relation("ReferralInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@index([inviterId, createdAt])
+  @@index([status, createdAt])
 }
 
 model ProductImage {
@@ -154,11 +303,25 @@ model PreOwnedInfo {
 model Order {
   id           String      @id
   userId       String
+  orderType    String      @default("product")
   status       String
   total        Int
   subtotalList Int?
   totalFurooh  Int?
+  bundleDiscount Int?
+  appliedBundles Json?
   promoCode          String?
+  giftCardCode       String?
+  giftCardAppliedAmount Int?
+  loyaltyTier        String?
+  loyaltyDiscountAmount Int?
+  loyaltyPointsEarned Int?
+  giftCardPurchaseAmount Int?
+  giftCardRecipientName String?
+  giftCardRecipientContact String?
+  paymentMethod     String?
+  installmentMonths Int?
+  installmentAmount Int?
   shippingName       String?
   shippingPhone      String?
   shippingProvince   String?
@@ -175,10 +338,53 @@ model Order {
   items            OrderItem[]
   payment          Payment?
   notifications    OrderNotification[]
+  journeyEvents    AutomatedJourneyEvent[]
+  maintenanceReminders MaintenanceReminder[]
+  ugcMedia         ProductUgcMedia[]
   supportRequests  SupportRequest[]
+  giftCardTransactions GiftCardTransaction[]
+  purchasedGiftCard GiftCard?
 
   @@index([userId, createdAt])
   @@index([status])
+}
+
+model GiftCard {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  initialAmount    Int
+  remainingAmount  Int
+  active           Boolean  @default(true)
+  expiresAt        DateTime?
+  note             String?
+  recipientName    String?
+  recipientContact String?
+  purchaserUserId  String?
+  orderId          String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  purchaser        User?    @relation("GiftCardPurchaser", fields: [purchaserUserId], references: [id], onDelete: SetNull)
+  order            Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  transactions     GiftCardTransaction[]
+
+  @@index([active, remainingAmount])
+  @@index([purchaserUserId, createdAt])
+}
+
+model GiftCardTransaction {
+  id          String   @id @default(cuid())
+  giftCardId  String
+  orderId     String?
+  type        String
+  amount      Int
+  description String?
+  createdAt   DateTime @default(now())
+  giftCard    GiftCard @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([giftCardId, createdAt])
+  @@index([orderId, createdAt])
+  @@unique([orderId, type])
 }
 
 model SupportRequest {
@@ -244,6 +450,10 @@ model CustomizerQuoteRequest {
   id              String   @id
   userId          String
   status          String   @default("pending-quote")
+  liveStage       String   @default("received")
+  etaDays         Int?
+  etaUpdatedAt    DateTime?
+  workshopLiveMessage String?
   title           String
   configuration   Json
   estimateTotal   Int
@@ -274,6 +484,50 @@ model OrderNotification {
   @@index([orderId, createdAt])
 }
 
+model AutomatedJourneyEvent {
+  id          String   @id @default(cuid())
+  journey     String
+  channel     String
+  recipient   String
+  fingerprint String
+  status      String
+  detail      String?
+  userId      String?
+  orderId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sentAt      DateTime?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order       Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([journey, channel, fingerprint])
+  @@index([journey, status, createdAt])
+  @@index([userId, createdAt])
+  @@index([orderId, createdAt])
+}
+
+model MaintenanceReminder {
+  id            String   @id @default(cuid())
+  userId        String?
+  orderId       String
+  kind          String
+  channel       String
+  recipient     String
+  status        String   @default("pending")
+  dueAt         DateTime
+  sentAt        DateTime?
+  notifyAttempts Int     @default(0)
+  lastError     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, kind, channel])
+  @@index([status, dueAt])
+  @@index([userId, dueAt])
+}
+
 model OrderItem {
   id              String   @id @default(cuid())
   orderId         String
@@ -299,6 +553,13 @@ model ProductComment {
   authorName String
   body       String
   rating     Int
+  ratingBuildQuality Int
+  ratingBeauty Int
+  ratingValue Int
+  ratingPackaging Int
+  mediaUrl   String?
+  mediaType  String?
+  isVerifiedBuyer Boolean @default(false)
   status     String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -444,12 +705,28 @@ model UserPreference {
   userId             String   @id
   cartItems          Json?
   wishlistIds        Json?
+  wishlistPriceWatch Json?
   savedDesigns       Json?
   compareProductIds  Json?
   recentlyViewedIds  Json?
   promoCode          String?
   updatedAt          DateTime @updatedAt
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PriceDropUnsubscribeToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  channel   String
+  contact   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, channel, contact])
+  @@index([userId, active])
 }
 
 model TelegramProduct {

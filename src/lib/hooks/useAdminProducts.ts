@@ -121,6 +121,96 @@ export function useAdminProducts() {
     [isAdmin]
   );
 
+  const bulkUpdateProducts = useCallback(
+    async (payload: unknown) => {
+      if (!isAdmin) return null;
+      setIsSaving(true);
+      try {
+        const response = await fetch("/api/admin/products/bulk", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await parseJsonResponse<{
+          updated?: AdminProductDto[];
+          missingIds?: string[];
+          message?: string;
+        }>(response);
+        if (!response.ok || !data?.updated) {
+          toast.error(data?.message ?? "ویرایش گروهی انجام نشد.");
+          return null;
+        }
+        const next = new Map(products.map((item) => [item.id, item]));
+        for (const product of data.updated) {
+          next.set(product.id, product);
+        }
+        setProducts(Array.from(next.values()));
+        toast.success(`${data.updated.length.toLocaleString("fa-IR")} محصول به‌روزرسانی شد.`);
+        if (data.missingIds && data.missingIds.length > 0) {
+          toast.error(`${data.missingIds.length.toLocaleString("fa-IR")} شناسه یافت نشد.`);
+        }
+        return data;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isAdmin, products]
+  );
+
+  const exportCsv = useCallback(async () => {
+    if (!isAdmin) return;
+    const response = await fetch("/api/admin/products/csv");
+    if (!response.ok) {
+      toast.error("خروجی CSV محصولات انجام نشد.");
+      return;
+    }
+    const text = await response.text();
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "products.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [isAdmin]);
+
+  const importCsv = useCallback(
+    async (file: File) => {
+      if (!isAdmin) return null;
+      setIsSaving(true);
+      try {
+        const content = await file.text();
+        const response = await fetch("/api/admin/products/csv", {
+          method: "POST",
+          headers: { "Content-Type": "text/csv" },
+          body: content,
+        });
+        const data = await parseJsonResponse<{
+          totalRows: number;
+          created?: number;
+          updated?: number;
+          failed?: number;
+          errors?: Array<{ row: number; id?: string; message: string }>;
+          message?: string;
+        }>(response);
+        if (!response.ok || !data) {
+          toast.error(data?.message ?? "ورود CSV محصولات انجام نشد.");
+          return null;
+        }
+        await loadProducts();
+        toast.success(
+          `CSV محصولات پردازش شد: ایجاد ${data.created ?? 0} · بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
+        );
+        return data;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isAdmin, loadProducts]
+  );
+
   return {
     isAdmin,
     products,
@@ -132,5 +222,8 @@ export function useAdminProducts() {
     createProduct,
     updateProduct,
     deleteProduct,
+    bulkUpdateProducts,
+    exportCsv,
+    importCsv,
   };
 }

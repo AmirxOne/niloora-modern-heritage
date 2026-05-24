@@ -2,6 +2,7 @@ import type { Product } from "@/lib/types";
 
 export type ProductSearchResponse = {
   query: string;
+  normalizedQuery?: string;
   products: {
     catalog: Product[];
     telegram: unknown[];

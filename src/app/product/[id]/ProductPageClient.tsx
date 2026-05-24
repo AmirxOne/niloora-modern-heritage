@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ProductPriceDisplay } from "@/components/product/ProductPriceDisplay";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
@@ -38,6 +39,14 @@ import { ProductIntroVideo } from "@/components/product/ProductIntroVideo";
 import { ProductArtisansPanel } from "@/components/product/ProductArtisansPanel";
 import { ProductStoneInsight } from "@/components/product/ProductStoneInsight";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
+import { BackInStockAlertCard } from "@/components/product/BackInStockAlertCard";
+import { ProductSmartRecommendations } from "@/components/product/ProductSmartRecommendations";
+import { ProductBundleOffersPanel } from "@/components/product/ProductBundleOffersPanel";
+import { ProductAuthenticityCard } from "@/components/product/ProductAuthenticityCard";
+import { ProductStoryCard } from "@/components/product/ProductStoryCard";
+import { ProductUgcGallery } from "@/components/product/ProductUgcGallery";
+import { toast } from "sonner";
+import { trackFunnelEvent } from "@/lib/analytics/client";
 
 type Props = {
   productId: string;
@@ -47,20 +56,34 @@ type Props = {
 function applyPayload(
   payload: ProductPagePayload,
   setProduct: (p: Product) => void,
-  setRelated: (r: Product[]) => void
+  setRelated: (r: Product[]) => void,
+  setSmartRecommendations: (r: ProductPagePayload["smartRecommendations"]) => void,
+  setActiveBundles: (r: ProductPagePayload["activeBundles"]) => void
 ) {
   setProduct(payload.product);
   setRelated(payload.related);
+  setSmartRecommendations(payload.smartRecommendations);
+  setActiveBundles(payload.activeBundles);
 }
 
 export function ProductPageClient({ productId, initialPayload }: Props) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(initialPayload?.product ?? null);
   const [related, setRelated] = useState<Product[]>(initialPayload?.related ?? []);
+  const [smartRecommendations, setSmartRecommendations] = useState<ProductPagePayload["smartRecommendations"]>(
+    initialPayload?.smartRecommendations ?? { similar: [], complementary: [], budget: [] }
+  );
+  const [activeBundles, setActiveBundles] = useState<ProductPagePayload["activeBundles"]>(
+    initialPayload?.activeBundles ?? []
+  );
   const [isLoading, setIsLoading] = useState(!initialPayload);
   const [isMissing, setIsMissing] = useState(false);
   const { cart, wishlist, recentlyViewed } = useApp();
   const trackRecentlyViewed = recentlyViewed.trackView;
+  const productCategory = product?.category;
+  const productName = product?.name;
+  const productPrice = product?.price;
+  const productStone = product?.stone;
   useEffect(() => {
     let cancelled = false;
     const hasInitial = initialPayload?.product.id === productId;
@@ -74,7 +97,13 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         setIsLoading(false);
         return;
       }
-      applyPayload(payload, setProduct, setRelated);
+      applyPayload(
+        payload,
+        setProduct,
+        setRelated,
+        setSmartRecommendations,
+        setActiveBundles
+      );
       setIsMissing(false);
       setIsLoading(false);
     }
@@ -88,8 +117,23 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   useEffect(() => {
     if (product?.id) {
       trackRecentlyViewed(product.id);
+      void trackFunnelEvent({
+        event_name: "view_product",
+        value: productPrice,
+        items: [
+          {
+            item_id: product.id,
+            item_name: productName,
+            item_category: productCategory,
+            item_variant: productStone,
+            price: productPrice,
+            quantity: 1,
+          },
+        ],
+        dedupe_key: `view_product:${product.id}`,
+      });
     }
-  }, [product?.id, trackRecentlyViewed]);
+  }, [product?.id, productCategory, productName, productPrice, productStone, trackRecentlyViewed]);
 
   if (isMissing) {
     notFound();
@@ -150,6 +194,25 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
     if (canAddToCart) {
       cart.addProduct(product.id);
     }
+  };
+
+  const handleAddBundleToCart = async (bundle: ProductPagePayload["activeBundles"][number]) => {
+    const otherProductIds = bundle.requiredProductIds.filter((id) => id !== product.id);
+    for (const id of otherProductIds) {
+      const response = await fetch(`/api/products/${encodeURIComponent(id)}`);
+      if (!response.ok) {
+        toast.error(fa.product.bundleOffers.addFailedMissing);
+        return;
+      }
+      const data = (await response.json()) as { product?: Product };
+      if (!data.product) {
+        toast.error(fa.product.bundleOffers.addFailedMissing);
+        return;
+      }
+      await cart.addProduct(id, { navigateToCart: false });
+    }
+    toast.success(fa.product.bundleOffers.addSuccess);
+    router.push("/cart");
   };
 
   return (
@@ -239,6 +302,34 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   </h2>
                   <ProductAvailabilityPanel availability={product.availability} />
                 </section>
+                <section className="product-detail-side-section" aria-labelledby="product-ring-size-heading">
+                  <h2 id="product-ring-size-heading" className="product-detail-section-title">
+                    راهنمای سایز انگشتر
+                  </h2>
+                  <p className="product-detail-ring-size-hint">
+                    برای انتخاب سایز دقیق، ابزار تعاملی و جدول تبدیل کامل را ببینید.
+                  </p>
+                  <div className="product-detail-ring-size-actions">
+                    <Link href="/ring-size" className="product-detail-ring-size-link">
+                      باز کردن راهنمای سایز
+                    </Link>
+                    <Link
+                      href={`/customize?productId=${encodeURIComponent(product.id)}&ringSize=${encodeURIComponent(
+                        (product.ringSize ?? 7).toString()
+                      )}`}
+                      className="product-detail-ring-size-link product-detail-ring-size-link--subtle"
+                    >
+                      سفارشی‌سازی با سایز پیش‌فرض این محصول
+                    </Link>
+                  </div>
+                </section>
+                <ProductBundleOffersPanel
+                  product={product}
+                  bundles={activeBundles}
+                  onAddBundleToCart={handleAddBundleToCart}
+                />
+                <BackInStockAlertCard product={product} />
+                <ProductAuthenticityCard product={product} />
 
                 <ProductArtisansPanel product={product} className="product-detail-artisans-panel" />
                 <ProductStoneInsight product={product} className="product-detail-stone-insight" />
@@ -256,6 +347,8 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
           product={product}
           className="product-detail-highlights product-detail-highlights--top"
         />
+
+        <ProductStoryCard product={product} className="product-detail-story-card" />
 
         <ProductSectionNav className="product-detail-section-nav" />
 
@@ -277,6 +370,10 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
           <ProductQuestions productId={product.id} />
         </section>
 
+        <section className="product-detail-ugc">
+          <ProductUgcGallery product={product} />
+        </section>
+
         <RecentlyViewedStrip
           excludeProductId={product.id}
           className="product-detail-recently-viewed"
@@ -288,6 +385,12 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
             <ShopProductGrid products={related} className="product-detail-related-grid" />
           </section>
         ) : null}
+
+        <ProductSmartRecommendations
+          similar={smartRecommendations.similar}
+          complementary={smartRecommendations.complementary}
+          budget={smartRecommendations.budget}
+        />
       </div>
 
       <MobileProductBuyBar product={product} />

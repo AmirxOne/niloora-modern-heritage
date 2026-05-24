@@ -69,6 +69,14 @@ export type AdminProductPayload = {
   discountEndsAt?: string | null;
 };
 
+export type AdminProductBulkPayload = {
+  ids: string[];
+  price?: number;
+  stock?: number;
+  availability?: ProductAvailability;
+  discountPercent?: number | null;
+};
+
 function slugifyId(raw: string): string {
   return raw
     .trim()
@@ -285,4 +293,80 @@ export function parseAdminProductBody(
         : {}),
     },
   };
+}
+
+export function parseAdminProductBulkBody(
+  raw: unknown
+): { ok: true; data: AdminProductBulkPayload } | { ok: false; message: string } {
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, message: "دادهٔ ویرایش گروهی نامعتبر است." };
+  }
+
+  const body = raw as Record<string, unknown>;
+  const idsRaw = Array.isArray(body.ids) ? body.ids : [];
+  const ids = Array.from(
+    new Set(
+      idsRaw
+        .map((value) => String(value ?? "").trim())
+        .filter((value) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
+    )
+  );
+  if (ids.length === 0) {
+    return { ok: false, message: "حداقل یک محصول برای ویرایش گروهی انتخاب کنید." };
+  }
+
+  const parsed: AdminProductBulkPayload = { ids };
+
+  if (body.price !== undefined && body.price !== "") {
+    const price = parsePositiveInt(body.price);
+    if (price == null || price <= 0) {
+      return { ok: false, message: "قیمت فروش باید عدد مثبت باشد." };
+    }
+    parsed.price = price;
+  }
+
+  if (body.stock !== undefined && body.stock !== "") {
+    const stock = parsePositiveInt(body.stock);
+    if (stock == null || stock < 0) {
+      return { ok: false, message: "تعداد موجودی باید عدد صحیح و بزرگ‌تر یا مساوی صفر باشد." };
+    }
+    parsed.stock = stock;
+  }
+
+  if (body.availability !== undefined && body.availability !== "") {
+    const availability = String(body.availability);
+    if (!PRODUCT_AVAILABILITY_OPTIONS.includes(availability as ProductAvailability)) {
+      return { ok: false, message: "وضعیت موجودی نامعتبر است." };
+    }
+    parsed.availability = availability as ProductAvailability;
+  }
+
+  if (body.discountPercent !== undefined) {
+    if (body.discountPercent === "" || body.discountPercent === null) {
+      parsed.discountPercent = null;
+    } else {
+      const discountPercent = parseOptionalPercent(body.discountPercent);
+      if (discountPercent == null) {
+        return { ok: false, message: "درصد تخفیف باید بین ۰ تا ۹۵ باشد." };
+      }
+      parsed.discountPercent = discountPercent;
+    }
+  }
+
+  if (
+    parsed.price === undefined &&
+    parsed.stock === undefined &&
+    parsed.availability === undefined &&
+    parsed.discountPercent === undefined
+  ) {
+    return { ok: false, message: "حداقل یک فیلد برای ویرایش گروهی انتخاب کنید." };
+  }
+
+  const finalAvailability = parsed.availability;
+  const finalStock = parsed.stock;
+  if (finalAvailability === "sold" && finalStock !== undefined && finalStock > 0) {
+    return { ok: false, message: "برای وضعیت «فروخته‌شده» موجودی باید صفر باشد." };
+  }
+
+  return { ok: true, data: parsed };
 }

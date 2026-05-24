@@ -30,9 +30,14 @@ export async function PUT(request: Request) {
     const body = (await request.json()) as Body;
     if (!body) return badRequest("invalid_payload");
 
+    const current = await readUserPreferences(user.id);
     const payload: UserPreferencesDto = {
       cartItems: Array.isArray(body.cartItems) ? body.cartItems : [],
       wishlistIds: Array.isArray(body.wishlistIds) ? body.wishlistIds : [],
+      wishlistPriceWatch:
+        body.wishlistPriceWatch && typeof body.wishlistPriceWatch === "object"
+          ? (body.wishlistPriceWatch as Record<string, number>)
+          : current.wishlistPriceWatch,
       savedDesigns: normalizeSavedDesigns(body.savedDesigns),
       compareProductIds: Array.isArray(body.compareProductIds) ? body.compareProductIds : [],
       recentlyViewedIds: Array.isArray(body.recentlyViewedIds) ? body.recentlyViewedIds : [],

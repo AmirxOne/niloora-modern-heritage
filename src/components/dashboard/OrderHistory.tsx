@@ -147,6 +147,12 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
               />
             </p>
           ) : null}
+          {order.paymentMethod === "bnpl" && order.installmentMonths && order.installmentAmount ? (
+            <p className="mt-1 text-xs text-silver">
+              خرید اقساطی: {order.installmentMonths.toLocaleString("fa-IR")} قسط ×{" "}
+              <TomanPrice amount={order.installmentAmount} size="xs" />
+            </p>
+          ) : null}
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
             {orderHasReceipt(order) ? (
               <Link

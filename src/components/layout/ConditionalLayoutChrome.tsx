@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { stripLocalePrefix } from "@/lib/i18n/locales";
 
 const AUTH_ROUTES = new Set(["/auth", "/login", "/register", "/forgot-password"]);
 
@@ -13,7 +14,8 @@ export function ConditionalLayoutChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isAuthPage = pathname ? AUTH_ROUTES.has(pathname) : false;
+  const normalizedPath = pathname ? stripLocalePrefix(pathname).path : "/";
+  const isAuthPage = AUTH_ROUTES.has(normalizedPath);
 
   if (isAuthPage) {
     return <main className="h-[100dvh] overflow-hidden">{children}</main>;

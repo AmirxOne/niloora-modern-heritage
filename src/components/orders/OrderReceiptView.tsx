@@ -21,7 +21,7 @@ function formatReceiptDate(iso: string): string {
   });
 }
 
-function ReceiptTotals({ receipt }: { receipt: OrderReceiptBreakdown }) {
+function ReceiptTotals({ receipt, order }: { receipt: OrderReceiptBreakdown; order: Order }) {
   return (
     <div className="order-receipt-totals">
       {receipt.listSubtotal > receipt.itemsSubtotal ? (
@@ -45,6 +45,17 @@ function ReceiptTotals({ receipt }: { receipt: OrderReceiptBreakdown }) {
         <div className="order-receipt-totals-row order-receipt-totals-row--muted">
           <span>{fa.receipt.promoCode}</span>
           <span className="font-mono text-sm">{receipt.promoCode}</span>
+        </div>
+      ) : null}
+      {order.paymentMethod === "bnpl" &&
+      order.installmentMonths &&
+      order.installmentAmount ? (
+        <div className="order-receipt-totals-row order-receipt-totals-row--muted">
+          <span>برنامه اقساط</span>
+          <span>
+            {order.installmentMonths.toLocaleString("fa-IR")} قسط ×{" "}
+            <TomanPrice amount={order.installmentAmount} size="xs" />
+          </span>
         </div>
       ) : null}
 
@@ -173,7 +184,7 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
       ) : null}
 
       <section className="order-receipt-section">
-        <ReceiptTotals receipt={receipt} />
+        <ReceiptTotals receipt={receipt} order={order} />
       </section>
 
       <footer className="order-receipt-footer">

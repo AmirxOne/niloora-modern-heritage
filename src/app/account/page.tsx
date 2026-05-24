@@ -27,6 +27,8 @@ import { AccountSectionContainer } from "@/components/account/AccountSectionCont
 import { AccountOverviewPanel } from "@/components/account/AccountOverviewPanel";
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { AccountResourceRow } from "@/components/account/AccountResourceRow";
+import { AccountReferralPanel } from "@/components/account/AccountReferralPanel";
+import { AccountUgcPanel } from "@/components/account/AccountUgcPanel";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -90,8 +92,16 @@ export default function AccountPage() {
       router.push("/admin/posts");
       return;
     }
+    if (id === "admin-gift-cards") {
+      router.push("/admin/gift-cards");
+      return;
+    }
     if (id === "admin-moderation") {
       router.push("/admin/moderation");
+      return;
+    }
+    if (id === "admin-customizer-quotes") {
+      router.push("/admin/customizer-quotes");
       return;
     }
     const section = id as AccountSectionId;
@@ -102,6 +112,7 @@ export default function AccountPage() {
   const menuItems = useMemo((): AccountNavItem[] => {
     const items: AccountNavItem[] = [
       { id: "overview", label: "خلاصه حساب" },
+      { id: "referrals", label: fa.referral.navLabel },
       { id: "profile", label: "اطلاعات کاربری" },
       { id: "orders", label: fa.dashboard.purchaseHistory, badge: orders.orders.length },
       {
@@ -109,6 +120,7 @@ export default function AccountPage() {
         label: fa.dashboard.workshopQuotes,
         badge: quoteRequests.quotes.length,
       },
+      { id: "ugc", label: fa.product.ugc.navLabel },
       { id: "wishlist", label: fa.dashboard.wishlist, badge: wishlistedProducts.length },
       { id: "compare", label: fa.dashboard.compareList, badge: compareList.count },
       {
@@ -150,6 +162,20 @@ export default function AccountPage() {
         id: "admin-posts",
         label: fa.admin.posts.navLabel,
       });
+      items.push({
+        id: "admin-gift-cards",
+        label: fa.admin.giftCards.navLabel,
+      });
+      items.push({
+        id: "admin-customizer-quotes",
+        label: fa.customize.liveTimeline.admin.navLabel,
+      });
+    }
+    if (auth.user?.role === "editor" || auth.user?.role === "reviewer") {
+      items.push({
+        id: "admin-posts",
+        label: fa.admin.posts.navLabel,
+      });
     }
     return items;
   }, [
@@ -186,10 +212,24 @@ export default function AccountPage() {
               nationalCode: profileUser.nationalCode,
               landlinePhone: profileUser.landlinePhone,
               gender: profileUser.gender,
+              favoriteStone: profileUser.favoriteStone,
+              favoriteStyle: profileUser.favoriteStyle,
+              favoriteBudgetBand: profileUser.favoriteBudgetBand,
             }}
             isSaving={account.isSaving}
             onSave={account.updateProfile}
           />
+        </AccountSectionContainer>
+      );
+    }
+
+    if (activeSection === "referrals") {
+      return (
+        <AccountSectionContainer
+          title={fa.referral.title}
+          subtitle={fa.referral.subtitle}
+        >
+          <AccountReferralPanel referral={account.referral} />
         </AccountSectionContainer>
       );
     }
@@ -215,6 +255,17 @@ export default function AccountPage() {
             quotes={quoteRequests.quotes}
             isLoading={quoteRequests.isLoading}
           />
+        </AccountSectionContainer>
+      );
+    }
+
+    if (activeSection === "ugc") {
+      return (
+        <AccountSectionContainer
+          title={fa.product.ugc.accountTitle}
+          subtitle={fa.product.ugc.accountSubtitle}
+        >
+          <AccountUgcPanel />
         </AccountSectionContainer>
       );
     }
@@ -379,7 +430,7 @@ export default function AccountPage() {
     return (
       <AccountSectionContainer>
         {account.stats ? (
-          <AccountOverviewPanel stats={account.stats} onNavigate={navigate} />
+          <AccountOverviewPanel stats={account.stats} loyalty={account.loyalty} onNavigate={navigate} />
         ) : (
           <div className="account-panel account-panel--loading" aria-busy="true">
             <div className="account-skeleton account-skeleton--hero" />
@@ -408,6 +459,7 @@ export default function AccountPage() {
                         name: activeUser.name,
                         phone: activeUser.phone,
                         tier: activeUser.tier ?? "royal",
+                        loyaltyTier: activeUser.loyaltyTier ?? "bronze",
                         role: activeUser.role ?? "user",
                         memberSince,
                       }}

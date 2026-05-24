@@ -14,6 +14,12 @@ import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { AdminPostForm } from "@/components/admin/AdminPostForm";
+import {
+  canTransitionPostStatus,
+  canCreateContent,
+  canDeleteContent,
+  isPostEditableByRole,
+} from "@/lib/auth/content-workflow";
 
 export function AdminPostsPanel() {
   const admin = useAdminPosts();
@@ -22,16 +28,18 @@ export function AdminPostsPanel() {
   const [formValues, setFormValues] = useState<AdminPostFormValues>(emptyAdminPostForm());
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadPosts();
-  }, [admin.isAdmin, admin.loadPosts]);
+    if (admin.isWorkflowUser) void admin.loadPosts();
+  }, [admin.isWorkflowUser, admin.loadPosts]);
 
   const startCreate = () => {
+    if (!admin.canCreate) return;
     setMode("create");
     setEditingId(null);
     setFormValues(emptyAdminPostForm());
   };
 
   const startEdit = (post: AdminPostRecord) => {
+    if (!isPostEditableByRole(admin.role, post.status)) return;
     setMode("edit");
     setEditingId(post.id);
     setFormValues(adminPostToForm(post));
@@ -44,6 +52,16 @@ export function AdminPostsPanel() {
   };
 
   const handleSubmit = async () => {
+    const existing = mode === "edit" && editingId ? admin.posts.find((p) => p.id === editingId) : null;
+    if (
+      !canTransitionPostStatus(
+        admin.role,
+        mode === "create" ? "draft" : existing?.status,
+        formValues.status
+      )
+    ) {
+      return;
+    }
     const payload = adminPostFormToPayload(formValues);
     if (mode === "create") {
       const created = await admin.createPost(payload);
@@ -58,12 +76,13 @@ export function AdminPostsPanel() {
 
   const handleDelete = async () => {
     if (!editingId) return;
+    if (!admin.canDelete) return;
     if (!window.confirm(fa.admin.posts.deleteConfirm)) return;
     const ok = await admin.deletePost(editingId);
     if (ok) cancelForm();
   };
 
-  if (!admin.isAdmin) {
+  if (!admin.isWorkflowUser) {
     return (
       <div className="admin-orders-forbidden">
         <p className="text-ivory">{fa.admin.forbidden}</p>
@@ -74,7 +93,7 @@ export function AdminPostsPanel() {
   return (
     <div className="admin-orders-panel">
       <div className="admin-orders-toolbar">
-        <Button type="button" onClick={startCreate}>
+        <Button type="button" onClick={startCreate} disabled={!admin.canCreate}>
           {fa.admin.posts.add}
         </Button>
         <Button
@@ -92,9 +111,32 @@ export function AdminPostsPanel() {
           <h2 className="admin-page-title text-lg">
             {mode === "create" ? fa.admin.posts.createTitle : fa.admin.posts.editTitle}
           </h2>
+          <p className="mb-3 text-xs text-silver">
+            {admin.role === "admin"
+              ? fa.admin.posts.statusFlowHintAdmin
+              : admin.role === "reviewer"
+                ? fa.admin.posts.statusFlowHintReviewer
+                : fa.admin.posts.statusFlowHintEditor}
+          </p>
           <AdminPostForm values={formValues} onChange={setFormValues} disabled={admin.isSaving} />
+          {mode === "create" && !canCreateContent(admin.role) ? (
+            <p className="mt-2 text-xs text-copper">{fa.admin.posts.cannotCreate}</p>
+          ) : null}
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button type="button" disabled={admin.isSaving} onClick={() => void handleSubmit()}>
+            <Button
+              type="button"
+              disabled={
+                admin.isSaving ||
+                !canTransitionPostStatus(
+                  admin.role,
+                  mode === "create"
+                    ? "draft"
+                    : admin.posts.find((p) => p.id === editingId)?.status ?? "draft",
+                  formValues.status
+                )
+              }
+              onClick={() => void handleSubmit()}
+            >
               {admin.isSaving ? fa.admin.posts.saving : fa.admin.posts.save}
             </Button>
             <Button type="button" variant="outline" onClick={cancelForm}>
@@ -110,15 +152,20 @@ export function AdminPostsPanel() {
               </Link>
             ) : null}
             {mode === "edit" ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="text-copper"
-                disabled={admin.isSaving}
-                onClick={() => void handleDelete()}
-              >
-                {fa.admin.posts.delete}
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-copper"
+                  disabled={admin.isSaving || !admin.canDelete}
+                  onClick={() => void handleDelete()}
+                >
+                  {fa.admin.posts.delete}
+                </Button>
+                {!canDeleteContent(admin.role) ? (
+                  <p className="self-center text-xs text-copper">{fa.admin.posts.cannotDelete}</p>
+                ) : null}
+              </>
             ) : null}
           </div>
         </section>
@@ -141,16 +188,35 @@ export function AdminPostsPanel() {
                     {post.title}
                   </p>
                 </div>
-                <Badge variant={post.status === "published" ? "turquoise" : "default"}>
+                <Badge
+                  variant={
+                    post.status === "published"
+                      ? "turquoise"
+                      : post.status === "review"
+                        ? "gold"
+                        : "default"
+                  }
+                >
                   {post.status === "published"
                     ? fa.admin.posts.statusPublished
-                    : fa.admin.posts.statusDraft}
+                    : post.status === "review"
+                      ? fa.admin.posts.statusReview
+                      : fa.admin.posts.statusDraft}
                 </Badge>
               </div>
               <div className="mt-3 flex gap-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => startEdit(post)}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={!isPostEditableByRole(admin.role, post.status)}
+                  onClick={() => startEdit(post)}
+                >
                   {fa.admin.posts.editTitle}
                 </Button>
+                {!isPostEditableByRole(admin.role, post.status) ? (
+                  <span className="self-center text-xs text-silver">{fa.admin.posts.cannotEditStatus}</span>
+                ) : null}
                 {post.status === "published" ? (
                   <Link
                     href={`/blog/${post.slug}`}

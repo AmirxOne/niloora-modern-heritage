@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/context/AppContext";
 import { fa } from "@/lib/i18n/fa";
 import { ICON_VARIANT } from "@/lib/icons";
+import { stripLocalePrefix } from "@/lib/i18n/locales";
 import {
   Heart,
   ShoppingBag,
@@ -46,10 +47,11 @@ function isActiveRoute(pathname: string, href: string, exact?: boolean): boolean
 
 export function MobileBottomNav() {
   const pathname = usePathname() ?? "/";
+  const normalizedPath = stripLocalePrefix(pathname).path;
   const { cart, wishlist } = useApp();
 
   // در صفحات لاگین/ثبت‌نام نوار پایین نمایش داده نشود.
-  if (ROUTE_HIDDEN.has(pathname)) return null;
+  if (ROUTE_HIDDEN.has(normalizedPath)) return null;
 
   const items: TabItem[] = [
     { href: "/", label: fa.nav.home, icon: Category as unknown as IconComponent, exact: true },
@@ -84,7 +86,7 @@ export function MobileBottomNav() {
         {items.map((item) => {
           // برای تب علاقه‌مندی که با هش هست، فعال‌بودن را با hash بسنجیم.
           const cleanHref = item.href.split("#")[0];
-          const isActive = isActiveRoute(pathname, cleanHref, item.exact);
+          const isActive = isActiveRoute(normalizedPath, cleanHref, item.exact);
           const Icon = item.icon;
           const hasBadge = (item.badge ?? 0) > 0;
 

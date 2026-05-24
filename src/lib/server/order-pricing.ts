@@ -4,6 +4,13 @@ import type { CartItem } from "@/lib/types";
 import { prisma } from "@/lib/server/prisma";
 import { validateCartPurchase } from "@/lib/server/products/validate-cart-purchase";
 import { calcPromoFromCode } from "@/lib/server/promo/promo-code-service";
+import { listActiveBundleOffers } from "@/lib/server/bundle/bundle-offer-service";
+import { calculateAppliedBundles, totalBundleDiscount } from "@/lib/bundle/pricing";
+import {
+  calculateEarnedLoyaltyPoints,
+  calculateLoyaltyDiscountAmount,
+  normalizeLoyaltyTier,
+} from "@/lib/loyalty/program";
 
 export type PricedOrder = {
   items: Array<CartItem & { quantity: number }>;
@@ -12,6 +19,11 @@ export type PricedOrder = {
   totalFurooh: number;
   payable: number;
   promoCode: string | null;
+  bundleDiscount: number;
+  appliedBundles: Array<{ id: string; title: string; amount: number }>;
+  loyaltyTier: import("@/lib/types").LoyaltyTier;
+  loyaltyDiscountAmount: number;
+  loyaltyPointsEarned: number;
 };
 
 /**
@@ -20,7 +32,8 @@ export type PricedOrder = {
  */
 export async function repriceOrderItems(
   incomingItems: CartItem[],
-  promoCode: string | null
+  promoCode: string | null,
+  input?: { loyaltyTier?: string | null }
 ): Promise<PricedOrder> {
   const positiveItems = incomingItems.filter((item) => item.quantity > 0);
   if (positiveItems.length === 0) {
@@ -31,6 +44,11 @@ export async function repriceOrderItems(
       totalFurooh: 0,
       payable: 0,
       promoCode: null,
+      bundleDiscount: 0,
+      appliedBundles: [],
+      loyaltyTier: "bronze",
+      loyaltyDiscountAmount: 0,
+      loyaltyPointsEarned: 0,
     };
   }
 
@@ -75,6 +93,7 @@ export async function repriceOrderItems(
 
   const promo = await calcPromoFromCode(subtotalSale, promoCode);
   const siteWideDiscount = await getSiteWideDiscountConfig();
+  const bundles = await listActiveBundleOffers();
 
   let siteWide = 0;
   if (
@@ -88,8 +107,14 @@ export async function repriceOrderItems(
   }
 
   const checkoutFurooh = promo.amount + siteWide;
-  const totalFurooh = Math.max(0, productFurooh + checkoutFurooh);
-  const payable = Math.max(0, subtotalSale - checkoutFurooh);
+  const appliedBundles = calculateAppliedBundles(items, bundles);
+  const bundleDiscount = totalBundleDiscount(appliedBundles);
+  const loyaltyTier = normalizeLoyaltyTier(input?.loyaltyTier);
+  const loyaltyBase = Math.max(0, subtotalSale - checkoutFurooh - bundleDiscount);
+  const loyaltyDiscountAmount = calculateLoyaltyDiscountAmount(loyaltyBase, loyaltyTier);
+  const totalFurooh = Math.max(0, productFurooh + checkoutFurooh + bundleDiscount + loyaltyDiscountAmount);
+  const payable = Math.max(0, subtotalSale - checkoutFurooh - bundleDiscount - loyaltyDiscountAmount);
+  const loyaltyPointsEarned = calculateEarnedLoyaltyPoints(payable, loyaltyTier);
 
   return {
     items,
@@ -98,5 +123,14 @@ export async function repriceOrderItems(
     totalFurooh,
     payable,
     promoCode: promo.normalizedCode,
+    bundleDiscount,
+    loyaltyTier,
+    loyaltyDiscountAmount,
+    loyaltyPointsEarned,
+    appliedBundles: appliedBundles.map((item) => ({
+      id: item.bundle.id,
+      title: item.bundle.title,
+      amount: item.amount,
+    })),
   };
 }

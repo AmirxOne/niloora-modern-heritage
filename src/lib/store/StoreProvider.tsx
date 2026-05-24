@@ -11,6 +11,7 @@ import { hydrateProductSales } from "./slices/productSalesSlice";
 import { hydrateAuth } from "./slices/authSlice";
 import { hydrateCompareList } from "./slices/compareListSlice";
 import { hydrateRecentlyViewed } from "./slices/recentlyViewedSlice";
+import { hydrateGiftCard } from "./slices/giftCardSlice";
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const storeRef = useRef<AppStore | null>(null);
@@ -30,6 +31,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     store.dispatch(hydrateAuth());
     store.dispatch(hydrateCompareList());
     store.dispatch(hydrateRecentlyViewed());
+    store.dispatch(hydrateGiftCard());
   }, []);
 
   return <Provider store={storeRef.current}>{children}</Provider>;

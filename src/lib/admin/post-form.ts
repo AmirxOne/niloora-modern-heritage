@@ -7,7 +7,7 @@ export type AdminPostFormValues = {
   body: string;
   coverImage: string;
   authorName: string;
-  status: "draft" | "published";
+  status: "draft" | "review" | "published";
   publishedAt: string;
   metaTitle: string;
   metaDescription: string;

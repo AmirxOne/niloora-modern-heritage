@@ -27,14 +27,23 @@ export function CartCheckoutTotals({ pricing, shippingForm }: CartCheckoutTotals
     });
   }, [shippingForm]);
 
-  const grandTotal = pricing.payable + (quote.ready ? quote.cost : 0);
+  const grandTotal = pricing.payableAfterGiftCard + (quote.ready ? quote.cost : 0);
 
   return (
     <div className="cart-checkout-totals">
       <div className="cart-checkout-totals-row">
         <span className="text-sm text-silver">{fa.cart.itemsSubtotal}</span>
-        <TomanPrice amount={pricing.payable} size="xs" />
+        <TomanPrice amount={pricing.payableAfterGiftCard} size="xs" />
       </div>
+
+      {pricing.loyaltyFurooh > 0 ? (
+        <div className="cart-checkout-totals-row">
+          <span className="text-sm text-silver">{fa.cart.loyaltyDiscountLabel(pricing.loyaltyDiscountPercent)}</span>
+          <span className="text-sm font-medium text-price-sale">
+            <TomanPrice amount={pricing.loyaltyFurooh} size="xs" />
+          </span>
+        </div>
+      ) : null}
 
       <div className="cart-checkout-totals-row">
         <span className="text-sm text-silver">{fa.cart.shippingCostLabel}</span>
@@ -74,6 +83,6 @@ export function useCheckoutGrandTotal(
     });
   }, [shippingForm]);
 
-  const grandTotal = pricing.payable + (quote.ready ? quote.cost : 0);
+  const grandTotal = pricing.payableAfterGiftCard + (quote.ready ? quote.cost : 0);
   return { grandTotal, quote };
 }

@@ -90,43 +90,53 @@ export function HeaderAccountMenu() {
   }
 
   const adminItems: MenuItem[] =
-    auth.user?.role === "admin"
+    auth.user?.role === "admin" ||
+    auth.user?.role === "editor" ||
+    auth.user?.role === "reviewer"
       ? [
-          {
-            href: "/admin/orders",
-            label: fa.admin.orders.navLabel,
-            icon: <ShoppingCart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
-          {
-            href: "/admin/products",
-            label: fa.admin.products.navLabel,
-            icon: <Store size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
-          {
-            href: "/admin/trade-in",
-            label: fa.admin.tradeIn.navLabel,
-            icon: <Recycle size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
-          {
-            href: "/admin/support-requests",
-            label: fa.admin.supportRequests.navLabel,
-            icon: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
-          {
-            href: "/admin/promo-codes",
-            label: fa.admin.promoCodes.navLabel,
-            icon: <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
-          {
-            href: "/admin/home",
-            label: fa.admin.home.navLabel,
-            icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
+          ...(auth.user?.role === "admin"
+            ? [
+                {
+                  href: "/admin/orders",
+                  label: fa.admin.orders.navLabel,
+                  icon: <ShoppingCart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/products",
+                  label: fa.admin.products.navLabel,
+                  icon: <Store size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/trade-in",
+                  label: fa.admin.tradeIn.navLabel,
+                  icon: <Recycle size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/support-requests",
+                  label: fa.admin.supportRequests.navLabel,
+                  icon: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/promo-codes",
+                  label: fa.admin.promoCodes.navLabel,
+                  icon: <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+              ]
+            : []),
           {
             href: "/admin/posts",
             label: fa.admin.posts.navLabel,
             icon: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
           },
+          ...(auth.user?.role === "admin"
+            ? [
+                {
+                  href: "/admin/home",
+                  label: fa.admin.home.navLabel,
+                  icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+              ]
+            : []),
         ]
       : [];
 

@@ -8,6 +8,7 @@ import {
   createPromoCode,
   listAdminPromoCodes,
 } from "@/lib/server/promo/promo-code-service";
+import { writeAdminAuditLog } from "@/lib/server/audit-log";
 
 export async function GET() {
   try {
@@ -33,6 +34,16 @@ export async function POST(request: Request) {
 
     try {
       const row = await createPromoCode(parsed.data);
+      await writeAdminAuditLog({
+        user,
+        request,
+        action: "admin.promo.create",
+        route: "/api/admin/promo-codes",
+        entityType: "promo_code",
+        entityId: row.id,
+        summary: `create promo ${row.code}`,
+        payload: { id: row.id, code: row.code, type: row.type, value: row.value },
+      });
       return created({ promoCode: toAdminPromoRecord(row) });
     } catch (error) {
       if (

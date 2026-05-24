@@ -35,7 +35,27 @@ type SessionUserDto = {
   id: string;
   name: string;
   phone: string;
-  role: "user" | "admin";
+  referralCode?: string;
+  referralCredit?: number;
+  referralEarnedTotal?: number;
+  loyaltyPoints?: number;
+  loyaltyTier?: "bronze" | "silver" | "gold" | "platinum";
+  loyaltyLifetimeSpend?: number;
+  favoriteStone?:
+    | "diamond"
+    | "emerald"
+    | "sapphire"
+    | "ruby"
+    | "turquoise"
+    | "onyx"
+    | "zabarjad"
+    | "yemen-aqeeq"
+    | "durr-najaf"
+    | "moral"
+    | null;
+  favoriteStyle?: "solitaire" | "halo" | "vintage" | "signet" | "eternity" | "stackable" | null;
+  favoriteBudgetBand?: "entry" | "mid" | "premium" | "luxury" | null;
+  role: "user" | "editor" | "reviewer" | "admin";
   memberSince: string;
   tier: "gold" | "platinum" | "royal";
 };
@@ -129,6 +149,15 @@ export function useAuth() {
           id: data.user.id,
           name: data.user.name,
           phone: data.user.phone,
+          referralCode: data.user.referralCode,
+          referralCredit: data.user.referralCredit,
+          referralEarnedTotal: data.user.referralEarnedTotal,
+          loyaltyPoints: data.user.loyaltyPoints,
+          loyaltyTier: data.user.loyaltyTier,
+          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
+          favoriteStone: data.user.favoriteStone ?? undefined,
+          favoriteStyle: data.user.favoriteStyle ?? undefined,
+          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
           role: data.user.role,
           memberSince: data.user.memberSince,
           tier: data.user.tier,
@@ -172,6 +201,15 @@ export function useAuth() {
           id: data.user.id,
           name: data.user.name,
           phone: data.user.phone,
+          referralCode: data.user.referralCode,
+          referralCredit: data.user.referralCredit,
+          referralEarnedTotal: data.user.referralEarnedTotal,
+          loyaltyPoints: data.user.loyaltyPoints,
+          loyaltyTier: data.user.loyaltyTier,
+          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
+          favoriteStone: data.user.favoriteStone ?? undefined,
+          favoriteStyle: data.user.favoriteStyle ?? undefined,
+          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
           role: data.user.role,
           memberSince: data.user.memberSince,
           tier: data.user.tier,
@@ -291,7 +329,12 @@ export function useAuth() {
   );
 
   const verifyOtp = useCallback(
-    async (phone: string, code: string, name?: string): Promise<OtpVerifyDto | null> => {
+    async (
+      phone: string,
+      code: string,
+      name?: string,
+      referralCode?: string
+    ): Promise<OtpVerifyDto | null> => {
       // FLOW: verify code -> persist session user in store -> return minimal UI payload.
       dispatch(clearAuthError());
       const normalizedPhone = normalizeIranPhone(phone);
@@ -308,6 +351,7 @@ export function useAuth() {
           phone: normalizedPhone,
           code: normalizedCode,
           name: name?.trim() || undefined,
+          referralCode: referralCode?.trim() || undefined,
         }),
       });
 
@@ -323,6 +367,15 @@ export function useAuth() {
           id: data.user.id,
           name: data.user.name,
           phone: data.user.phone,
+          referralCode: data.user.referralCode,
+          referralCredit: data.user.referralCredit,
+          referralEarnedTotal: data.user.referralEarnedTotal,
+          loyaltyPoints: data.user.loyaltyPoints,
+          loyaltyTier: data.user.loyaltyTier,
+          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
+          favoriteStone: data.user.favoriteStone ?? undefined,
+          favoriteStyle: data.user.favoriteStyle ?? undefined,
+          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
           role: data.user.role,
           memberSince: data.user.memberSince,
           tier: data.user.tier,
@@ -349,8 +402,7 @@ export function useAuth() {
         return;
       }
       if (!response.ok) {
-        dispatch(markSessionResolved());
-        dispatch(setAuthError("unknown"));
+        dispatch(setAuthUser(null));
         return;
       }
       const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
@@ -363,6 +415,15 @@ export function useAuth() {
           id: data.user.id,
           name: data.user.name,
           phone: data.user.phone,
+          referralCode: data.user.referralCode,
+          referralCredit: data.user.referralCredit,
+          referralEarnedTotal: data.user.referralEarnedTotal,
+          loyaltyPoints: data.user.loyaltyPoints,
+          loyaltyTier: data.user.loyaltyTier,
+          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
+          favoriteStone: data.user.favoriteStone ?? undefined,
+          favoriteStyle: data.user.favoriteStyle ?? undefined,
+          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
           role: data.user.role,
           memberSince: data.user.memberSince,
           tier: data.user.tier,

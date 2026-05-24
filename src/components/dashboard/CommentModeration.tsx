@@ -12,6 +12,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { MODERATION_PAGE_SIZE } from "@/lib/pagination";
 import { useCatalogProducts } from "@/lib/hooks/useCatalogProducts";
+import Image from "next/image";
 
 function formatCommentDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fa-IR", {
@@ -36,6 +37,11 @@ function PendingCommentCard({
   onReject: (id: string) => Promise<boolean> | void;
   productName?: string;
 }) {
+  const buildQuality = comment.ratingBuildQuality ?? comment.rating;
+  const beauty = comment.ratingBeauty ?? comment.rating;
+  const value = comment.ratingValue ?? comment.rating;
+  const packaging = comment.ratingPackaging ?? comment.rating;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -58,9 +64,38 @@ function PendingCommentCard({
           <p className="comment-moderation-author">{comment.authorName}</p>
           <p className="comment-moderation-date">{formatCommentDate(comment.createdAt)}</p>
         </div>
-        <StarRating value={comment.rating} size="sm" />
+        <div className="flex flex-col items-end gap-1 text-[11px] text-silver">
+          <StarRating value={comment.rating} size="sm" />
+          <span>
+            {fa.product.commentRatingBuildQuality}: {buildQuality.toLocaleString("fa-IR")}
+          </span>
+          <span>
+            {fa.product.commentRatingBeauty}: {beauty.toLocaleString("fa-IR")}
+          </span>
+          <span>
+            {fa.product.commentRatingValue}: {value.toLocaleString("fa-IR")}
+          </span>
+          <span>
+            {fa.product.commentRatingPackaging}: {packaging.toLocaleString("fa-IR")}
+          </span>
+        </div>
       </div>
       <p className="comment-moderation-body">{comment.body}</p>
+      {comment.mediaUrl ? (
+        <div className="comment-moderation-media">
+          {comment.mediaType === "video" ? (
+            <video src={comment.mediaUrl} controls playsInline preload="metadata" />
+          ) : (
+            <Image
+              src={comment.mediaUrl}
+              alt={comment.body.slice(0, 60)}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 460px"
+            />
+          )}
+        </div>
+      ) : null}
       <div className="comment-moderation-actions">
         <Button type="button" size="sm" onClick={() => onApprove(comment.id)}>
           {fa.dashboard.commentApprove}

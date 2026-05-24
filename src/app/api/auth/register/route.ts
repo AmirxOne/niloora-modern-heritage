@@ -5,11 +5,19 @@ import { conflict, created, badRequest, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { createSession, setSessionCookie } from "@/lib/server/auth/session";
 import { toSessionUser } from "@/lib/server/auth/dto";
+import { queueWelcomeJourney } from "@/lib/server/notifications/journey-notify";
+import {
+  applyReferralForUser,
+  buildReferralCode,
+  hashIp,
+  readRequestIp,
+} from "@/lib/server/referral/referral";
 
 type Body = {
   name?: string;
   phone?: string;
   password?: string;
+  referralCode?: string;
 };
 
 export async function POST(request: Request) {
@@ -18,6 +26,7 @@ export async function POST(request: Request) {
     const name = body.name?.trim() ?? "";
     const phone = normalizeIranPhone(body.phone ?? "");
     const password = body.password ?? "";
+    const referralCode = body.referralCode?.trim() ?? "";
 
     if (!name || !phone || password.length < 6) {
       return badRequest("Invalid registration payload");
@@ -29,17 +38,32 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = await hash(password, 10);
-    const user = await prisma.user.create({
-      data: {
-        name,
-        phone,
-        role: "user",
-        passwordHash,
-      },
+    const signupIpHash = hashIp(readRequestIp(request));
+    const user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          name,
+          phone,
+          role: "user",
+          passwordHash,
+          referralCode: buildReferralCode(),
+          signupIpHash,
+        },
+      });
+      if (referralCode) {
+        await applyReferralForUser({
+          tx,
+          inviteeId: createdUser.id,
+          referralCode,
+          inviteIpHash: signupIpHash,
+        });
+      }
+      return createdUser;
     });
 
     const sessionToken = await createSession(user.id);
     await setSessionCookie(sessionToken);
+    queueWelcomeJourney(user);
 
     return created({ user: toSessionUser(user) });
   } catch (error) {

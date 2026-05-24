@@ -2,12 +2,13 @@
 
 import {
   LayoutDashboard,
+  MessageSquare,
   ShoppingBag,
   Heart,
   Compare,
   History,
   PenTool,
-  MessageSquare,
+  User,
   UserRound,
   ShoppingCart,
   Store,
@@ -30,10 +31,13 @@ const iconById: Record<string, React.ReactNode> = {
   compare: <Compare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   "recently-viewed": <History size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   designs: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+  referrals: <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   moderation: <MessageSquare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   "admin-orders": <ShoppingCart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   "admin-products": <Store size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   quotes: <Receipt size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+  ugc: <MessageSquare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+  "admin-customizer-quotes": <Receipt size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
 };
 
 export function AccountNavMenu({

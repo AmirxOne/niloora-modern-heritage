@@ -5,6 +5,7 @@ const KEYS = {
   promo: "hasib-promo",
   comments: "hasib-comments",
   productSales: "hasib-product-sales",
+  giftCard: "hasib-gift-card",
   compareList: "hasib-compare",
   recentlyViewed: "hasib-recently-viewed",
 } as const;

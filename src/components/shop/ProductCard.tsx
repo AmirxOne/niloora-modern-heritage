@@ -16,6 +16,7 @@ import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn, formatTomanAmount } from "@/lib/utils";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 import { ENGRAVING_STYLES, METAL_OPTIONS, STONE_OPTIONS } from "@/lib/constants";
+import { trackAbEvent } from "@/lib/ab/tracker";
 
 interface ProductCardProps {
   product: Product;
@@ -23,6 +24,13 @@ interface ProductCardProps {
   /** داخل اسلایدر افقی — بدون انیمیشن ورود */
   variant?: "grid" | "carousel";
   timerOverride?: boolean;
+  compact?: boolean;
+  abTest?: {
+    experimentId: string;
+    variantId: string;
+    identity: string;
+    page: string;
+  };
 }
 
 export function ProductCard({
@@ -30,6 +38,8 @@ export function ProductCard({
   index = 0,
   variant = "grid",
   timerOverride,
+  compact = false,
+  abTest,
 }: ProductCardProps) {
   const styleLabels: Record<Product["category"], string> = {
     solitaire: fa.shop.styles.solitaire,
@@ -42,7 +52,7 @@ export function ProductCard({
   const metalLabelByValue = new Map(METAL_OPTIONS.map((item) => [item.value, item.label]));
   const stoneLabelByValue = new Map(STONE_OPTIONS.map((item) => [item.value, item.label]));
   const engravingLabelByValue = new Map(ENGRAVING_STYLES.map((item) => [item.value, item.label]));
-  const { wishlist } = useApp();
+  const { wishlist, cart } = useApp();
   const wished = wishlist.isWishlisted(product.id);
   const isSold = product.availability === "sold";
   const pricing = getProductPricing(product);
@@ -72,6 +82,18 @@ export function ProductCard({
       icon: <Category size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
   ];
+
+  const trackCardConversion = () => {
+    if (!abTest) return;
+    void trackAbEvent({
+      experimentId: abTest.experimentId,
+      variantId: abTest.variantId,
+      identity: abTest.identity,
+      type: "conversion",
+      page: abTest.page,
+      metadata: { action: "add_to_cart", productId: product.id },
+    });
+  };
 
   const content = (
     <>
@@ -132,7 +154,7 @@ export function ProductCard({
         {isSold ? <div className="shop-product-card-sold-veil" aria-hidden /> : null}
       </div>
 
-      <div className="shop-product-card-body">
+      <div className={cn("shop-product-card-body", compact && "shop-product-card-body--compact")}>
         <div className="shop-product-card-heading-row">
           <Link href={`/product/${product.id}`} className="shop-product-card-title-link" title={product.name}>
             <h3 className="shop-product-card-title">{product.name}</h3>
@@ -158,7 +180,7 @@ export function ProductCard({
           </div>
         </div>
 
-        <div className="shop-product-card-pricing-row">
+        <div className={cn("shop-product-card-pricing-row", compact && "shop-product-card-pricing-row--compact")}>
           {pricing.hasProductFurooh ? (
             <span
               className="shop-product-card-discount-tag"
@@ -181,13 +203,33 @@ export function ProductCard({
             </p>
           </div>
         </div>
-        {showTimer ? (
+        {showTimer && !compact ? (
           <DiscountCountdown
             productId={product.id}
             endsAt={product.discountEndsAt}
             className="shop-product-card-discount-countdown"
           />
         ) : null}
+        <div className="shop-product-card-cta">
+          <button
+            type="button"
+            className="shop-product-card-add-btn"
+            onClick={() => {
+              void cart.addProduct(product.id, {
+                name: product.name,
+                image: product.image,
+                availability: product.availability,
+                price: pricing.salePrice,
+              });
+              trackCardConversion();
+            }}
+          >
+            {fa.product.addToCart}
+          </button>
+          <Link href={`/product/${product.id}`} className="shop-product-card-quick-link">
+            {fa.shop.quickView}
+          </Link>
+        </div>
       </div>
     </>
   );

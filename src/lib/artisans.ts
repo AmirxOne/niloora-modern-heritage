@@ -116,6 +116,27 @@ export function getArtisanBySlug(slug: string): ArtisanProfile | null {
   return listAllArtisans().find((a) => a.slug === slug) ?? null;
 }
 
+function normalizeFaText(value: string): string {
+  return value
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("fa-IR");
+}
+
+export function getArtisanByName(name: string): ArtisanProfile | null {
+  const normalized = normalizeFaText(name);
+  if (!normalized) return null;
+  const artisans = listAllArtisans();
+  return (
+    artisans.find((artisan) => normalizeFaText(artisan.name) === normalized) ??
+    artisans.find((artisan) => normalized.includes(normalizeFaText(artisan.name))) ??
+    artisans.find((artisan) => normalizeFaText(artisan.name).includes(normalized)) ??
+    null
+  );
+}
+
 export function getProductArtisanLinks(product: Product): ProductArtisanLink[] {
   const links: ProductArtisanLink[] = [];
   const assignments = product.artisanAssignments;

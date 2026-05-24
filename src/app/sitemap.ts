@@ -6,6 +6,9 @@ import { listProductIdsForSitemap } from "@/lib/server/products/product-page";
 import { prisma } from "@/lib/server/prisma";
 import { listAllArtisans } from "@/lib/artisans";
 import { listStoneGuides } from "@/lib/stones";
+import { listShopLandingParams, shopLandingPath } from "@/lib/seo/landing-pages";
+import { listStoneCompareParams } from "@/lib/seo/stone-compare";
+import { localePath, SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 const STATIC_PATHS: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[0]["changeFrequency"] }[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
@@ -21,7 +24,11 @@ const STATIC_PATHS: { path: string; priority: number; changeFrequency: MetadataR
   { path: "/privacy", priority: 0.4, changeFrequency: "yearly" },
   { path: "/returns", priority: 0.4, changeFrequency: "yearly" },
   { path: "/support", priority: 0.45, changeFrequency: "monthly" },
+  { path: "/workshop-transparency", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/verify", priority: 0.6, changeFrequency: "weekly" },
   { path: "/stones", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/guide/buying", priority: 0.72, changeFrequency: "weekly" },
+  { path: "/ring-size", priority: 0.65, changeFrequency: "monthly" },
 ];
 
 async function listBlogSitemapEntries(): Promise<MetadataRoute.Sitemap> {
@@ -42,6 +49,8 @@ async function listBlogSitemapEntries(): Promise<MetadataRoute.Sitemap> {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const artisans = listAllArtisans();
   const stones = listStoneGuides();
+  const landingPages = listShopLandingParams();
+  const stoneComparePages = listStoneCompareParams();
   const [products, collections, blogEntries] = await Promise.all([
     listProductIdsForSitemap(),
     prisma.collection.findMany({ select: { id: true } }),
@@ -54,6 +63,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: entry.changeFrequency,
     priority: entry.priority,
   }));
+
+  const localizedBasePaths = ["/", "/shop", "/blog", "/about"];
+  const localizedEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.filter((locale) => locale !== "fa").flatMap(
+    (locale) =>
+      localizedBasePaths.map((path) => ({
+        url: absoluteUrl(localePath(locale, path)),
+        lastModified: new Date(),
+        changeFrequency: "weekly" as const,
+        priority: path === "/" ? 0.78 : 0.62,
+      }))
+  );
 
   const collectionEntries: MetadataRoute.Sitemap = collections.map((collection) => ({
     url: absoluteUrl(`/shop?collection=${encodeURIComponent(collection.id)}`),
@@ -83,5 +103,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.64,
   }));
 
-  return [...staticEntries, ...collectionEntries, ...productEntries, ...artisanEntries, ...stoneEntries, ...blogEntries];
+  const landingEntries: MetadataRoute.Sitemap = landingPages.map((entry) => ({
+    url: absoluteUrl(shopLandingPath(entry.facet, entry.slug)),
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.68,
+  }));
+
+  const stoneCompareEntries: MetadataRoute.Sitemap = stoneComparePages.map((entry) => ({
+    url: absoluteUrl(`/compare/stone/${entry.pair}`),
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: 0.66,
+  }));
+
+  return [
+    ...staticEntries,
+    ...localizedEntries,
+    ...collectionEntries,
+    ...productEntries,
+    ...artisanEntries,
+    ...stoneEntries,
+    ...landingEntries,
+    ...stoneCompareEntries,
+    ...blogEntries,
+  ];
 }

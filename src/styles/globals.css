@@ -1367,7 +1367,7 @@
   }
 
   .info-page-shell {
-    @apply mx-auto max-w-5xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+    @apply mx-auto max-w-5xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
   }
 
   .info-page-header {
@@ -1438,6 +1438,30 @@
     @apply text-turquoise-dark hover:text-turquoise;
   }
 
+  .info-subsection-card {
+    @apply rounded-heritage border border-gold/10 bg-matte-elevated/50 p-4;
+  }
+
+  .info-subsection-title {
+    @apply text-sm font-semibold text-ivory md:text-base;
+  }
+
+  .workshop-timeline-grid {
+    @apply mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .workshop-timeline-card {
+    @apply rounded-heritage border border-gold/10 bg-matte-elevated/60 p-4;
+  }
+
+  .workshop-timeline-label {
+    @apply block text-xs text-silver;
+  }
+
+  .workshop-timeline-value {
+    @apply mt-2 block text-sm text-ivory;
+  }
+
   .faq-accordion {
     @apply space-y-3;
   }
@@ -1465,7 +1489,7 @@
   }
 
   .blog-page-shell {
-    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
   }
 
   .blog-page-header {
@@ -1501,7 +1525,7 @@
   }
 
   .support-page-shell {
-    @apply mx-auto max-w-4xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+    @apply mx-auto max-w-4xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
   }
 
   .support-page-header {
@@ -1518,6 +1542,126 @@
 
   .support-page-content {
     @apply mt-6;
+  }
+
+  .verify-page {
+    @apply bg-matte;
+  }
+
+  .verify-page-shell {
+    @apply mx-auto max-w-4xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
+  }
+
+  .verify-page-header {
+    @apply mb-8 text-center;
+  }
+
+  .verify-page-title {
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+  }
+
+  .verify-page-subtitle {
+    @apply mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .verify-form {
+    @apply grid gap-3 md:grid-cols-[1fr_auto];
+  }
+
+  .verify-normalized {
+    @apply mt-3 text-xs text-silver;
+  }
+
+  .verify-error {
+    @apply mt-3 rounded-heritage border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300;
+  }
+
+  .verify-result {
+    @apply mt-6 rounded-heritage-lg border border-gold/15 bg-white/70 p-4 md:p-6;
+  }
+
+  .verify-result-head {
+    @apply mb-4 flex flex-wrap items-center justify-between gap-2;
+  }
+
+  .verify-result-title {
+    @apply font-display text-2xl text-ivory;
+  }
+
+  .verify-status-chip {
+    @apply inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-medium;
+  }
+
+  .verify-status-chip--verified {
+    @apply border-turquoise/30 bg-turquoise/10 text-turquoise-dark;
+  }
+
+  .verify-status-chip--not_found {
+    @apply border-gold/25 bg-gold/10 text-gold-dark;
+  }
+
+  .verify-status-chip--invalid {
+    @apply border-red-500/25 bg-red-500/10 text-red-400;
+  }
+
+  .verify-result-grid {
+    @apply grid gap-2 sm:grid-cols-2;
+  }
+
+  .verify-kv {
+    @apply rounded-heritage border border-gold/10 bg-matte-elevated/60 p-3;
+  }
+
+  .verify-kv span {
+    @apply block text-[11px] text-silver;
+  }
+
+  .verify-kv strong {
+    @apply mt-1 block text-sm font-semibold text-ivory;
+  }
+
+  .verify-product-card {
+    @apply mt-4 flex gap-3 rounded-heritage border border-gold/15 bg-matte-elevated/70 p-3;
+  }
+
+  .verify-product-image {
+    @apply h-20 w-20 rounded-heritage object-cover;
+  }
+
+  .verify-product-body {
+    @apply min-w-0 flex-1;
+  }
+
+  .verify-product-name {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .verify-product-sub {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .verify-product-link {
+    @apply mt-2 inline-flex text-xs font-medium text-turquoise-dark hover:text-turquoise;
+  }
+
+  .verify-history {
+    @apply mt-5 border-t border-gold/10 pt-4;
+  }
+
+  .verify-history-title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .verify-history-list {
+    @apply mt-2 space-y-2;
+  }
+
+  .verify-history-item {
+    @apply flex flex-wrap items-center justify-between gap-2 rounded-heritage border border-gold/10 bg-matte-elevated/50 px-3 py-2 text-xs text-silver;
+  }
+
+  .verify-history-empty {
+    @apply mt-2 text-xs text-silver;
   }
 
   .about-page {
@@ -1553,7 +1697,7 @@
   }
 
   .artisans-page-shell {
-    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
   }
 
   .artisans-page-header {
@@ -1566,6 +1710,18 @@
 
   .artisans-page-subtitle {
     @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .artisans-search {
+    @apply mb-6;
+  }
+
+  .artisans-search__label {
+    @apply mb-2 block text-xs font-semibold text-gold-dark;
+  }
+
+  .artisans-search__input {
+    @apply w-full rounded-heritage border border-gold/20 bg-white/80 px-3 py-2 text-sm text-ivory outline-none transition-colors placeholder:text-silver/80 focus:border-gold/40;
   }
 
   .artisans-grid {
@@ -1582,6 +1738,14 @@
 
   .artisan-card-image {
     @apply relative aspect-[4/3] bg-parchment/30;
+  }
+
+  .artisan-card-image-el {
+    @apply object-cover transition-transform duration-300;
+  }
+
+  .artisan-card:hover .artisan-card-image-el {
+    @apply scale-[1.03];
   }
 
   .artisan-card-body {
@@ -1602,6 +1766,18 @@
 
   .artisan-card-exp {
     @apply mt-3 text-xs text-turquoise-dark;
+  }
+
+  .artisans-page-footer-link {
+    @apply mt-8 text-center text-sm;
+  }
+
+  .artisans-page-footer-link a {
+    @apply text-turquoise-dark hover:text-turquoise;
+  }
+
+  .artisan-search-empty {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/70 p-5 text-center text-sm leading-relaxed text-silver;
   }
 
   .artisan-detail-page {
@@ -1785,7 +1961,7 @@
   }
 
   .stones-page-shell {
-    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-10 shadow-heritage md:px-10 md:py-12;
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
   }
 
   .stones-page-header {
@@ -1804,6 +1980,18 @@
     @apply grid gap-5 sm:grid-cols-2 lg:grid-cols-3;
   }
 
+  .stones-search {
+    @apply mb-6;
+  }
+
+  .stones-search__label {
+    @apply mb-2 block text-xs font-semibold text-gold-dark;
+  }
+
+  .stones-search__input {
+    @apply w-full rounded-heritage border border-gold/20 bg-white/80 px-3 py-2 text-sm text-ivory outline-none transition-colors placeholder:text-silver/80 focus:border-gold/40;
+  }
+
   .stone-card {
     @apply rounded-heritage-lg border border-gold/15 bg-white/80 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-heritage;
   }
@@ -1812,8 +2000,16 @@
     @apply block;
   }
 
-  .stone-card-dot {
-    @apply mb-3 h-3.5 w-3.5 rounded-full ring-2 ring-white;
+  .stone-card-image-wrap {
+    @apply relative mb-3 aspect-[16/10] overflow-hidden rounded-heritage border border-gold/15 bg-parchment/30;
+  }
+
+  .stone-card-image {
+    @apply object-cover transition-transform duration-300;
+  }
+
+  .stone-card:hover .stone-card-image {
+    @apply scale-[1.03];
   }
 
   .stone-card-title {
@@ -1848,8 +2044,12 @@
     @apply mb-8 text-center;
   }
 
-  .stone-detail-dot {
-    @apply mx-auto mb-3 block h-4 w-4 rounded-full ring-2 ring-white;
+  .stone-detail-image-wrap {
+    @apply relative mx-auto mb-4 aspect-square w-40 overflow-hidden rounded-heritage-lg border border-gold/15 bg-parchment/30 md:w-56;
+  }
+
+  .stone-detail-image {
+    @apply object-cover;
   }
 
   .stone-detail-title {
@@ -1894,6 +2094,187 @@
 
   .stone-detail-shop {
     @apply inline-flex items-center rounded-full border border-turquoise/25 bg-turquoise/10 px-4 py-2 text-sm text-turquoise-dark transition-colors hover:bg-turquoise/15;
+  }
+
+  .stone-search-empty {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/70 p-5 text-center text-sm leading-relaxed text-silver;
+  }
+
+  .ring-size-page {
+    @apply bg-matte;
+  }
+
+  .ring-size-shell {
+    @apply mx-auto max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9;
+  }
+
+  .ring-size-header {
+    @apply mb-8 text-center;
+  }
+
+  .ring-size-title {
+    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+  }
+
+  .ring-size-subtitle {
+    @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+  }
+
+  .ring-size-section-title {
+    @apply mb-2 font-display text-xl text-ivory md:text-2xl;
+  }
+
+  .ring-size-tool,
+  .ring-size-result,
+  .ring-size-conversion,
+  .ring-size-print-note {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/75 p-4 md:p-6;
+  }
+
+  .ring-size-tool-hint {
+    @apply text-sm leading-relaxed text-silver;
+  }
+
+  .ring-size-tool-row {
+    @apply mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_170px_auto] md:items-end;
+  }
+
+  .ring-size-tool-label {
+    @apply text-xs font-semibold text-gold-dark;
+  }
+
+  .ring-size-tool-input {
+    @apply h-11 rounded-heritage border border-gold/20 bg-white/85 px-3 text-sm text-ivory outline-none transition-colors focus:border-gold/45;
+  }
+
+  .ring-size-tool-btn {
+    @apply h-11;
+  }
+
+  .ring-size-tool-error {
+    @apply mt-2 text-xs text-red-400;
+  }
+
+  .ring-size-result {
+    @apply mt-4;
+  }
+
+  .ring-size-result-grid {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .ring-size-result-card {
+    @apply rounded-heritage border border-gold/10 bg-parchment/55 p-3;
+  }
+
+  .ring-size-result-label {
+    @apply text-xs text-silver;
+  }
+
+  .ring-size-result-value {
+    @apply mt-1 block text-base font-semibold text-ivory;
+  }
+
+  .ring-size-result-actions {
+    @apply mt-4 flex flex-wrap gap-2;
+  }
+
+  .ring-size-action {
+    @apply inline-flex items-center rounded-full border border-gold/20 bg-white/80 px-4 py-2 text-xs text-silver transition-colors hover:border-gold/35 hover:text-ivory;
+  }
+
+  .ring-size-action--primary {
+    @apply border-turquoise/25 bg-turquoise/10 text-turquoise-dark hover:bg-turquoise/15 hover:text-turquoise-dark;
+  }
+
+  .ring-size-conversion {
+    @apply mt-4;
+  }
+
+  .ring-size-table-wrap {
+    @apply overflow-x-auto;
+  }
+
+  .ring-size-table {
+    @apply min-w-full border-collapse text-sm;
+  }
+
+  .ring-size-table th {
+    @apply border-b border-gold/20 px-3 py-2 text-center text-xs font-semibold text-gold-dark;
+  }
+
+  .ring-size-table td {
+    @apply border-b border-gold/10 px-3 py-2 text-center text-silver;
+  }
+
+  .ring-size-table tbody tr {
+    @apply cursor-pointer transition-colors hover:bg-parchment/45;
+  }
+
+  .ring-size-table tbody tr.is-active {
+    @apply bg-gold/10;
+  }
+
+  .ring-size-print-note {
+    @apply mt-4;
+  }
+
+  .ring-size-print-note ul {
+    @apply space-y-1 text-sm leading-relaxed text-silver;
+  }
+
+  .customizer-size-helper-link-wrap {
+    @apply rounded-heritage border border-turquoise/20 bg-turquoise/10 px-3 py-2;
+  }
+
+  .customizer-size-helper-link {
+    @apply text-xs text-turquoise-dark hover:text-turquoise;
+  }
+
+  .product-detail-ring-size-hint {
+    @apply text-xs leading-relaxed text-silver;
+  }
+
+  .product-detail-ring-size-actions {
+    @apply mt-3 flex flex-col gap-2;
+  }
+
+  .product-detail-ring-size-link {
+    @apply inline-flex items-center rounded-full border border-turquoise/25 bg-turquoise/10 px-3 py-1.5 text-xs text-turquoise-dark transition-colors hover:bg-turquoise/15;
+  }
+
+  .product-detail-ring-size-link--subtle {
+    @apply border-gold/20 bg-white/70 text-silver hover:border-gold/35 hover:text-ivory;
+  }
+
+  @media print {
+    .header-glass,
+    .mobile-bottom-nav,
+    .site-footer,
+    .ring-size-result-actions {
+      display: none !important;
+    }
+
+    .ring-size-page {
+      padding-top: 0 !important;
+      background: #fff !important;
+    }
+
+    .ring-size-shell {
+      max-width: 100% !important;
+      box-shadow: none !important;
+      border: 1px solid #ddd !important;
+      background: #fff !important;
+    }
+
+    .ring-size-tool,
+    .ring-size-result,
+    .ring-size-conversion,
+    .ring-size-print-note {
+      break-inside: avoid;
+      border-color: #ddd !important;
+      background: #fff !important;
+    }
   }
 
   .blog-card-image {
@@ -2479,6 +2860,10 @@
     @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
   }
 
+  .shop-product-grid--compact {
+    @apply gap-2 sm:gap-2.5 lg:gap-3;
+  }
+
   .shop-product-range {
     @apply mb-4 text-sm text-silver;
   }
@@ -2770,6 +3155,69 @@
     @apply flex flex-wrap gap-2;
   }
 
+  .compare-enhanced {
+    @apply space-y-5;
+  }
+
+  .compare-enhanced__recommendation,
+  .compare-enhanced__summary,
+  .compare-enhanced__diff {
+    @apply rounded-heritage-lg border border-gold/15 bg-parchment/20 p-4 md:p-5;
+  }
+
+  .compare-enhanced__section-title {
+    @apply font-display text-xl text-ivory;
+  }
+
+  .compare-enhanced__hint {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .compare-enhanced__need-row {
+    @apply mt-3 flex flex-wrap items-center gap-2;
+  }
+
+  .compare-enhanced__need-label {
+    @apply text-sm text-silver;
+  }
+
+  .compare-enhanced__need-select {
+    @apply rounded-heritage border border-gold/20 bg-white/80 px-3 py-2 text-sm text-ivory outline-none focus:border-gold/40;
+  }
+
+  .compare-enhanced__recommendation-result {
+    @apply mt-3 rounded-heritage border border-turquoise/25 bg-turquoise/10 p-3 text-sm leading-relaxed text-silver;
+  }
+
+  .compare-enhanced__summary-grid {
+    @apply mt-3 grid gap-3 lg:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .compare-enhanced__summary-card {
+    @apply rounded-heritage border border-gold/10 bg-white/70 p-3;
+  }
+
+  .compare-enhanced__summary-title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .compare-enhanced__summary-label {
+    @apply mt-2 text-xs font-semibold text-gold-dark;
+  }
+
+  .compare-enhanced__list {
+    @apply mt-1 space-y-1 text-xs leading-relaxed text-silver;
+  }
+
+  .compare-enhanced__list--cons li {
+    @apply text-silver/90;
+  }
+
+  .product-compare-table__row--different > th,
+  .product-compare-table__row--different > td {
+    @apply bg-gold/10;
+  }
+
   .account-section-actions {
     @apply mb-4 flex justify-end;
   }
@@ -2792,6 +3240,10 @@
     gap: 0.7rem;
     padding: 0.15rem 0.15rem 0.25rem;
     flex: 1;
+  }
+
+  .shop-product-card-body--compact {
+    @apply gap-2;
   }
 
   @media (min-width: 640px) {
@@ -2998,6 +3450,10 @@
     background: transparent;
   }
 
+  .shop-product-card-pricing-row--compact {
+    @apply mt-1;
+  }
+
   .shop-product-card-pricing-values {
     display: flex;
     flex-direction: column;
@@ -3064,6 +3520,10 @@
 
   .product-specs__val {
     @apply min-w-0 text-end font-medium leading-snug text-ivory;
+  }
+
+  .product-specs__val-link {
+    @apply underline decoration-gold/40 underline-offset-2 transition-colors hover:text-turquoise-dark hover:decoration-turquoise/40;
   }
 
   /* ——— سبد خرید ——— */
@@ -3452,6 +3912,154 @@
     @apply rounded-none border-none bg-transparent p-0 shadow-none;
   }
 
+  .product-authenticity-card {
+    @apply items-center text-center;
+  }
+
+  .product-authenticity-subtitle {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-authenticity-piece {
+    @apply mt-3 rounded-heritage border border-gold/20 bg-matte-elevated/70 px-3 py-2 text-sm font-semibold tracking-[0.06em] text-ivory;
+  }
+
+  .product-authenticity-qr-wrap {
+    @apply mt-3 inline-flex rounded-heritage border border-gold/15 bg-white/90 p-2;
+  }
+
+  .product-authenticity-qr {
+    @apply h-28 w-28 rounded-md object-cover;
+  }
+
+  .product-authenticity-hint {
+    @apply mt-2 text-[11px] leading-relaxed text-silver;
+  }
+
+  .product-authenticity-link {
+    @apply mt-3 inline-flex items-center justify-center rounded-heritage-pill border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-medium text-gold-dark transition-colors hover:bg-gold/20;
+  }
+
+  .product-back-in-stock-card {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-5;
+  }
+
+  .product-back-in-stock-card__head {
+    @apply mb-3;
+  }
+
+  .product-back-in-stock-card__title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .product-back-in-stock-card__subtitle {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-back-in-stock-card__channels {
+    @apply mb-3 flex items-center gap-2;
+  }
+
+  .product-back-in-stock-card__chip {
+    @apply rounded-full border border-gold/20 bg-white/60 px-3 py-1 text-xs text-silver transition-colors hover:text-ivory;
+  }
+
+  .product-back-in-stock-card__chip.is-active {
+    @apply border-turquoise/30 bg-turquoise/10 text-turquoise-dark;
+  }
+
+  .product-back-in-stock-card__form {
+    @apply grid gap-2;
+  }
+
+  .product-back-in-stock-card__label {
+    @apply text-xs text-silver;
+  }
+
+  .product-back-in-stock-card__input {
+    @apply mt-1 w-full rounded-heritage border border-gold/20 bg-white/80 px-3 py-2 text-sm text-ivory outline-none transition-colors placeholder:text-silver/80 focus:border-gold/40;
+  }
+
+  .product-back-in-stock-card__cta {
+    @apply mt-3 w-full;
+  }
+
+  .product-bundle-offers {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-5;
+  }
+
+  .product-bundle-offers__title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .product-bundle-offers__subtitle {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-bundle-offers__list {
+    @apply mt-3 space-y-3;
+  }
+
+  .product-bundle-offers__item {
+    @apply flex flex-col gap-3 rounded-heritage border border-gold/10 bg-white/5 p-3;
+  }
+
+  .product-bundle-offers__item-title {
+    @apply text-sm font-medium text-ivory;
+  }
+
+  .product-bundle-offers__item-desc {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .product-bundle-offers__item-meta {
+    @apply mt-1 text-xs text-turquoise-dark;
+  }
+
+  .cart-bundle-list {
+    @apply mt-4 rounded-heritage border border-gold/10 bg-white/5 p-3;
+  }
+
+  .cart-bundle-list__title {
+    @apply text-xs font-semibold text-ivory;
+  }
+
+  .cart-bundle-list__items {
+    @apply mt-2 space-y-1.5;
+  }
+
+  .cart-bundle-list__item {
+    @apply flex items-center justify-between text-xs text-silver;
+  }
+
+  .cart-abandoned-recovery-card {
+    @apply mt-3 rounded-heritage border border-gold/15 bg-matte-elevated/60 p-3;
+  }
+
+  .cart-abandoned-recovery-card__title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .cart-abandoned-recovery-card__subtitle {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .cart-abandoned-recovery-card__chips {
+    @apply mt-2 mb-2 flex items-center gap-2;
+  }
+
+  .cart-abandoned-recovery-card__chip {
+    @apply rounded-full border border-gold/20 bg-white/60 px-3 py-1 text-xs text-silver transition-colors;
+  }
+
+  .cart-abandoned-recovery-card__chip.is-active {
+    @apply border-turquoise/30 bg-turquoise/10 text-turquoise-dark;
+  }
+
+  .cart-abandoned-recovery-card__input {
+    @apply mt-2 w-full rounded-heritage border border-gold/20 bg-white/80 px-3 py-2 text-sm text-ivory outline-none transition-colors placeholder:text-silver/80 focus:border-gold/40;
+  }
+
   .product-detail-side-panel .product-detail-actions {
     @apply mt-0;
   }
@@ -3484,18 +4092,97 @@
     @apply mt-4;
   }
 
-  .product-intro-video {
+  .short-educational-video {
     @apply relative w-full overflow-hidden rounded-heritage-lg border border-gold/15 bg-matte;
+  }
+
+  .short-educational-video-frame {
+    @apply relative w-full overflow-hidden;
     aspect-ratio: 16 / 9;
   }
 
-  .product-intro-video-element,
-  .product-intro-video-embed {
+  .short-educational-video-element {
     @apply h-full w-full;
   }
 
-  .product-intro-video-embed {
+  .short-educational-video-element:is(iframe) {
     @apply border-0;
+  }
+
+  .short-educational-video-caption {
+    @apply border-t border-gold/10 px-3 py-2 text-xs leading-relaxed text-silver md:px-4 md:py-2.5;
+  }
+
+  .product-intro-video {
+    @apply mt-4;
+  }
+
+  .blog-short-video {
+    @apply my-5;
+  }
+
+  .locale-switcher {
+    @apply inline-flex items-center gap-1 rounded-heritage-pill border border-gold/20 bg-white/50 p-1;
+  }
+
+  .locale-switcher-link {
+    @apply rounded-heritage-pill px-2 py-1 text-[11px] font-semibold text-matte transition-colors;
+  }
+
+  .locale-switcher-link[data-active="true"] {
+    @apply bg-matte text-ivory;
+  }
+
+  .locale-simple-page {
+    @apply min-h-screen bg-matte;
+  }
+
+  .locale-simple-topbar {
+    @apply mb-6 flex justify-end;
+  }
+
+  .locale-simple-head {
+    @apply rounded-heritage border border-gold/15 bg-matte-elevated p-5 md:p-7;
+  }
+
+  .locale-simple-eyebrow {
+    @apply text-xs font-medium text-gold-light;
+  }
+
+  .locale-simple-head h1 {
+    @apply mt-2 text-xl font-semibold text-ivory md:text-2xl;
+  }
+
+  .locale-simple-head p {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .locale-simple-actions {
+    @apply mt-5 grid gap-2 md:grid-cols-3;
+  }
+
+  .locale-simple-actions a {
+    @apply rounded-heritage border border-gold/15 bg-white/20 px-4 py-3 text-sm text-ivory transition-colors hover:bg-white/30;
+  }
+
+  .locale-simple-body {
+    @apply mt-5 rounded-heritage border border-gold/10 bg-white/15 p-5;
+  }
+
+  .locale-simple-body h2 {
+    @apply text-base font-semibold text-ivory;
+  }
+
+  .locale-simple-body p {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .locale-simple-footer {
+    @apply mt-6;
+  }
+
+  .locale-simple-footer a {
+    @apply text-sm text-turquoise transition-colors hover:text-turquoise-light;
   }
 
   .product-content-brief {
@@ -3630,6 +4317,66 @@
     @apply mt-12 md:mt-14;
   }
 
+  .product-detail-story-card {
+    @apply mb-10 md:mb-12;
+  }
+
+  .product-story-card {
+    @apply rounded-heritage-xl border border-gold/20 bg-gradient-to-b from-matte-elevated/95 via-parchment/35 to-matte-elevated/95 p-5 shadow-heritage md:p-7;
+  }
+
+  .product-story-card__head {
+    @apply mb-5 border-b border-gold/10 pb-4;
+  }
+
+  .product-story-card__eyebrow {
+    @apply inline-flex items-center rounded-full border border-gold/25 bg-gold/10 px-3 py-1 text-[11px] font-medium text-gold-dark;
+  }
+
+  .product-story-card__title {
+    @apply mt-3 font-display text-2xl text-ivory md:text-3xl;
+  }
+
+  .product-story-card__subtitle {
+    @apply mt-2 max-w-3xl text-sm leading-relaxed text-silver;
+  }
+
+  .product-story-card__grid {
+    @apply grid gap-3 md:grid-cols-2;
+  }
+
+  .product-story-card__panel {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/70 p-4 md:p-5;
+  }
+
+  .product-story-card__panel-title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .product-story-card__text {
+    @apply mt-2 text-sm leading-[1.85] text-silver;
+  }
+
+  .product-story-card__meta {
+    @apply mt-3 text-xs text-turquoise-dark;
+  }
+
+  .product-story-card__chips {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
+  .product-story-card__chip {
+    @apply inline-flex items-center rounded-full border border-gold/25 bg-parchment/60 px-2.5 py-1 text-[11px] text-ivory transition-colors hover:border-gold/40 hover:bg-gold/10;
+  }
+
+  .product-story-card__actions {
+    @apply mt-3;
+  }
+
+  .product-story-card__link {
+    @apply inline-flex items-center text-xs font-medium text-turquoise-dark transition-colors hover:text-turquoise;
+  }
+
   .product-highlights__head {
     @apply mb-4 flex flex-col gap-1 border-b border-gold/10 pb-3 md:flex-row md:items-end md:justify-between;
   }
@@ -3730,6 +4477,46 @@
   }
 
   .product-detail-related-grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
+  }
+
+  .product-smart-recommendations {
+    @apply mt-16 border-t border-gold/10 pt-16 md:mt-20 md:pt-20;
+  }
+
+  .product-smart-recommendations__head {
+    @apply mb-5 max-w-2xl;
+  }
+
+  .product-smart-recommendations__title {
+    @apply font-display text-2xl font-semibold text-ivory md:text-3xl;
+  }
+
+  .product-smart-recommendations__subtitle {
+    @apply mt-1 text-sm text-silver;
+  }
+
+  .product-smart-recommendations__groups {
+    @apply space-y-6;
+  }
+
+  .product-smart-recommendations__group {
+    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated/40 p-3 md:p-4;
+  }
+
+  .product-smart-recommendations__group-head {
+    @apply mb-4;
+  }
+
+  .product-smart-recommendations__group-title {
+    @apply text-base font-semibold text-ivory;
+  }
+
+  .product-smart-recommendations__group-subtitle {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .product-smart-recommendations__grid {
     @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
   }
 
@@ -3876,6 +4663,22 @@
 
   .product-review-summary-recommend {
     @apply mt-4 rounded-heritage border border-turquoise/20 bg-turquoise/5 px-3 py-2 text-xs leading-relaxed text-turquoise-dark;
+  }
+
+  .product-review-dimensions {
+    @apply mt-4 mb-5 grid grid-cols-2 gap-2;
+  }
+
+  .product-review-dimension-item {
+    @apply rounded-heritage border border-gold/10 bg-parchment/20 px-3 py-2;
+  }
+
+  .product-review-dimension-label {
+    @apply block text-[11px] text-silver;
+  }
+
+  .product-review-dimension-value {
+    @apply mt-1 block text-sm font-semibold text-ivory tabular-nums;
   }
 
   .product-review-summary-bars {
@@ -4125,6 +4928,22 @@
     @apply text-sm leading-[1.75] text-silver md:text-[0.9375rem];
   }
 
+  .product-comment-media {
+    @apply relative mt-4 aspect-video overflow-hidden rounded-heritage border border-gold/15 bg-black/20;
+  }
+
+  .product-comment-media video {
+    @apply h-full w-full object-cover;
+  }
+
+  .product-comment-dimensions {
+    @apply mt-4 flex flex-wrap gap-2 border-t border-gold/10 pt-3;
+  }
+
+  .product-comment-dimension-chip {
+    @apply inline-flex items-center rounded-full border border-gold/20 bg-parchment/30 px-2.5 py-1 text-[11px] text-silver;
+  }
+
   .product-comments-empty {
     @apply flex min-h-[16rem] flex-col items-center justify-center rounded-heritage-lg border border-dashed border-gold/20 bg-parchment/20 px-6 py-12 text-center;
   }
@@ -4167,6 +4986,22 @@
 
   .product-comment-rating-field {
     @apply rounded-heritage border border-gold/10 bg-matte/50 px-4 py-3;
+  }
+
+  .product-comment-dimension-grid {
+    @apply grid gap-3 sm:grid-cols-2;
+  }
+
+  .product-comment-media-type-row {
+    @apply mb-2 flex gap-2;
+  }
+
+  .product-comment-media-type-btn {
+    @apply rounded-full border border-gold/20 px-3 py-1 text-xs text-silver transition;
+  }
+
+  .product-comment-media-type-btn--active {
+    @apply border-gold/60 bg-gold/10 text-ivory;
   }
 
   .product-comment-textarea {
@@ -4377,8 +5212,100 @@
     @apply text-sm leading-relaxed text-silver;
   }
 
+  .comment-moderation-media {
+    @apply relative mt-3 aspect-video overflow-hidden rounded-heritage border border-gold/15;
+  }
+
+  .comment-moderation-media video {
+    @apply h-full w-full object-cover;
+  }
+
   .comment-moderation-actions {
     @apply mt-4 flex flex-wrap gap-2;
+  }
+
+  .product-detail-ugc {
+    @apply mt-10;
+  }
+
+  .product-ugc {
+    @apply rounded-3xl border border-gold/10 bg-matte-elevated p-5 md:p-7;
+  }
+
+  .product-ugc-head {
+    @apply mb-5;
+  }
+
+  .product-ugc-title {
+    @apply font-display text-2xl text-ivory md:text-3xl;
+  }
+
+  .product-ugc-subtitle {
+    @apply mt-2 text-sm text-silver;
+  }
+
+  .product-ugc-layout {
+    @apply grid gap-6 lg:grid-cols-[22rem,1fr];
+  }
+
+  .product-ugc-form-card {
+    @apply rounded-2xl border border-gold/10 bg-black/20 p-4;
+  }
+
+  .product-ugc-form-title {
+    @apply text-base font-semibold text-ivory;
+  }
+
+  .product-ugc-form-hint {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .product-ugc-type-row {
+    @apply flex gap-2;
+  }
+
+  .product-ugc-type-btn {
+    @apply rounded-full border border-gold/20 px-3 py-1.5 text-xs text-silver transition;
+  }
+
+  .product-ugc-type-btn--active {
+    @apply border-gold/60 bg-gold/15 text-ivory;
+  }
+
+  .product-ugc-list-wrap {
+    @apply min-w-0;
+  }
+
+  .product-ugc-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .product-ugc-card {
+    @apply rounded-2xl border border-gold/10 bg-black/15 p-3;
+  }
+
+  .product-ugc-media {
+    @apply relative aspect-square overflow-hidden rounded-xl;
+  }
+
+  .product-ugc-media--video video {
+    @apply h-full w-full rounded-xl object-cover;
+  }
+
+  .product-ugc-caption {
+    @apply mt-2 text-xs leading-6 text-silver;
+  }
+
+  .product-ugc-card-meta {
+    @apply mt-3 flex items-center justify-between gap-2;
+  }
+
+  .product-ugc-product-link {
+    @apply text-xs text-turquoise-dark transition hover:text-turquoise;
+  }
+
+  .product-ugc-empty {
+    @apply min-h-[16rem];
   }
 
   /* ——— تاریخچه خرید ——— */
@@ -5253,6 +6180,50 @@
     @apply mt-4 flex flex-wrap gap-2;
   }
 
+  .quote-live-timeline {
+    @apply mt-4 rounded-heritage border border-gold/15 bg-parchment/15 p-3;
+  }
+
+  .quote-live-timeline-head {
+    @apply mb-2 flex items-center justify-between gap-2;
+  }
+
+  .quote-live-timeline-title {
+    @apply text-xs font-medium text-ivory;
+  }
+
+  .quote-live-timeline-steps {
+    @apply grid gap-2 md:grid-cols-2;
+  }
+
+  .quote-live-timeline-step {
+    @apply rounded-heritage border px-3 py-2 text-xs;
+  }
+
+  .quote-live-timeline-step.is-done {
+    @apply border-turquoise/30 bg-turquoise/10 text-turquoise-dark;
+  }
+
+  .quote-live-timeline-step.is-current {
+    @apply border-gold/40 bg-gold/10 text-gold-light;
+  }
+
+  .quote-live-timeline-step.is-upcoming {
+    @apply border-gold/10 bg-transparent text-silver;
+  }
+
+  .quote-live-timeline-meta {
+    @apply mt-3 flex flex-wrap gap-3 text-[11px] text-silver;
+  }
+
+  .quote-live-timeline-message {
+    @apply mt-2 text-xs leading-6 text-ivory-light;
+  }
+
+  .quote-live-timeline-message--muted {
+    @apply text-silver;
+  }
+
   .pre-owned-badge {
     @apply inline-flex items-center rounded-full border border-copper/40 bg-copper/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-copper-dark;
     height: 20px;
@@ -5630,6 +6601,42 @@
     @apply shrink-0 text-silver/60;
   }
 
+  .account-referral-card {
+    @apply rounded-2xl border border-gold/20 bg-white p-4 shadow-[0_16px_40px_rgba(71,60,50,0.06)] md:p-5;
+  }
+
+  .account-referral-card-head {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .account-referral-eyebrow {
+    @apply text-xs font-semibold text-[#8f8478];
+  }
+
+  .account-referral-code {
+    @apply mt-1 text-lg font-black tracking-[0.18em] text-gold-dark;
+  }
+
+  .account-referral-hint {
+    @apply mt-3 text-xs leading-6 text-[#7f7468];
+  }
+
+  .account-referral-share-row {
+    @apply mt-3 flex flex-col gap-2 md:flex-row md:items-center;
+  }
+
+  .account-referral-share-link {
+    @apply inline-flex min-h-10 flex-1 items-center rounded-xl border border-[#ebe3d8] bg-[#fcfaf7] px-3 text-xs text-[#5f574f];
+  }
+
+  .account-referral-invite-meta {
+    @apply flex items-center gap-2;
+  }
+
+  .account-referral-status {
+    @apply inline-flex rounded-full border border-[#eadfce] bg-[#fff8ec] px-2.5 py-1 text-[11px] font-semibold text-[#7a5c1f];
+  }
+
   .account-empty-state {
     @apply flex flex-col items-center justify-center rounded-heritage border border-dashed border-gold/20 bg-white/30 px-6 py-12 text-center;
   }
@@ -5736,6 +6743,166 @@
 
   .account-profile-actions-hint {
     @apply text-xs text-silver;
+  }
+
+  .shop-preference-hint {
+    @apply rounded-heritage border border-turquoise/25 bg-turquoise/10 px-3 py-2 text-right;
+  }
+
+  .shop-preference-hint strong {
+    @apply block text-sm font-semibold text-ivory;
+  }
+
+  .shop-preference-hint p {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .shop-personalized-picks {
+    @apply rounded-heritage border border-gold/10 bg-white/20 p-3 md:p-4;
+  }
+
+  .shop-personalized-picks-head h2 {
+    @apply text-sm font-semibold text-ivory md:text-base;
+  }
+
+  .shop-personalized-picks-head p {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .shop-personalized-picks .shop-product-grid {
+    @apply mt-3;
+  }
+
+  .shop-seo-landing-intro {
+    @apply rounded-heritage border border-gold/15 bg-white/20 px-4 py-3 text-right;
+  }
+
+  .shop-seo-landing-intro h1 {
+    @apply text-base font-semibold text-ivory md:text-lg;
+  }
+
+  .shop-seo-landing-intro p {
+    @apply mt-1 text-sm leading-relaxed text-silver;
+  }
+
+  .shop-seo-landing-intro a {
+    @apply mt-2 inline-flex text-xs font-medium text-turquoise hover:text-turquoise-light;
+  }
+
+  .interactive-guide {
+    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated p-4 shadow-heritage md:p-6;
+  }
+
+  .interactive-guide-head h1 {
+    @apply text-xl font-semibold text-ivory md:text-2xl;
+  }
+
+  .interactive-guide-head p {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .interactive-guide-grid {
+    @apply mt-5 grid gap-4 md:grid-cols-2;
+  }
+
+  .guide-segment {
+    @apply rounded-heritage border border-gold/10 bg-white/20 p-3;
+  }
+
+  .guide-segment-title {
+    @apply mb-2 text-sm font-medium text-ivory;
+  }
+
+  .guide-segment-options {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .guide-segment-option {
+    @apply rounded-full border border-gold/20 px-3 py-1.5 text-xs text-silver transition-colors hover:bg-gold/10 hover:text-ivory;
+  }
+
+  .guide-segment-option--active {
+    @apply border-turquoise/35 bg-turquoise/15 text-ivory;
+  }
+
+  .interactive-guide-result {
+    @apply mt-6 rounded-heritage border border-turquoise/25 bg-turquoise/10 p-4;
+  }
+
+  .interactive-guide-result-eyebrow {
+    @apply text-xs font-medium text-turquoise-light;
+  }
+
+  .interactive-guide-result h2 {
+    @apply mt-1 text-lg font-semibold text-ivory;
+  }
+
+  .interactive-guide-result p {
+    @apply mt-2 text-sm text-silver;
+  }
+
+  .interactive-guide-actions {
+    @apply mt-4 flex flex-wrap items-center gap-2;
+  }
+
+  .interactive-guide-link {
+    @apply inline-flex rounded-heritage-pill border border-gold/20 bg-white/35 px-3 py-2 text-sm text-ivory transition-colors hover:bg-white/50;
+  }
+
+  .compare-content-head {
+    @apply rounded-heritage border border-gold/15 bg-matte-elevated p-4 md:p-6;
+  }
+
+  .compare-content-eyebrow {
+    @apply text-xs font-medium text-gold-light;
+  }
+
+  .compare-content-head h1 {
+    @apply mt-1 text-xl font-semibold text-ivory md:text-2xl;
+  }
+
+  .compare-content-head p {
+    @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .compare-content-card {
+    @apply mt-4 rounded-heritage border border-gold/10 bg-white/20 p-4;
+  }
+
+  .compare-content-card h2 {
+    @apply text-base font-semibold text-ivory;
+  }
+
+  .compare-content-card ul {
+    @apply mt-3 space-y-2 text-sm leading-relaxed text-silver;
+  }
+
+  .compare-content-grid {
+    @apply mt-4 grid gap-3 md:grid-cols-2;
+  }
+
+  .compare-content-cta {
+    @apply rounded-heritage border border-turquoise/25 bg-turquoise/10 p-4;
+  }
+
+  .compare-content-cta h3 {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .compare-content-cta p {
+    @apply mt-1 text-xs text-silver;
+  }
+
+  .compare-content-cta a {
+    @apply mt-3 inline-flex rounded-heritage-pill border border-gold/20 px-3 py-1.5 text-xs text-ivory transition-colors hover:bg-white/20;
+  }
+
+  .compare-content-products {
+    @apply mt-5;
+  }
+
+  .compare-content-products h2 {
+    @apply mb-3 text-base font-semibold text-ivory;
   }
 }
 
@@ -6043,6 +7210,82 @@
     @apply sm:col-span-2 sm:max-w-xs sm:justify-self-end;
   }
 
+  .account-loyalty-card {
+    @apply rounded-heritage-lg border border-gold/15 bg-parchment/25 p-4 md:p-5;
+  }
+
+  .account-loyalty-head {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .account-loyalty-eyebrow {
+    @apply font-display text-base text-ivory;
+  }
+
+  .loyalty-tier {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs;
+  }
+
+  .loyalty-tier--bronze {
+    @apply border-copper/30 bg-copper/10 text-copper-dark;
+  }
+
+  .loyalty-tier--silver {
+    @apply border-silver/40 bg-silver/10 text-silver;
+  }
+
+  .loyalty-tier--gold {
+    @apply border-gold/40 bg-gold/10 text-gold-dark;
+  }
+
+  .loyalty-tier--platinum {
+    @apply border-turquoise/35 bg-turquoise/10 text-turquoise-dark;
+  }
+
+  .account-loyalty-grid {
+    @apply mt-4 grid gap-3 sm:grid-cols-2;
+  }
+
+  .account-loyalty-kpi {
+    @apply rounded-heritage border border-gold/10 bg-white/40 p-3;
+  }
+
+  .account-loyalty-kpi span {
+    @apply text-xs text-silver;
+  }
+
+  .account-loyalty-kpi strong {
+    @apply mt-1 block font-display text-lg text-ivory;
+  }
+
+  .account-loyalty-spend {
+    @apply mt-4 text-sm text-ivory-light;
+  }
+
+  .account-loyalty-next {
+    @apply mt-2 inline-flex items-center gap-1.5 text-xs text-turquoise-dark;
+  }
+
+  .account-loyalty-perks {
+    @apply mt-4 space-y-2 text-xs text-silver;
+  }
+
+  .account-loyalty-perks li {
+    @apply rounded-heritage border border-gold/10 bg-white/35 px-3 py-2;
+  }
+
+  .cart-loyalty-cta {
+    @apply mt-4 rounded-heritage border border-gold/20 bg-gold/5 px-3 py-3;
+  }
+
+  .cart-loyalty-cta-title {
+    @apply text-sm font-medium text-ivory;
+  }
+
+  .cart-loyalty-cta-hint {
+    @apply mt-1 text-xs leading-6 text-silver;
+  }
+
   /* ——— پنل ادمین محصولات ——— */
 
   .admin-products-layout {
@@ -6053,12 +7296,178 @@
     @apply mb-4 flex flex-wrap items-end gap-3;
   }
 
+  .admin-csv-upload-btn {
+    @apply inline-flex cursor-pointer items-center rounded-heritage-pill border border-gold/20 px-3 py-2 text-sm text-ivory transition-colors hover:bg-white/20;
+  }
+
+  .admin-csv-report {
+    @apply mb-4 rounded-heritage border border-copper/30 bg-copper/10 p-3 text-xs leading-relaxed text-ivory;
+  }
+
+  .admin-media-picker {
+    @apply mt-2 space-y-2;
+  }
+
+  .admin-media-picker-head {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .admin-media-picker-panel {
+    @apply rounded-heritage border border-gold/10 bg-parchment/10 p-3;
+  }
+
+  .admin-media-picker-toolbar {
+    @apply mb-3 flex flex-wrap items-end gap-2;
+  }
+
+  .admin-media-grid {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .admin-media-card {
+    @apply rounded-heritage border border-gold/10 bg-matte-elevated p-2;
+  }
+
+  .admin-media-card--selected {
+    @apply border-turquoise/50 ring-1 ring-turquoise/25;
+  }
+
+  .admin-media-thumb {
+    @apply relative block aspect-square w-full overflow-hidden rounded-heritage;
+  }
+
+  .admin-media-meta {
+    @apply mt-2 text-xs text-silver;
+  }
+
+  .admin-media-actions {
+    @apply mt-2 flex gap-2;
+  }
+
+  .admin-audit-payload {
+    @apply mt-2 max-h-44 overflow-auto rounded-heritage border border-gold/10 bg-black/20 p-2 text-[11px] text-silver;
+  }
+
+  .admin-kpi-panel {
+    @apply rounded-2xl border border-gold/10 bg-royal-dark/30 p-4 md:p-5;
+  }
+
+  .admin-kpi-head {
+    @apply mb-4 flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .admin-kpi-head h2 {
+    @apply font-display text-lg text-ivory;
+  }
+
+  .admin-kpi-head p {
+    @apply text-sm text-silver;
+  }
+
+  .admin-kpi-metrics-grid {
+    @apply grid gap-3 sm:grid-cols-2 xl:grid-cols-5;
+  }
+
+  .admin-kpi-metric-card {
+    @apply rounded-xl border border-gold/10 bg-black/20 p-3;
+  }
+
+  .admin-kpi-metric-label {
+    @apply text-xs text-silver;
+  }
+
+  .admin-kpi-metric-value {
+    @apply mt-1 text-lg font-semibold text-ivory;
+  }
+
+  .admin-kpi-metric-hint {
+    @apply mt-1 text-[11px] text-silver;
+  }
+
+  .admin-kpi-chart-card,
+  .admin-kpi-stone-card {
+    @apply mt-4 rounded-xl border border-gold/10 bg-black/20 p-3;
+  }
+
+  .admin-kpi-chart-head {
+    @apply mb-3 flex items-center justify-between gap-2;
+  }
+
+  .admin-kpi-chart-head h3,
+  .admin-kpi-stone-card h3 {
+    @apply font-medium text-ivory;
+  }
+
+  .admin-kpi-chart-tabs {
+    @apply inline-flex gap-1 rounded-full border border-gold/15 bg-royal-dark/40 p-1;
+  }
+
+  .admin-kpi-chart-tabs button {
+    @apply rounded-full px-3 py-1 text-xs text-silver transition;
+  }
+
+  .admin-kpi-chart-tabs button.is-active {
+    @apply bg-gold/20 text-gold;
+  }
+
+  .admin-kpi-sparkline {
+    @apply h-16 w-full;
+  }
+
+  .admin-kpi-sparkline polyline {
+    fill: none;
+    stroke: rgb(167 139 90 / 0.95);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .admin-kpi-chart-legend {
+    @apply mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-silver;
+  }
+
+  .admin-kpi-stone-list {
+    @apply mt-2 space-y-2;
+  }
+
+  .admin-kpi-stone-list li {
+    @apply grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-lg border border-gold/10 bg-royal-dark/30 px-3 py-2 text-xs text-silver;
+  }
+
+  .admin-kpi-stone-list strong {
+    @apply text-sm font-medium text-ivory;
+  }
+
+  .admin-products-bulk-panel {
+    @apply mb-4 rounded-heritage border border-gold/10 bg-parchment/10 p-3 md:p-4;
+  }
+
+  .admin-products-bulk-head {
+    @apply mb-3 flex items-center justify-between gap-3;
+  }
+
+  .admin-products-bulk-grid {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .admin-products-bulk-actions {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
   .admin-products-list {
     @apply max-h-[70vh] space-y-2 overflow-y-auto pe-1;
   }
 
   .admin-product-list-item {
-    @apply flex w-full items-center gap-3 rounded-heritage border border-gold/10 bg-matte-elevated p-3 text-start transition-colors hover:border-gold/25;
+    @apply flex items-center gap-3 rounded-heritage border border-gold/10 bg-matte-elevated p-3 transition-colors hover:border-gold/25;
+  }
+
+  .admin-product-list-main {
+    @apply flex w-full items-center gap-3 text-start;
+  }
+
+  .admin-product-list-check {
+    @apply mt-0.5 self-start;
   }
 
   .admin-product-list-item--active {

@@ -32,6 +32,15 @@ const statusVariant: Record<
   cancelled: "default",
 };
 
+const liveStages: Array<CustomizerQuoteRequest["liveStage"]> = [
+  "received",
+  "design-review",
+  "material-prep",
+  "workshop-crafting",
+  "qc",
+  "ready-dispatch",
+];
+
 function formatQuoteDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fa-IR", {
     year: "numeric",
@@ -45,6 +54,7 @@ function formatQuoteDate(iso: string): string {
 function QuoteCard({ quote, index }: { quote: CustomizerQuoteRequest; index: number }) {
   const shank = getShankModel(quote.configuration.shankModelId);
 
+  const currentStageIndex = Math.max(0, liveStages.indexOf(quote.liveStage));
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
@@ -90,6 +100,45 @@ function QuoteCard({ quote, index }: { quote: CustomizerQuoteRequest; index: num
         <p className="quote-request-reply">{quote.workshopReply}</p>
       ) : null}
 
+      <section className="quote-live-timeline" aria-label={fa.customize.liveTimeline.title}>
+        <header className="quote-live-timeline-head">
+          <p className="quote-live-timeline-title">{fa.customize.liveTimeline.title}</p>
+          <Badge variant="turquoise">{fa.customize.liveTimeline.liveBadge}</Badge>
+        </header>
+        <ol className="quote-live-timeline-steps">
+          {liveStages.map((stage, idx) => (
+            <li
+              key={stage}
+              className={`quote-live-timeline-step ${
+                idx <= currentStageIndex
+                  ? idx === currentStageIndex
+                    ? "is-current"
+                    : "is-done"
+                  : "is-upcoming"
+              }`}
+            >
+              <span>{fa.customize.liveTimeline.stages[stageToFaKey(stage)]}</span>
+            </li>
+          ))}
+        </ol>
+        <div className="quote-live-timeline-meta">
+          <span>
+            {fa.customize.liveTimeline.etaPrefix}:{" "}
+            {quote.etaDays ? fa.customize.liveTimeline.etaDays(quote.etaDays) : fa.customize.liveTimeline.etaPending}
+          </span>
+          {quote.etaUpdatedAt ? (
+            <span>{fa.customize.liveTimeline.etaUpdatedAt(formatQuoteDate(quote.etaUpdatedAt))}</span>
+          ) : null}
+        </div>
+        {quote.workshopLiveMessage ? (
+          <p className="quote-live-timeline-message">{quote.workshopLiveMessage}</p>
+        ) : (
+          <p className="quote-live-timeline-message quote-live-timeline-message--muted">
+            {fa.customize.liveTimeline.waitingMessage}
+          </p>
+        )}
+      </section>
+
       {quote.status === "pending-quote" ? (
         <p className="quote-request-hint">{fa.dashboard.quotePendingHint}</p>
       ) : null}
@@ -103,6 +152,25 @@ function QuoteCard({ quote, index }: { quote: CustomizerQuoteRequest; index: num
       </footer>
     </motion.article>
   );
+}
+
+function stageToFaKey(stage: CustomizerQuoteRequest["liveStage"]) {
+  switch (stage) {
+    case "received":
+      return "received";
+    case "design-review":
+      return "designReview";
+    case "material-prep":
+      return "materialPrep";
+    case "workshop-crafting":
+      return "workshopCrafting";
+    case "qc":
+      return "qc";
+    case "ready-dispatch":
+      return "readyDispatch";
+    default:
+      return "received";
+  }
 }
 
 function encodeConfig(configuration: CustomizerQuoteRequest["configuration"]): string {
