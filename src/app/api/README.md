@@ -34,7 +34,7 @@ All handlers are in `route.ts`. Business logic should stay in `src/lib/server/*`
 
 ## Commerce
 - `GET /api/products` - catalog + max price
-- `GET /api/products/search?q=` - catalog + telegram text search (used by header preview and `/shop?q=`)
+- `GET /api/products/search?q=` - catalog text search (used by header preview and `/shop?q=`)
 - `GET /api/products/[id]` - product details + related
 - `GET /api/authenticity/verify?pieceCode=...` - public authenticity verification by Piece Code + verification history logging
 - `GET /api/product-questions?productId=...&status=approved` - list approved product questions + answers
@@ -73,9 +73,10 @@ All handlers are in `route.ts`. Business logic should stay in `src/lib/server/*`
 - `POST /api/promo/validate` - validate promo code against cart subtotal
 - `GET|POST /api/admin/promo-codes` - promo CRUD list/create (admin)
 - `PATCH|DELETE /api/admin/promo-codes/[id]` - promo update/delete (admin)
-- `GET|POST /api/admin/promo-codes/csv` - promo CSV export/import with validation report (admin)
-- `GET|POST /api/admin/products/csv` - product CSV export/import with row-level errors (admin)
-- `GET|POST /api/admin/orders/csv` - orders CSV export/import (status/tracking updates + errors) (admin)
+- `GET|POST /api/admin/promo-codes/csv` - promo Excel (.xlsx) export/import with validation report (admin)
+- `GET|POST /api/admin/products/csv` - product Excel export/import with row-level errors (admin)
+- `GET|POST /api/admin/orders/csv` - orders Excel export/import (status/tracking updates + errors) (admin)
+- `GET /api/admin/finance/csv` - finance transactions Excel export (admin)
 - `GET|POST /api/admin/media` - admin media list/upload (with WebP optimization)
 - `DELETE /api/admin/media/[id]` - remove media asset from manager
 - `GET /api/admin/audit-logs` - query admin audit trail (`q`, `action`, `entityType`, `actorId`, `from`, `to`, `limit`)

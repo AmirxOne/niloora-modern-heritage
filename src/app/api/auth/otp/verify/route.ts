@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
-import type { Prisma } from "@prisma/client";
 import { getOtpApiMessage } from "@/lib/auth/otp-api-messages";
 import { normalizeIranPhone } from "@/lib/auth/phone";
 import { assertOtpVerifyRateLimit } from "@/lib/server/auth/otp-rate-limit";
 import { prisma } from "@/lib/server/prisma";
-import { badRequest, ok, unauthorized, serverError, tooManyRequests } from "@/lib/server/http";
+import { NextResponse } from "next/server";
+import { badRequest, forbidden, unauthorized, tooManyRequests } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { verifyAndConsumeOtpCode } from "@/lib/server/auth/otp";
-import { createSession, setSessionCookie } from "@/lib/server/auth/session";
+import { applySessionCookieToResponse, createSession } from "@/lib/server/auth/session";
 import {
   applyReferralForUser,
   buildReferralCode,
@@ -15,6 +15,11 @@ import {
   readRequestIp,
 } from "@/lib/server/referral/referral";
 import { queueWelcomeJourney } from "@/lib/server/notifications/journey-notify";
+import {
+  createOtpAuthUser,
+  findOtpAuthUserByPhone,
+  type OtpAuthUser,
+} from "@/lib/server/auth/otp-auth-user";
 
 type Body = {
   phone?: string;
@@ -30,21 +35,6 @@ function isValidOtp(code: string): boolean {
 function buildDefaultName(phone: string): string {
   return phone;
 }
-
-const otpAuthUserSelect = {
-  id: true,
-  name: true,
-  phone: true,
-  email: true,
-  referralCode: true,
-  referralCredit: true,
-  referralEarnedTotal: true,
-  role: true,
-  memberSince: true,
-  tier: true,
-} satisfies Prisma.UserSelect;
-
-type OtpAuthUser = Prisma.UserGetPayload<{ select: typeof otpAuthUserSelect }>;
 
 function toOtpSessionUser(user: OtpAuthUser) {
   const role =
@@ -107,10 +97,7 @@ export async function POST(request: Request) {
       return unauthorized(getOtpApiMessage("otp_invalid"), "otp_invalid");
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { phone },
-      select: otpAuthUserSelect,
-    });
+    const existingUser = await findOtpAuthUserByPhone(phone);
     const isNewUser = !existingUser;
 
     if (existingUser && referralCode) {
@@ -126,11 +113,15 @@ export async function POST(request: Request) {
     }
 
     const signupIpHash = hashIp(readRequestIp(request));
+    if (existingUser?.blocked) {
+      return forbidden("حساب کاربری شما مسدود شده است.", "account_blocked");
+    }
+
     const user =
       existingUser ??
       (await prisma.$transaction(async (tx) => {
-        const createdUser = await tx.user.create({
-          data: {
+        const createdUser = await createOtpAuthUser(
+          {
             name: buildDefaultName(phone),
             phone,
             role: "user",
@@ -138,8 +129,8 @@ export async function POST(request: Request) {
             referralCode: buildReferralCode(),
             signupIpHash,
           },
-          select: otpAuthUserSelect,
-        });
+          tx
+        );
         if (referralCode) {
           await applyReferralForUser({
             tx,
@@ -152,15 +143,15 @@ export async function POST(request: Request) {
       }));
 
     const sessionToken = await createSession(user.id);
-    await setSessionCookie(sessionToken);
     if (isNewUser) {
       queueWelcomeJourney(user);
     }
 
-    return ok({
+    const response = NextResponse.json({
       user: toOtpSessionUser(user),
       isNewUser,
     });
+    return applySessionCookieToResponse(response, sessionToken);
   } catch (error) {
     return handleRouteError(error, { route: "/api/auth/otp/verify" });
   }

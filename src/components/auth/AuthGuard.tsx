@@ -14,11 +14,11 @@ export function AuthGuard({ redirectTo, children }: AuthGuardProps) {
   const { auth } = useApp();
 
   useEffect(() => {
-    if (auth.hydrated && !auth.isLoggedIn) {
+    if (auth.hydrated && auth.sessionResolved && !auth.isLoggedIn) {
       router.replace(`/auth?redirect=${encodeURIComponent(redirectTo)}`);
     }
-  }, [auth.hydrated, auth.isLoggedIn, redirectTo, router]);
+  }, [auth.hydrated, auth.sessionResolved, auth.isLoggedIn, redirectTo, router]);
 
-  if (!auth.hydrated || !auth.isLoggedIn) return null;
+  if (!auth.hydrated || !auth.sessionResolved || !auth.isLoggedIn) return null;
   return <>{children}</>;
 }

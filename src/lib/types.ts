@@ -93,13 +93,13 @@ export type EngravingMasterId =
   | "hakhamaneshi";
 
 export interface ProductArtisanAssignments {
-  /** استاد اصلی طراحی و ساخت رکاب */
+  /** استادان و طراحان ساخت رکاب */
   shankDesignerId?: ShankMasterId;
-  /** استاد قلم‌کاری و نقش روی رکاب */
+  /** استادان طراحی و قلم‌کاری روی رکاب */
   carvingMasterId?: EngravingMasterId;
-  /** استاد خوشنویسی/حکاکی روی رکاب */
+  /** استادان حکاکی و خوشنویسی روی رکاب */
   bandEngraverId?: EngravingMasterId;
-  /** استاد حکاکی روی نگین */
+  /** استادان طراحی و حکاکی روی سنگ */
   stoneEngraverId?: EngravingMasterId;
 }
 
@@ -221,7 +221,7 @@ export interface Product {
   craftedIn?: string;
   /** نام کارگاه/استاد سازنده */
   craftedBy?: string;
-  /** اتصال محصول به پروفایل استادکاران */
+  /** اتصال محصول به پروفایل استادان و طراحان */
   artisanAssignments?: ProductArtisanAssignments;
   /** آیا تغییر سایز رایگان ارائه می‌شود */
   freeResize?: boolean;
@@ -278,6 +278,7 @@ export interface GiftCard {
 export interface CartItem {
   id: string;
   productId?: string;
+  collectionId?: string;
   name: string;
   price: number;
   listPrice?: number;
@@ -335,17 +336,188 @@ export interface Order {
   loyaltyTier?: LoyaltyTier;
   loyaltyDiscountAmount?: number;
   loyaltyPointsEarned?: number;
+  campaignId?: string;
+  campaignDiscountAmount?: number;
+  campaignTitle?: string;
   shipping?: OrderShipping;
   trackingCode?: string;
   payment?: OrderPaymentSummary;
   items: CartItem[];
 }
 
-export interface AdminOrder extends Order {
+export type OrderReturnStatus =
+  | "requested"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "refunded"
+  | "cancelled";
+
+export interface AdminOrderReturnSummary {
+  id: string;
+  orderId: string;
+  status: OrderReturnStatus;
+  reason: string;
+  refundableAmount: number;
+  createdAt: string;
+}
+
+export interface AdminOrderReturnItem {
+  id: string;
+  orderItemId: string;
+  quantity: number;
+  name: string;
+  unitPrice: number;
+  orderQuantity: number;
+  lineTotal: number;
+}
+
+export interface AdminOrderReturn extends AdminOrderReturnSummary {
+  userId: string | null;
+  reasonDetail: string | null;
+  internalNotes: string | null;
+  updatedAt: string;
+  orderTotal: number;
+  orderStatus: string;
   customer: {
     name: string;
     phone: string;
   };
+  items: AdminOrderReturnItem[];
+  historyCount: number;
+}
+
+export interface AdminOrderReturnStatusHistoryEntry {
+  id: string;
+  fromStatus: string | null;
+  toStatus: OrderReturnStatus;
+  note: string | null;
+  changedById: string | null;
+  createdAt: string;
+}
+
+export interface AdminOrderReturnDetail extends AdminOrderReturn {
+  statusHistory: AdminOrderReturnStatusHistoryEntry[];
+}
+
+export interface AdminReturnsPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface OrderReturnItemInput {
+  orderItemId: string;
+  quantity: number;
+}
+
+export interface AdminOrder extends Order {
+  customer: {
+    name: string;
+    phone: string;
+    email?: string | null;
+  };
+  returns?: AdminOrderReturnSummary[];
+}
+
+export type AdminUserRole = "user" | "editor" | "reviewer" | "admin";
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  role: AdminUserRole;
+  blocked: boolean;
+  memberSince: string;
+  createdAt: string;
+  loyaltyTier: string;
+  loyaltyPoints: number;
+  orderCount: number;
+  totalSpent: number;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  firstName: string | null;
+  lastName: string | null;
+  province: string | null;
+  city: string | null;
+  referralCode: string;
+  referralCredit: number;
+  loyaltyLifetimeSpend: number;
+}
+
+export interface AdminUsersPagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export type AdminPaymentStatus = "pending" | "paid" | "failed";
+
+export interface AdminFinanceSummary {
+  totalRevenue: number;
+  revenueToday: number;
+  revenueWeek: number;
+  revenueMonth: number;
+  successfulPayments: number;
+  failedPayments: number;
+  pendingPayments: number;
+  averageBasket: number;
+}
+
+export interface AdminFinanceTransaction {
+  id: string;
+  orderId: string;
+  gateway: string;
+  status: AdminPaymentStatus;
+  amountRial: number;
+  orderTotal: number;
+  orderStatus: string;
+  orderType: string;
+  paymentMethod: string | null;
+  refId: string | null;
+  authority: string | null;
+  createdAt: string;
+  verifiedAt: string | null;
+  customer: {
+    id: string;
+    name: string;
+    phone: string;
+  };
+  itemCount: number;
+}
+
+export interface AdminFinanceDetail extends AdminFinanceTransaction {
+  cardPan: string | null;
+  fee: number | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  updatedAt: string;
+  orderDate: string;
+  items: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    price: number;
+    lineTotal: number;
+  }>;
+  logs: Array<{
+    id: string;
+    level: string;
+    event: string;
+    message: string | null;
+    createdAt: string;
+  }>;
+}
+
+export interface AdminFinancePagination {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
 export type ShopCollectionFilter = "all" | "bestseller" | "featured";
@@ -355,7 +527,8 @@ export type ShopBudgetBand = "entry" | "mid" | "premium" | "luxury";
 export type ShopMetalStamp = "0.925" | "0.750" | "0.585";
 
 export interface ShopFilters {
-  stones: StoneType[];
+  stones: string[];
+  artisans: string[];
   priceRange: [number, number];
   styles: RingStyle[];
   engravingTypes: (EngravingStyle | "none")[];

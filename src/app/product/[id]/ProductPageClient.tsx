@@ -123,7 +123,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         items: [
           {
             item_id: product.id,
-            item_name: productName,
+            item_name: product.namePersian?.trim() || productName,
             item_category: productCategory,
             item_variant: productStone,
             price: productPrice,
@@ -172,6 +172,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
     );
   }
 
+  const displayName = product.namePersian?.trim() || product.name;
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
   const status = getProductStatusConfig(product.availability);
   const canBuyByStockRules = isProductPurchasable(
@@ -218,11 +219,11 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   return (
     <div className="product-detail-page">
       <div className="site-container">
-        <ProductBreadcrumb productName={product.name} />
+        <ProductBreadcrumb productName={displayName} />
 
         <div className="product-detail-grid">
           <div className="product-detail-media">
-            <ProductGallery images={images} name={product.name} productId={product.id} />
+            <ProductGallery images={images} name={displayName} productId={product.id} />
           </div>
 
           <div className="product-detail-info">
@@ -236,8 +237,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                     </Badge>
                   ) : null}
                 </div>
-                <p className="product-detail-name-persian">{product.namePersian}</p>
-                <h1 className="product-detail-title">{product.name}</h1>
+                <h1 className="product-detail-title">{displayName}</h1>
                 <div className="product-detail-meta">
                   <ProductRating productId={product.id} size="md" />
                   <ProductSalesCount productId={product.id} />

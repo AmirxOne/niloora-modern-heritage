@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { SITE_IMAGE_1 } from "@/lib/images";
 import { fa } from "@/lib/i18n/fa";
 import { useAbExperiment } from "@/lib/hooks/useAbExperiment";
@@ -97,10 +96,6 @@ export function HeroSection() {
                   </span>
                 </h1>
               </motion.div>
-            </motion.div>
-
-            <motion.div custom={2} variants={reveal} initial="hidden" animate="visible">
-              <OrnamentalDivider className="mx-auto my-5 max-w-[11rem] lg:mx-0 lg:justify-start" />
             </motion.div>
 
             <motion.p

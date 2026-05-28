@@ -7,6 +7,7 @@ import {
   buildShopSearchParams,
   parseShopFiltersFromParams,
   parseShopPageFromParams,
+  parseShopPageSizeFromParams,
 } from "@/lib/shop/shop-filter-url";
 import type { ShopFilters } from "@/lib/types";
 
@@ -21,10 +22,11 @@ export function useShopFiltersUrl(maxPrice: number) {
   );
 
   const page = useMemo(() => parseShopPageFromParams(searchParams), [searchParams]);
+  const pageSize = useMemo(() => parseShopPageSizeFromParams(searchParams), [searchParams]);
 
   const replaceParams = useCallback(
-    (nextFilters: ShopFilters, nextPage: number) => {
-      const params = buildShopSearchParams(nextFilters, maxPrice, nextPage, searchParams);
+    (nextFilters: ShopFilters, nextPage: number, nextPageSize: number) => {
+      const params = buildShopSearchParams(nextFilters, maxPrice, nextPage, nextPageSize, searchParams);
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     },
@@ -34,21 +36,28 @@ export function useShopFiltersUrl(maxPrice: number) {
   const setFilters = useCallback(
     (next: ShopFilters | ((prev: ShopFilters) => ShopFilters)) => {
       const resolved = typeof next === "function" ? next(filters) : next;
-      replaceParams(resolved, 1);
+      replaceParams(resolved, 1, pageSize);
     },
-    [filters, replaceParams]
+    [filters, pageSize, replaceParams]
   );
 
   const setPage = useCallback(
     (nextPage: number) => {
-      replaceParams(filters, nextPage);
+      replaceParams(filters, nextPage, pageSize);
+    },
+    [filters, pageSize, replaceParams]
+  );
+
+  const setPageSize = useCallback(
+    (nextPageSize: number) => {
+      replaceParams(filters, 1, nextPageSize);
     },
     [filters, replaceParams]
   );
 
   const resetFilters = useCallback(() => {
-    replaceParams(createDefaultShopFilters(maxPrice), 1);
-  }, [maxPrice, replaceParams]);
+    replaceParams(createDefaultShopFilters(maxPrice), 1, pageSize);
+  }, [maxPrice, pageSize, replaceParams]);
 
   const safeFilters = useMemo(() => {
     const [min, max] = filters.priceRange;
@@ -63,7 +72,9 @@ export function useShopFiltersUrl(maxPrice: number) {
     filters: safeFilters,
     setFilters,
     page,
+    pageSize,
     setPage,
+    setPageSize,
     resetFilters,
   };
 }

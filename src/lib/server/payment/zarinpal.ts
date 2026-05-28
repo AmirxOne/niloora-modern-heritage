@@ -1,5 +1,5 @@
 import { getAppBaseUrl } from "@/lib/server/payment/app-url";
-import { serverEnv } from "@/lib/server/env";
+import { getEffectiveZarinpalConfig } from "@/lib/server/site-settings/effective-services";
 
 type ZarinpalApiResponse<T> = {
   data: T;
@@ -24,14 +24,14 @@ type VerifySuccess = {
   fee: number;
 };
 
-function apiBase(): string {
-  return serverEnv.zarinpalSandbox
+function apiBase(sandbox: boolean): string {
+  return sandbox
     ? "https://sandbox.zarinpal.com/pg/v4/payment"
     : "https://api.zarinpal.com/pg/v4/payment";
 }
 
-function startPayBase(): string {
-  return serverEnv.zarinpalSandbox
+function startPayBase(sandbox: boolean): string {
+  return sandbox
     ? "https://sandbox.zarinpal.com/pg/StartPay"
     : "https://www.zarinpal.com/pg/StartPay";
 }
@@ -45,12 +45,17 @@ export function getZarinpalCallbackUrl(): string {
   return `${getAppBaseUrl()}/api/payments/zarinpal/callback`;
 }
 
-export function isZarinpalConfigured(): boolean {
-  return Boolean(serverEnv.zarinpalMerchantId);
+export async function isZarinpalConfigured(): Promise<boolean> {
+  const config = await getEffectiveZarinpalConfig();
+  return config.enabled && config.configured;
 }
 
-async function postZarinpal<T>(path: string, body: Record<string, unknown>): Promise<T> {
-  const response = await fetch(`${apiBase()}/${path}`, {
+async function postZarinpal<T>(
+  path: string,
+  body: Record<string, unknown>,
+  sandbox: boolean
+): Promise<T> {
+  const response = await fetch(`${apiBase(sandbox)}/${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(body),
@@ -71,12 +76,15 @@ export async function zarinpalRequestPayment(input: {
   mobile?: string;
   email?: string;
 }): Promise<{ authority: string; redirectUrl: string; fee: number }> {
-  if (!serverEnv.zarinpalMerchantId) {
+  const config = await getEffectiveZarinpalConfig();
+  if (!config.enabled || !config.merchantId) {
     throw new Error("Zarinpal merchant id is not configured");
   }
 
-  const data = await postZarinpal<RequestSuccess>("request.json", {
-    merchant_id: serverEnv.zarinpalMerchantId,
+  const data = await postZarinpal<RequestSuccess>(
+    "request.json",
+    {
+    merchant_id: config.merchantId,
     amount: input.amountRial,
     callback_url: getZarinpalCallbackUrl(),
     description: input.description.slice(0, 255),
@@ -85,7 +93,9 @@ export async function zarinpalRequestPayment(input: {
       ...(input.mobile ? { mobile: input.mobile } : {}),
       ...(input.email ? { email: input.email } : {}),
     },
-  });
+    },
+    config.sandbox
+  );
 
   if (data.code !== 100 || !data.authority) {
     throw new Error(data.message || "Zarinpal request failed");
@@ -93,7 +103,7 @@ export async function zarinpalRequestPayment(input: {
 
   return {
     authority: data.authority,
-    redirectUrl: `${startPayBase()}/${data.authority}`,
+    redirectUrl: `${startPayBase(config.sandbox)}/${data.authority}`,
     fee: data.fee,
   };
 }
@@ -109,15 +119,20 @@ export async function zarinpalVerifyPayment(input: {
   code: number;
   message: string;
 }> {
-  if (!serverEnv.zarinpalMerchantId) {
+  const config = await getEffectiveZarinpalConfig();
+  if (!config.enabled || !config.merchantId) {
     throw new Error("Zarinpal merchant id is not configured");
   }
 
-  const data = await postZarinpal<VerifySuccess>("verify.json", {
-    merchant_id: serverEnv.zarinpalMerchantId,
-    amount: input.amountRial,
-    authority: input.authority,
-  });
+  const data = await postZarinpal<VerifySuccess>(
+    "verify.json",
+    {
+      merchant_id: config.merchantId,
+      amount: input.amountRial,
+      authority: input.authority,
+    },
+    config.sandbox
+  );
 
   const ok = data.code === 100 || data.code === 101;
   return {

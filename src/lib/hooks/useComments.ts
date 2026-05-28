@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { computeProductRating } from "../product-rating";
 import type { ProductComment } from "../types";
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useAuth } from "./useAuth";
 import { parseJsonResponse } from "./fetch-utils";
 
@@ -23,7 +24,7 @@ export function useComments() {
     }
     setIsPendingLoading(true);
     try {
-      const response = await fetch("/api/comments/pending");
+      const response = await apiFetch("/api/comments/pending");
       if (response.status === 401) {
         setPendingComments([]);
         setCanModerate(false);

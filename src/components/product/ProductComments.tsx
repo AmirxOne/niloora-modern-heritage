@@ -7,7 +7,6 @@ import { useProductComments } from "@/lib/hooks/useComments";
 import type { ProductComment } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { TextAreaBox, TextBox } from "@/components/inputs";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { StarRating } from "@/components/product/StarRating";
 import { ProductReviewSummary } from "@/components/product/ProductReviewSummary";
 import { ProductCommentCard } from "@/components/product/ProductCommentCard";
@@ -138,7 +137,6 @@ export function ProductComments({ productId }: ProductCommentsProps) {
           </h2>
           <p className="product-reviews-subtitle">{fa.product.commentsSubtitle}</p>
         </div>
-        <OrnamentalDivider className="max-w-[10rem] justify-start" />
       </header>
 
       <div className="product-reviews-layout">

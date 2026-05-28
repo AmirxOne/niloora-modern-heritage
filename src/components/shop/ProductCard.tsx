@@ -16,7 +16,6 @@ import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn, formatTomanAmount } from "@/lib/utils";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 import { ENGRAVING_STYLES, METAL_OPTIONS, STONE_OPTIONS } from "@/lib/constants";
-import { trackAbEvent } from "@/lib/ab/tracker";
 
 interface ProductCardProps {
   product: Product;
@@ -41,6 +40,8 @@ export function ProductCard({
   compact = false,
   abTest,
 }: ProductCardProps) {
+  const displayName = product.namePersian?.trim() || product.name;
+  const listingDetails = product.listing?.details ?? [];
   const styleLabels: Record<Product["category"], string> = {
     solitaire: fa.shop.styles.solitaire,
     halo: fa.shop.styles.halo,
@@ -52,48 +53,63 @@ export function ProductCard({
   const metalLabelByValue = new Map(METAL_OPTIONS.map((item) => [item.value, item.label]));
   const stoneLabelByValue = new Map(STONE_OPTIONS.map((item) => [item.value, item.label]));
   const engravingLabelByValue = new Map(ENGRAVING_STYLES.map((item) => [item.value, item.label]));
-  const { wishlist, cart } = useApp();
+  const { wishlist } = useApp();
   const wished = wishlist.isWishlisted(product.id);
   const isSold = product.availability === "sold";
   const pricing = getProductPricing(product);
   const showTimer = timerOverride ?? pricing.hasProductFurooh;
-  const attributes: Array<{ label: string; value: string; icon: JSX.Element }> = [
+  const getDetailValue = (label: string): string | undefined => {
+    const row = listingDetails.find((item) => new RegExp(`^${label}\\s*:`).test(item.trim()));
+    if (!row) return undefined;
+    return row.replace(new RegExp(`^${label}\\s*:\\s*`), "").trim() || undefined;
+  };
+  const detailStone = getDetailValue("نگین");
+  const detailMetal = getDetailValue("جنس");
+  const detailShankMaker = getDetailValue("رکاب");
+  const detailEngraver = getDetailValue("حکاک");
+  const detailCategory = getDetailValue("دسته");
+  const detailSize = getDetailValue("سایز");
+
+  const attributes: Array<{ key: string; label: string; value?: string; icon: JSX.Element }> = [
     {
-      label: "جنس",
-      value: metalLabelByValue.get(product.metal) ?? "نقره",
-      icon: <Gem size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
+      key: "shank-maker",
+      label: "ساخت رکاب",
+      value: detailShankMaker ?? product.craftedBy,
+      icon: <Category size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
     {
-      label: "نگین",
-      value: stoneLabelByValue.get(product.stone) ?? "—",
-      icon: <Sparkles size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
-    },
-    {
-      label: "حکاکی",
-      value:
-        product.engravingType === "none"
-          ? "بدون حکاکی"
-          : (engravingLabelByValue.get(product.engravingType) ?? "بدون حکاکی"),
+      key: "engraver",
+      label: "حکاکی رکاب",
+      value: detailEngraver ?? (product.engravingType === "none" ? undefined : engravingLabelByValue.get(product.engravingType)),
       icon: <PenTool size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
     {
-      label: "سبک",
-      value: styleLabels[product.category],
+      key: "stone",
+      label: "نگین",
+      value: detailStone ?? product.stoneColorLabel ?? stoneLabelByValue.get(product.stone),
+      icon: <Sparkles size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
+    },
+    {
+      key: "metal",
+      label: "جنس",
+      value: detailMetal ?? metalLabelByValue.get(product.metal),
+      icon: <Gem size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
+    },
+    {
+      key: "size",
+      label: "سایز",
+      value: detailSize ?? (product.ringSize ? String(product.ringSize) : undefined),
       icon: <Category size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
     },
-  ];
-
-  const trackCardConversion = () => {
-    if (!abTest) return;
-    void trackAbEvent({
-      experimentId: abTest.experimentId,
-      variantId: abTest.variantId,
-      identity: abTest.identity,
-      type: "conversion",
-      page: abTest.page,
-      metadata: { action: "add_to_cart", productId: product.id },
-    });
-  };
+    {
+      key: "style",
+      label: "سبک",
+      value: detailCategory ?? styleLabels[product.category],
+      icon: <Category size={iconSizes.xs} variant={ICON_VARIANT} aria-hidden />,
+    },
+  ]
+    .filter((item) => Boolean(item.value))
+    .slice(0, 4);
 
   const content = (
     <>
@@ -101,11 +117,11 @@ export function ProductCard({
         <Link
           href={`/product/${product.id}`}
           className="shop-product-card-image-link"
-          aria-label={product.name}
+          aria-label={displayName}
         >
           <Image
             src={product.image}
-            alt={product.name}
+            alt={displayName}
             fill
             className="shop-product-card-thumb"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -156,14 +172,14 @@ export function ProductCard({
 
       <div className={cn("shop-product-card-body", compact && "shop-product-card-body--compact")}>
         <div className="shop-product-card-heading-row">
-          <Link href={`/product/${product.id}`} className="shop-product-card-title-link" title={product.name}>
-            <h3 className="shop-product-card-title">{product.name}</h3>
+          <Link href={`/product/${product.id}`} className="shop-product-card-title-link" title={displayName}>
+            <h3 className="shop-product-card-title">{displayName}</h3>
           </Link>
         </div>
 
         <dl className="shop-product-card-attributes" aria-label="ویژگی‌های محصول">
           {attributes.map((item) => (
-            <div key={item.label} className="shop-product-card-attribute-item">
+            <div key={item.key} className="shop-product-card-attribute-item">
               <dt className="shop-product-card-attribute-label">
                 <span className="shop-product-card-attribute-icon">{item.icon}</span>
                 <span className="sr-only">{item.label}</span>
@@ -210,26 +226,6 @@ export function ProductCard({
             className="shop-product-card-discount-countdown"
           />
         ) : null}
-        <div className="shop-product-card-cta">
-          <button
-            type="button"
-            className="shop-product-card-add-btn"
-            onClick={() => {
-              void cart.addProduct(product.id, {
-                name: product.name,
-                image: product.image,
-                availability: product.availability,
-                price: pricing.salePrice,
-              });
-              trackCardConversion();
-            }}
-          >
-            {fa.product.addToCart}
-          </button>
-          <Link href={`/product/${product.id}`} className="shop-product-card-quick-link">
-            {fa.shop.quickView}
-          </Link>
-        </div>
       </div>
     </>
   );

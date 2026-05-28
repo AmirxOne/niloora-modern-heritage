@@ -14,6 +14,7 @@ import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SelectBox, TextAreaBox } from "@/components/inputs";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const statusLabels: Record<TradeInSubmissionStatus, string> = {
   pending: fa.admin.tradeIn.status.pending,
@@ -166,13 +167,7 @@ export function AdminTradeInPanel() {
     [admin.submissions]
   );
 
-  if (!admin.isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!admin.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -196,9 +191,7 @@ export function AdminTradeInPanel() {
       </div>
 
       {admin.isLoading ? (
-        <p className="text-silver" aria-busy="true">
-          {fa.admin.tradeIn.loading}
-        </p>
+        <LoadingState variant="admin-cards" />
       ) : sorted.length === 0 ? (
         <p className="admin-orders-empty">{fa.admin.tradeIn.empty}</p>
       ) : (

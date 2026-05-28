@@ -11,9 +11,23 @@ export const ACCOUNT_SECTION_IDS = [
   "designs",
 ] as const;
 
-export type AccountSectionId = (typeof ACCOUNT_SECTION_IDS)[number];
+export const ACCOUNT_ADMIN_SECTION_IDS = [
+  "admin-moderation",
+  "admin-orders",
+  "admin-products",
+  "admin-trade-in",
+  "admin-promo-codes",
+  "admin-home",
+  "admin-posts",
+  "admin-gift-cards",
+  "admin-customizer-quotes",
+] as const;
 
-const LEGACY_ALIASES: Record<string, AccountSectionId> = {
+export type AccountSectionId = (typeof ACCOUNT_SECTION_IDS)[number];
+export type AccountAdminSectionId = (typeof ACCOUNT_ADMIN_SECTION_IDS)[number];
+export type AccountNavSectionId = AccountSectionId | AccountAdminSectionId;
+
+const LEGACY_ALIASES: Record<string, AccountNavSectionId> = {
   dashboard: "overview",
 };
 
@@ -21,22 +35,30 @@ export function isAccountSectionId(value: string): value is AccountSectionId {
   return (ACCOUNT_SECTION_IDS as readonly string[]).includes(value);
 }
 
+export function isAccountAdminSectionId(value: string): value is AccountAdminSectionId {
+  return (ACCOUNT_ADMIN_SECTION_IDS as readonly string[]).includes(value);
+}
+
+export function isAccountNavSectionId(value: string): value is AccountNavSectionId {
+  return isAccountSectionId(value) || isAccountAdminSectionId(value);
+}
+
 export function parseAccountSection(
   hash: string,
   sectionQuery: string | null
-): AccountSectionId | null {
+): AccountNavSectionId | null {
   const fromQuery = sectionQuery?.trim();
   if (fromQuery) {
     const normalized = fromQuery in LEGACY_ALIASES ? LEGACY_ALIASES[fromQuery] : fromQuery;
-    if (isAccountSectionId(normalized)) return normalized;
+    if (isAccountNavSectionId(normalized)) return normalized;
   }
 
   const raw = hash.replace(/^#/, "").trim();
   if (!raw) return null;
   const normalized = raw in LEGACY_ALIASES ? LEGACY_ALIASES[raw] : raw;
-  return isAccountSectionId(normalized) ? normalized : null;
+  return isAccountNavSectionId(normalized) ? normalized : null;
 }
 
-export function accountSectionHref(section: AccountSectionId): string {
+export function accountSectionHref(section: AccountNavSectionId): string {
   return section === "overview" ? "/account" : `/account#${section}`;
 }

@@ -3,12 +3,12 @@ import { serverLogger } from "@/lib/observability/logger";
 import { absoluteUrl } from "@/lib/seo/site";
 import { listPublishedPosts } from "@/lib/server/blog/post-service";
 import { listProductIdsForSitemap } from "@/lib/server/products/product-page";
+import { getCatalogProducts } from "@/lib/server/products";
 import { prisma } from "@/lib/server/prisma";
-import { listAllArtisans } from "@/lib/artisans";
-import { listStoneGuides } from "@/lib/stones";
+import { listArtisansForCatalog } from "@/lib/artisans";
+import { listStoneGuidesForCatalog } from "@/lib/stones";
 import { listShopLandingParams, shopLandingPath } from "@/lib/seo/landing-pages";
 import { listStoneCompareParams } from "@/lib/seo/stone-compare";
-import { localePath, SUPPORTED_LOCALES } from "@/lib/i18n/locales";
 
 const STATIC_PATHS: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[0]["changeFrequency"] }[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
@@ -47,15 +47,16 @@ async function listBlogSitemapEntries(): Promise<MetadataRoute.Sitemap> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const artisans = listAllArtisans();
-  const stones = listStoneGuides();
   const landingPages = listShopLandingParams();
   const stoneComparePages = listStoneCompareParams();
-  const [products, collections, blogEntries] = await Promise.all([
+  const [catalog, products, collections, blogEntries] = await Promise.all([
+    getCatalogProducts(),
     listProductIdsForSitemap(),
     prisma.collection.findMany({ select: { id: true } }),
     listBlogSitemapEntries(),
   ]);
+  const artisans = listArtisansForCatalog(catalog);
+  const stones = listStoneGuidesForCatalog(catalog);
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((entry) => ({
     url: absoluteUrl(entry.path),
@@ -63,17 +64,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: entry.changeFrequency,
     priority: entry.priority,
   }));
-
-  const localizedBasePaths = ["/", "/shop", "/blog", "/about"];
-  const localizedEntries: MetadataRoute.Sitemap = SUPPORTED_LOCALES.filter((locale) => locale !== "fa").flatMap(
-    (locale) =>
-      localizedBasePaths.map((path) => ({
-        url: absoluteUrl(localePath(locale, path)),
-        lastModified: new Date(),
-        changeFrequency: "weekly" as const,
-        priority: path === "/" ? 0.78 : 0.62,
-      }))
-  );
 
   const collectionEntries: MetadataRoute.Sitemap = collections.map((collection) => ({
     url: absoluteUrl(`/shop?collection=${encodeURIComponent(collection.id)}`),
@@ -119,7 +109,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticEntries,
-    ...localizedEntries,
     ...collectionEntries,
     ...productEntries,
     ...artisanEntries,

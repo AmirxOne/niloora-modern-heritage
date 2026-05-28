@@ -12,6 +12,15 @@ export interface FilterMultiSelectOption<T extends string> {
   swatch?: string;
 }
 
+function normalizeFilterText(value: string): string {
+  return value
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("fa-IR");
+}
+
 interface FilterMultiSelectProps<T extends string> {
   label: string;
   options: FilterMultiSelectOption<T>[];
@@ -35,9 +44,9 @@ export function FilterMultiSelect<T extends string>({
   const selectedSet = useMemo(() => new Set(value), [value]);
 
   const filteredOptions = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeFilterText(query);
     if (!q) return options;
-    return options.filter((o) => o.label.toLowerCase().includes(q));
+    return options.filter((o) => normalizeFilterText(o.label).includes(q));
   }, [options, query]);
 
   const triggerLabel = useMemo(() => {

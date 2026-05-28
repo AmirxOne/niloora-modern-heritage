@@ -9,6 +9,8 @@ export interface AuthUser {
   id: string;
   name: string;
   phone: string;
+  firstName?: string | null;
+  lastName?: string | null;
   referralCode?: string;
   referralCredit?: number;
   referralEarnedTotal?: number;

@@ -20,6 +20,9 @@ type OrderWithItems = {
   loyaltyTier: string | null;
   loyaltyDiscountAmount: number | null;
   loyaltyPointsEarned: number | null;
+  campaignId?: string | null;
+  campaignDiscountAmount?: number | null;
+  campaign?: { title: string; slug: string } | null;
   shippingName?: string | null;
   shippingPhone?: string | null;
   shippingProvince?: string | null;
@@ -101,6 +104,9 @@ export function toOrderDto(order: OrderWithItems) {
     loyaltyTier: normalizeLoyaltyTier(order.loyaltyTier),
     loyaltyDiscountAmount: order.loyaltyDiscountAmount ?? undefined,
     loyaltyPointsEarned: order.loyaltyPointsEarned ?? undefined,
+    campaignId: order.campaignId ?? undefined,
+    campaignDiscountAmount: order.campaignDiscountAmount ?? undefined,
+    campaignTitle: order.campaign?.title,
     shipping,
     trackingCode: order.trackingCode ?? undefined,
     payment,
@@ -120,6 +126,12 @@ export function toOrderDto(order: OrderWithItems) {
 
 export const orderInclude = {
   items: true,
+  campaign: {
+    select: {
+      title: true,
+      slug: true,
+    },
+  },
   payment: {
     select: {
       status: true,

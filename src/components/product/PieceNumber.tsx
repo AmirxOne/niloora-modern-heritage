@@ -9,7 +9,8 @@ import {
   parsePieceCode,
   PRODUCT_TYPE_CODES,
 } from "@/lib/products/piece-code";
-import { Check } from "@/components/icons";
+import { Check, Copy } from "@/components/icons";
+import { ICON_VARIANT } from "@/lib/icons";
 
 type PieceNumberVariant = "compact" | "inline" | "card";
 
@@ -96,7 +97,7 @@ export function PieceNumber({
               aria-label={fa.product.pieceCode.copyAria}
               title={fa.product.pieceCode.copy}
             >
-              {copied ? <Check size={16} variant="Bold" /> : <CopyIcon />}
+              {copied ? <Check size={16} variant="Bold" /> : <Copy size={16} variant={ICON_VARIANT} />}
               <span className="piece-number__copy-label">
                 {copied ? fa.product.pieceCode.copied : fa.product.pieceCode.copy}
               </span>
@@ -143,37 +144,10 @@ export function PieceNumber({
           aria-label={fa.product.pieceCode.copyAria}
           title={fa.product.pieceCode.copy}
         >
-          {copied ? <Check size={14} variant="Bold" /> : <CopyIcon size={14} />}
+          {copied ? <Check size={14} variant="Bold" /> : <Copy size={14} variant={ICON_VARIANT} />}
         </button>
       ) : null}
     </span>
   );
 }
 
-function CopyIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
-    >
-      <rect
-        x="8"
-        y="8"
-        width="12"
-        height="12"
-        rx="2.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <path
-        d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}

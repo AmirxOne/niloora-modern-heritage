@@ -15,6 +15,7 @@ import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SelectBox, TextAreaBox } from "@/components/inputs";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const t = fa.admin.supportRequests;
 
@@ -186,13 +187,7 @@ export function AdminSupportRequestsPanel() {
     [admin.requests]
   );
 
-  if (!admin.isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!admin.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -220,9 +215,7 @@ export function AdminSupportRequestsPanel() {
       </div>
 
       {admin.isLoading ? (
-        <p className="text-silver" aria-busy="true">
-          {t.loading}
-        </p>
+        <LoadingState variant="admin-cards" />
       ) : sorted.length === 0 ? (
         <p className="admin-orders-empty">{t.empty}</p>
       ) : (

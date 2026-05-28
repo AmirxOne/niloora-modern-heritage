@@ -1,11 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, X } from "@/components/icons";
-import type { ShopFilters as Filters } from "@/lib/types";
+import type { Product, ShopFilters as Filters } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
 import {
   availabilityFilterOptions,
+  buildCatalogArtisanFilterOptions,
+  buildCatalogStoneFilterOptions,
   budgetFilterOptions,
   collectionFilterOptions,
   collectionIdFilterOptions,
@@ -13,7 +16,6 @@ import {
   engravingFilterOptions,
   metalStampFilterOptions,
   occasionFilterOptions,
-  stoneFilterOptions,
   styleFilterOptions,
   weightFilterOptions,
   hasActiveFilters,
@@ -30,6 +32,7 @@ interface ShopFiltersPanelProps {
   priceRangeReady?: boolean;
   onReset?: () => void;
   onClose?: () => void;
+  products?: Product[];
   /** موبایل: داخل دراور؛ دسکتاپ: سایدبار */
   variant?: "sidebar" | "drawer";
 }
@@ -41,11 +44,14 @@ export function ShopFiltersPanel({
   priceRangeReady = true,
   onReset,
   onClose,
+  products = [],
   variant = "sidebar",
 }: ShopFiltersPanelProps) {
   const isSidebar = variant === "sidebar";
   const showReset = onReset && hasActiveFilters(filters, maxPrice);
   const activeCount = countActiveFilters(filters, maxPrice);
+  const stoneOptions = useMemo(() => buildCatalogStoneFilterOptions(products), [products]);
+  const artisanOptions = useMemo(() => buildCatalogArtisanFilterOptions(products), [products]);
 
   const patch = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     onChange({ ...filters, [key]: value });
@@ -137,9 +143,16 @@ export function ShopFiltersPanel({
 
         <FilterMultiSelect
           label={fa.shop.stone}
-          options={stoneFilterOptions}
+          options={stoneOptions}
           value={filters.stones}
           onChange={(stones) => patch("stones", stones)}
+        />
+
+        <FilterMultiSelect
+          label={fa.shop.artisan}
+          options={artisanOptions}
+          value={filters.artisans}
+          onChange={(artisans) => patch("artisans", artisans)}
         />
 
         <FilterMultiSelect
@@ -225,6 +238,7 @@ interface ShopFiltersDrawerProps {
   maxPrice: number;
   priceRangeReady?: boolean;
   onReset: () => void;
+  products?: Product[];
 }
 
 export function ShopFiltersDrawer({
@@ -235,6 +249,7 @@ export function ShopFiltersDrawer({
   maxPrice,
   priceRangeReady = true,
   onReset,
+  products = [],
 }: ShopFiltersDrawerProps) {
   return (
     <AnimatePresence>
@@ -263,6 +278,7 @@ export function ShopFiltersDrawer({
               filters={filters}
               onChange={onChange}
               maxPrice={maxPrice}
+              products={products}
               priceRangeReady={priceRangeReady}
               onClose={onClose}
               onReset={() => {

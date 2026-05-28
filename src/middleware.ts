@@ -26,6 +26,39 @@ function jsonForbidden(): NextResponse {
   );
 }
 
+const AUTH_PATH_PREFIXES = ["/auth", "/login", "/register", "/forgot-password"];
+
+function isBlockedReturnPath(path: string): boolean {
+  return AUTH_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
+function redirectAccessDenied(request: NextRequest, prefix: string, fallbackPath: string): NextResponse {
+  const current = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const referer = request.headers.get("referer");
+
+  if (referer) {
+    try {
+      const refUrl = new URL(referer);
+      const reqUrl = new URL(request.url);
+      if (refUrl.origin === reqUrl.origin) {
+        const path = `${refUrl.pathname}${refUrl.search}`;
+        if (
+          path !== current &&
+          !isBlockedReturnPath(path) &&
+          !path.startsWith("/admin") &&
+          !path.startsWith(`${prefix}/admin`)
+        ) {
+          return NextResponse.redirect(new URL(path, request.url));
+        }
+      }
+    } catch {
+      // ignore invalid referer
+    }
+  }
+
+  return NextResponse.redirect(new URL(`${prefix}${fallbackPath}`, request.url));
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { locale, path } = stripLocalePrefix(pathname);
@@ -78,11 +111,11 @@ export async function middleware(request: NextRequest) {
   }
 
   if (needsPostsWorkflowPage && !canAccessContentWorkflow(session.role)) {
-    return applySecurityHeaders(NextResponse.redirect(new URL(`${prefix}/account`, request.url)), request);
+    return applySecurityHeaders(redirectAccessDenied(request, prefix, "/account"), request);
   }
 
   if (needsAdminPage && session.role !== "admin") {
-    return applySecurityHeaders(NextResponse.redirect(new URL(`${prefix}/account`, request.url)), request);
+    return applySecurityHeaders(redirectAccessDenied(request, prefix, "/account"), request);
   }
 
   return applySecurityHeaders(NextResponse.next(), request);

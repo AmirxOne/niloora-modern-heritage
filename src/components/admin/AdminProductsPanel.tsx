@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SelectBox, TextBox } from "@/components/inputs";
 import { AdminProductForm } from "@/components/admin/AdminProductForm";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminProductsPanel() {
   const admin = useAdminProducts();
@@ -29,7 +30,7 @@ export function AdminProductsPanel() {
   const [bulkStock, setBulkStock] = useState("");
   const [bulkAvailability, setBulkAvailability] = useState("");
   const [bulkDiscountPercent, setBulkDiscountPercent] = useState("");
-  const [csvReport, setCsvReport] = useState<string[]>([]);
+  const [importReport, setImportReport] = useState<string[]>([]);
 
   useEffect(() => {
     if (admin.isAdmin) void admin.loadAll();
@@ -144,13 +145,7 @@ export function AdminProductsPanel() {
     if (ok) cancelForm();
   };
 
-  if (!admin.isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!admin.allowed) return null;
 
   return (
     <div className="admin-products-layout">
@@ -172,32 +167,32 @@ export function AdminProductsPanel() {
           >
             {fa.admin.products.refresh}
           </Button>
-          <Button type="button" variant="outline" onClick={() => void admin.exportCsv()}>
-            خروجی CSV
+          <Button type="button" variant="outline" onClick={() => void admin.exportExcel()}>
+            خروجی Excel
           </Button>
-          <label className="admin-csv-upload-btn">
-            ورود CSV
+          <label className="admin-file-upload-btn">
+            ورود Excel
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               hidden
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                const result = await admin.importCsv(file);
+                const result = await admin.importExcel(file);
                 if (result?.errors?.length) {
-                  setCsvReport(result.errors.slice(0, 20).map((item) => `ردیف ${item.row}: ${item.message}`));
+                  setImportReport(result.errors.slice(0, 20).map((item) => `ردیف ${item.row}: ${item.message}`));
                 } else {
-                  setCsvReport([]);
+                  setImportReport([]);
                 }
                 e.currentTarget.value = "";
               }}
             />
           </label>
         </div>
-        {csvReport.length > 0 ? (
-          <div className="admin-csv-report">
-            {csvReport.map((line) => (
+        {importReport.length > 0 ? (
+          <div className="admin-import-report">
+            {importReport.map((line) => (
               <p key={line}>{line}</p>
             ))}
           </div>
@@ -267,8 +262,8 @@ export function AdminProductsPanel() {
         </div>
 
         {admin.isLoading ? (
-          <p className="text-silver">{fa.admin.products.loading}</p>
-        ) : filtered.length === 0 ? (
+        <LoadingState variant="admin-cards" />
+      ) : filtered.length === 0 ? (
           <p className="admin-orders-empty">{fa.admin.products.empty}</p>
         ) : (
           <ul className="admin-products-list">

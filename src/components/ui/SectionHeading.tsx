@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { OrnamentalDivider } from "./OrnamentalDivider";
 
 interface SectionHeadingProps {
   eyebrow?: string;
@@ -21,40 +20,28 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <motion.header
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "mb-8 md:mb-10",
-        align === "center" && "text-center",
+        "page-header mb-8 md:mb-10",
+        align === "center" && "page-header--center",
         className
       )}
     >
-      {eyebrow ? (
-        <p
-          className={cn(
-            "heritage-eyebrow",
-            align === "center" && "mx-auto"
-          )}
-        >
-          {eyebrow}
-        </p>
-      ) : null}
-      <h2 className="font-display text-3xl font-semibold leading-snug text-ivory md:text-4xl lg:text-[2.75rem]">
-        {title}
-      </h2>
+      {eyebrow ? <p className="page-eyebrow">{eyebrow}</p> : null}
+      <h2 className="page-header-title md:text-[2rem] lg:text-[2.25rem]">{title}</h2>
       {subtitle ? (
         <p
           className={cn(
-            "mt-4 max-w-2xl text-base leading-relaxed text-silver md:text-lg",
+            "page-header-subtitle md:text-base",
             align === "center" && "mx-auto"
           )}
         >
           {subtitle}
         </p>
       ) : null}
-      <OrnamentalDivider className="mt-5" />
     </motion.header>
   );
 }

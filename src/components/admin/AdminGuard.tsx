@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useApp } from "@/lib/context/AppContext";
-import { fa } from "@/lib/i18n/fa";
 import { canAccessContentWorkflow } from "@/lib/auth/content-workflow";
+import { performAccessRedirect } from "@/lib/navigation/access-redirect";
+import { useApp } from "@/lib/context/AppContext";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 interface AdminGuardProps {
   redirectTo: string;
@@ -15,24 +16,31 @@ export function AdminGuard({ redirectTo, children }: AdminGuardProps) {
   const router = useRouter();
   const { auth } = useApp();
 
+  const isAdmin = auth.user?.role === "admin";
+  const allowed = auth.sessionResolved && auth.isLoggedIn && isAdmin;
+
   useEffect(() => {
     if (!auth.sessionResolved) return;
+
     if (!auth.isLoggedIn) {
       router.replace(`/auth?redirect=${encodeURIComponent(redirectTo)}`);
       return;
     }
-    if (auth.user?.role !== "admin") {
-      router.replace("/account");
-    }
-  }, [auth.sessionResolved, auth.isLoggedIn, auth.user?.role, redirectTo, router]);
 
-  if (!auth.sessionResolved || !auth.isLoggedIn || auth.user?.role !== "admin") {
+    if (!isAdmin) {
+      performAccessRedirect(router, "/account");
+    }
+  }, [auth.sessionResolved, auth.isLoggedIn, isAdmin, redirectTo, router]);
+
+  if (!auth.sessionResolved) {
     return (
-      <div className="admin-guard-state" aria-busy={!auth.sessionResolved}>
-        <p className="text-silver">{fa.admin.forbidden}</p>
+      <div className="admin-guard-state">
+        <LoadingState variant="inline" />
       </div>
     );
   }
+
+  if (!allowed) return null;
 
   return <>{children}</>;
 }
@@ -46,24 +54,31 @@ export function ContentWorkflowGuard({ redirectTo, children }: ContentWorkflowGu
   const router = useRouter();
   const { auth } = useApp();
 
+  const isAllowed = canAccessContentWorkflow(auth.user?.role);
+  const allowed = auth.sessionResolved && auth.isLoggedIn && isAllowed;
+
   useEffect(() => {
     if (!auth.sessionResolved) return;
+
     if (!auth.isLoggedIn) {
       router.replace(`/auth?redirect=${encodeURIComponent(redirectTo)}`);
       return;
     }
-    if (!canAccessContentWorkflow(auth.user?.role)) {
-      router.replace("/account");
-    }
-  }, [auth.sessionResolved, auth.isLoggedIn, auth.user?.role, redirectTo, router]);
 
-  if (!auth.sessionResolved || !auth.isLoggedIn || !canAccessContentWorkflow(auth.user?.role)) {
+    if (!isAllowed) {
+      performAccessRedirect(router, "/account");
+    }
+  }, [auth.sessionResolved, auth.isLoggedIn, isAllowed, redirectTo, router]);
+
+  if (!auth.sessionResolved) {
     return (
-      <div className="admin-guard-state" aria-busy={!auth.sessionResolved}>
-        <p className="text-silver">{fa.admin.forbidden}</p>
+      <div className="admin-guard-state">
+        <LoadingState variant="inline" />
       </div>
     );
   }
+
+  if (!allowed) return null;
 
   return <>{children}</>;
 }

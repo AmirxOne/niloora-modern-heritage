@@ -5,6 +5,7 @@ import { resolveHomeSliderProducts } from "@/lib/server/home/home-slider";
 import { listHomeInstagramPosts } from "@/lib/server/home/home-instagram";
 import { listHomeTestimonials } from "@/lib/server/home/home-testimonials";
 import { readSessionUser } from "@/lib/server/auth/session";
+import { listActivePublicCampaigns } from "@/lib/server/campaigns/discount-campaign-service";
 import {
   getBestsellerProducts,
   getCatalogProducts,
@@ -54,12 +55,14 @@ export async function GET() {
       },
       10
     );
-    const [collections, testimonials, instagramPosts, banner, sliders] = await Promise.all([
+    const [collections, testimonials, instagramPosts, banner, sliders, campaigns] =
+      await Promise.all([
       getCollectionsFromDb(),
       listHomeTestimonials(),
       listHomeInstagramPosts(),
       getHomeBannerSettings(),
       resolveHomeSliderProducts(catalog, 6),
+      listActivePublicCampaigns(),
     ]);
 
     return ok({
@@ -81,6 +84,7 @@ export async function GET() {
         likes,
       })),
       banner,
+      campaigns: campaigns.filter((c) => c.banner.enabled),
     }, {
       headers: {
         "Cache-Control": user

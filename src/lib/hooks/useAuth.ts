@@ -6,7 +6,6 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
   clearAuthError,
   logoutAccount,
-  markSessionResolved,
   markResetSucceeded,
   setAuthError,
   setAuthUser,
@@ -23,6 +22,8 @@ import {
 import { getAuthErrorMessage } from "../auth/authErrors";
 import { normalizeIranPhone } from "../auth/phone";
 import { toEnglishDigits, toPersianDigits } from "@/lib/persian-digits";
+import { apiFetch } from "@/lib/api/client-fetch";
+import { resolveAccountDisplayName } from "@/lib/account/display-name";
 import { parseJsonResponse } from "./fetch-utils";
 
 /**
@@ -55,6 +56,8 @@ type SessionUserDto = {
     | null;
   favoriteStyle?: "solitaire" | "halo" | "vintage" | "signet" | "eternity" | "stackable" | null;
   favoriteBudgetBand?: "entry" | "mid" | "premium" | "luxury" | null;
+  firstName?: string | null;
+  lastName?: string | null;
   role: "user" | "editor" | "reviewer" | "admin";
   memberSince: string;
   tier: "gold" | "platinum" | "royal";
@@ -110,6 +113,34 @@ function otpFailureToast(
   return mapped ?? "خطایی رخ داد. دوباره تلاش کنید.";
 }
 
+function mapSessionUserToAuth(user: SessionUserDto) {
+  const nameInput = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    name: user.name,
+    phone: user.phone,
+  };
+  return {
+    id: user.id,
+    name: resolveAccountDisplayName(nameInput),
+    phone: user.phone,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    referralCode: user.referralCode,
+    referralCredit: user.referralCredit,
+    referralEarnedTotal: user.referralEarnedTotal,
+    loyaltyPoints: user.loyaltyPoints,
+    loyaltyTier: user.loyaltyTier,
+    loyaltyLifetimeSpend: user.loyaltyLifetimeSpend,
+    favoriteStone: user.favoriteStone ?? undefined,
+    favoriteStyle: user.favoriteStyle ?? undefined,
+    favoriteBudgetBand: user.favoriteBudgetBand ?? undefined,
+    role: user.role,
+    memberSince: user.memberSince,
+    tier: user.tier,
+  };
+}
+
 export function useAuth() {
   // PURPOSE: single client gateway for auth APIs + auth slice mutations.
   const dispatch = useAppDispatch();
@@ -122,6 +153,21 @@ export function useAuth() {
   const lastResetTokenPreview = useAppSelector(selectLastResetTokenPreview);
   const lastResetSucceeded = useAppSelector(selectLastResetSucceeded);
 
+  const syncSessionAfterLogin = useCallback(async () => {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const response = await apiFetch("/api/auth/session", { method: "GET" });
+      if (response.ok) {
+        const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
+        if (data?.user) {
+          dispatch(setAuthUser(mapSessionUserToAuth(data.user)));
+          return true;
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 35 * (attempt + 1)));
+    }
+    return false;
+  }, [dispatch]);
+
   const login = useCallback(
     async (phone: string, password: string) => {
       dispatch(clearAuthError());
@@ -130,7 +176,7 @@ export function useAuth() {
         dispatch(setAuthError("invalid_credentials"));
         return;
       }
-      const response = await fetch("/api/auth/login", {
+      const response = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: normalizedPhone, password }),
@@ -144,27 +190,10 @@ export function useAuth() {
         dispatch(setAuthError("unknown"));
         return;
       }
-      dispatch(
-        setAuthUser({
-          id: data.user.id,
-          name: data.user.name,
-          phone: data.user.phone,
-          referralCode: data.user.referralCode,
-          referralCredit: data.user.referralCredit,
-          referralEarnedTotal: data.user.referralEarnedTotal,
-          loyaltyPoints: data.user.loyaltyPoints,
-          loyaltyTier: data.user.loyaltyTier,
-          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
-          favoriteStone: data.user.favoriteStone ?? undefined,
-          favoriteStyle: data.user.favoriteStyle ?? undefined,
-          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
-          role: data.user.role,
-          memberSince: data.user.memberSince,
-          tier: data.user.tier,
-        })
-      );
+      dispatch(setAuthUser(mapSessionUserToAuth(data.user)));
+      await syncSessionAfterLogin();
     },
-    [dispatch]
+    [dispatch, syncSessionAfterLogin]
   );
 
   const register = useCallback(
@@ -344,7 +373,7 @@ export function useAuth() {
         return null;
       }
 
-      const response = await fetch("/api/auth/otp/verify", {
+      const response = await apiFetch("/api/auth/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -362,74 +391,45 @@ export function useAuth() {
         return null;
       }
 
-      dispatch(
-        setAuthUser({
-          id: data.user.id,
-          name: data.user.name,
-          phone: data.user.phone,
-          referralCode: data.user.referralCode,
-          referralCredit: data.user.referralCredit,
-          referralEarnedTotal: data.user.referralEarnedTotal,
-          loyaltyPoints: data.user.loyaltyPoints,
-          loyaltyTier: data.user.loyaltyTier,
-          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
-          favoriteStone: data.user.favoriteStone ?? undefined,
-          favoriteStyle: data.user.favoriteStyle ?? undefined,
-          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
-          role: data.user.role,
-          memberSince: data.user.memberSince,
-          tier: data.user.tier,
-        })
-      );
-      toast.success("با موفقیت وارد شدید.");
+      dispatch(setAuthUser(mapSessionUserToAuth(data.user)));
+      const sessionReady = await syncSessionAfterLogin();
+      if (!sessionReady) {
+        toast.error("ورود انجام شد اما نشست مرورگر ثبت نشد. صفحه را یک‌بار رفرش کنید.");
+      } else {
+        toast.success("با موفقیت وارد شدید.");
+      }
 
       return {
         user: data.user,
         isNewUser: data.isNewUser,
       };
     },
-    [dispatch]
+    [dispatch, syncSessionAfterLogin]
   );
 
   const loadSession = useCallback(async () => {
-    try {
-      const response = await fetch("/api/auth/session", {
-        method: "GET",
-        credentials: "include",
-      });
-      if (response.status === 401) {
-        dispatch(setAuthUser(null));
-        return;
+    const maxAttempts = 8;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const response = await apiFetch("/api/auth/session", { method: "GET" });
+        if (response.ok) {
+          const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
+          if (data?.user) {
+            dispatch(setAuthUser(mapSessionUserToAuth(data.user)));
+            return;
+          }
+        }
+        if (response.status !== 401) {
+          dispatch(setAuthUser(null));
+          return;
+        }
+      } catch {
+        // transient network errors — retry before treating as logged out
       }
-      if (!response.ok) {
-        dispatch(setAuthUser(null));
-        return;
+      if (attempt < maxAttempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 40 * (attempt + 1)));
+        continue;
       }
-      const data = await parseJsonResponse<{ user: SessionUserDto }>(response);
-      if (!data?.user) {
-        dispatch(setAuthUser(null));
-        return;
-      }
-      dispatch(
-        setAuthUser({
-          id: data.user.id,
-          name: data.user.name,
-          phone: data.user.phone,
-          referralCode: data.user.referralCode,
-          referralCredit: data.user.referralCredit,
-          referralEarnedTotal: data.user.referralEarnedTotal,
-          loyaltyPoints: data.user.loyaltyPoints,
-          loyaltyTier: data.user.loyaltyTier,
-          loyaltyLifetimeSpend: data.user.loyaltyLifetimeSpend,
-          favoriteStone: data.user.favoriteStone ?? undefined,
-          favoriteStyle: data.user.favoriteStyle ?? undefined,
-          favoriteBudgetBand: data.user.favoriteBudgetBand ?? undefined,
-          role: data.user.role,
-          memberSince: data.user.memberSince,
-          tier: data.user.tier,
-        })
-      );
-    } catch {
       dispatch(setAuthUser(null));
     }
   }, [dispatch]);
@@ -452,5 +452,6 @@ export function useAuth() {
     requestOtp,
     verifyOtp,
     loadSession,
+    syncSessionAfterLogin,
   };
 }

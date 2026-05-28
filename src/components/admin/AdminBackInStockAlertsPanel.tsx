@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { TextBox, SelectBox } from "@/components/inputs";
 import { useAdminBackInStockAlerts } from "@/lib/hooks/useAdminBackInStockAlerts";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { fa } from "@/lib/i18n/fa";
 import type { BackInStockAlertStatus } from "@/lib/types";
 
@@ -38,6 +39,7 @@ function formatDate(iso?: string): string {
 export function AdminBackInStockAlertsPanel() {
   const admin = useAdminBackInStockAlerts();
   const {
+    allowed,
     isAdmin,
     statusFilter,
     search,
@@ -71,13 +73,7 @@ export function AdminBackInStockAlertsPanel() {
     }
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -116,7 +112,7 @@ export function AdminBackInStockAlertsPanel() {
       ) : null}
 
       {isLoading ? (
-        <p className="text-silver">{fa.admin.backInStockAlerts.loading}</p>
+        <LoadingState variant="admin-cards" count={4} />
       ) : alerts.length === 0 ? (
         <p className="admin-orders-empty">{fa.admin.backInStockAlerts.empty}</p>
       ) : (

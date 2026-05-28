@@ -62,9 +62,10 @@ export function Ring3DPreview({ state, className, mode = "full" }: Ring3DPreview
 
 function Ring3DLoading() {
   return (
-    <div className="ring-3d-loading" aria-busy>
-      <div className="ring-3d-loading-orbit" />
-      <p>{fa.common.loading}</p>
+    <div className="ring-3d-loading" role="status" aria-live="polite" aria-busy="true" aria-label={fa.common.loadingAria}>
+      <div className="ring-3d-loading-orbit" aria-hidden />
+      <p className="loading-inline-caption">{fa.common.loadingCaption}</p>
+      <span className="sr-only">{fa.common.loadingAria}</span>
     </div>
   );
 }

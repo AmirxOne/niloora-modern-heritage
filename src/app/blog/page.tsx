@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { fa } from "@/lib/i18n/fa";
 import { buildPageMetadata } from "@/lib/seo/site";
 import { listPublishedPosts } from "@/lib/server/blog/post-service";
@@ -22,12 +22,12 @@ export default async function BlogPage() {
       <div className="blog-page pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="blog-page-shell">
-            <header className="blog-page-header">
-              <span className="heritage-eyebrow">{fa.nav.blog}</span>
-              <h1 className="blog-page-title">{fa.blog.title}</h1>
-              <p className="blog-page-subtitle">{fa.blog.listDescription}</p>
-              <OrnamentalDivider className="mx-auto my-6 max-w-[12rem]" />
-            </header>
+            <PageHeader
+              eyebrow={fa.nav.blog}
+              title={fa.blog.title}
+              subtitle={fa.blog.listDescription}
+              className="blog-page-header"
+            />
 
             {posts.length === 0 ? (
               <UnifiedEmptyState

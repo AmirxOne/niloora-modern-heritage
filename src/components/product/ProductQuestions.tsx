@@ -7,7 +7,6 @@ import { useProductQuestions } from "@/lib/hooks/useProductQuestions";
 import type { ProductQuestion } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { TextAreaBox, TextBox } from "@/components/inputs";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { ProductQuestionCard } from "@/components/product/ProductQuestionCard";
 import { cn } from "@/lib/utils";
 import { usePagination } from "@/lib/hooks/usePagination";
@@ -105,7 +104,6 @@ export function ProductQuestions({ productId }: ProductQuestionsProps) {
           </h2>
           <p className="product-questions-subtitle">{fa.product.questionsSubtitle}</p>
         </div>
-        <OrnamentalDivider className="max-w-[10rem] justify-start" />
       </header>
 
       <div className="product-questions-layout">

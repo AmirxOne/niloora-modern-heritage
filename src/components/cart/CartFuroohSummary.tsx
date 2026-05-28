@@ -50,6 +50,13 @@ export function CartFuroohSummary({ pricing, hidePayable }: CartFuroohSummaryPro
         </div>
       ) : null}
 
+      {pricing.campaignFurooh > 0 && pricing.appliedCampaign ? (
+        <div className="cart-furooh-summary-row cart-furooh-summary-row--gain">
+          <span>{fa.bahakahi.fromCampaign(pricing.appliedCampaign.title)}</span>
+          <DiscountAmount amount={pricing.campaignFurooh} />
+        </div>
+      ) : null}
+
       {pricing.bundleFurooh > 0 ? (
         <div className="cart-furooh-summary-row cart-furooh-summary-row--gain">
           <span>{fa.cart.bundleDiscountLabel}</span>

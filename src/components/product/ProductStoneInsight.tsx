@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Product } from "@/lib/types";
-import { getStoneGuideById } from "@/lib/stones";
+import { getStoneGuideForProduct } from "@/lib/stones";
 
 interface ProductStoneInsightProps {
   product: Product;
@@ -10,7 +10,7 @@ interface ProductStoneInsightProps {
 }
 
 export function ProductStoneInsight({ product, className }: ProductStoneInsightProps) {
-  const guide = getStoneGuideById(product.stone);
+  const guide = getStoneGuideForProduct(product);
   if (!guide) return null;
 
   return (

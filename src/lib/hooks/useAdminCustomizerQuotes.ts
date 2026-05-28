@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import type { CustomizerQuoteLiveStage, CustomizerQuoteRequest, CustomizerQuoteStatus } from "@/lib/types";
 import { parseJsonResponse } from "./fetch-utils";
 
@@ -17,6 +18,7 @@ export function useAdminCustomizerQuotes() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadQuotes = useCallback(async () => {
     if (!isAdmin) return;
@@ -75,6 +77,7 @@ export function useAdminCustomizerQuotes() {
   );
 
   return {
+    allowed,
     isAdmin,
     quotes,
     isLoading,

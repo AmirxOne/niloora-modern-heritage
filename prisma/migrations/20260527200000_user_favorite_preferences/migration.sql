@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "favoriteStone" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "favoriteStyle" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "favoriteBudgetBand" TEXT;
+
+-- Loyalty columns (partial drift recovery)
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "loyaltyPoints" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "loyaltyTier" TEXT NOT NULL DEFAULT 'bronze';
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "loyaltyLifetimeSpend" INTEGER NOT NULL DEFAULT 0;

@@ -3,7 +3,7 @@ import { normalizeIranPhone } from "@/lib/auth/phone";
 import { prisma } from "@/lib/server/prisma";
 import { badRequest, ok, unauthorized, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
-import { createSession, setSessionCookie } from "@/lib/server/auth/session";
+import { applySessionCookieToResponse, createSession } from "@/lib/server/auth/session";
 import { toSessionUser } from "@/lib/server/auth/dto";
 
 type Body = {
@@ -27,9 +27,8 @@ export async function POST(request: Request) {
     if (!isValid) return unauthorized("invalid_credentials");
 
     const sessionToken = await createSession(user.id);
-    await setSessionCookie(sessionToken);
-
-    return ok({ user: toSessionUser(user) });
+    const response = ok({ user: toSessionUser(user) });
+    return applySessionCookieToResponse(response, sessionToken);
   } catch (error) {
     return handleRouteError(error, { route: "/api/auth/login" });
   }

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   try {
     const user = await readSessionUser();
     if (!user) return badRequest("برای خرید کارت هدیه ابتدا وارد شوید.");
-    if (!isZarinpalConfigured()) return badRequest("درگاه پرداخت پیکربندی نشده است.");
+    if (!(await isZarinpalConfigured())) return badRequest("درگاه پرداخت پیکربندی نشده است.");
 
     const payload = (await request.json()) as Body;
     const amount = clampGiftCardPurchaseAmount(Number(payload.amount ?? 0));

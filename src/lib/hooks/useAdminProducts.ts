@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import type { AdminProductDto } from "@/lib/server/products/admin-product-dto";
 import type { CollectionDto } from "@/lib/server/products";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
+import { downloadExcelFromResponse, postExcelFile } from "@/lib/admin/excel-io";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminProducts() {
@@ -15,6 +17,7 @@ export function useAdminProducts() {
   const [isSaving, setIsSaving] = useState(false);
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadCollections = useCallback(async () => {
     const response = await fetch("/api/admin/collections");
@@ -157,36 +160,19 @@ export function useAdminProducts() {
     [isAdmin, products]
   );
 
-  const exportCsv = useCallback(async () => {
+  const exportExcel = useCallback(async () => {
     if (!isAdmin) return;
     const response = await fetch("/api/admin/products/csv");
-    if (!response.ok) {
-      toast.error("خروجی CSV محصولات انجام نشد.");
-      return;
-    }
-    const text = await response.text();
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "products.csv";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const ok = await downloadExcelFromResponse(response, "products.xlsx");
+    if (!ok) toast.error("خروجی Excel محصولات انجام نشد.");
   }, [isAdmin]);
 
-  const importCsv = useCallback(
+  const importExcel = useCallback(
     async (file: File) => {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const content = await file.text();
-        const response = await fetch("/api/admin/products/csv", {
-          method: "POST",
-          headers: { "Content-Type": "text/csv" },
-          body: content,
-        });
+        const response = await postExcelFile("/api/admin/products/csv", file);
         const data = await parseJsonResponse<{
           totalRows: number;
           created?: number;
@@ -196,12 +182,12 @@ export function useAdminProducts() {
           message?: string;
         }>(response);
         if (!response.ok || !data) {
-          toast.error(data?.message ?? "ورود CSV محصولات انجام نشد.");
+          toast.error(data?.message ?? "ورود Excel محصولات انجام نشد.");
           return null;
         }
         await loadProducts();
         toast.success(
-          `CSV محصولات پردازش شد: ایجاد ${data.created ?? 0} · بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
+          `Excel محصولات پردازش شد: ایجاد ${data.created ?? 0} · بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
         );
         return data;
       } finally {
@@ -212,6 +198,7 @@ export function useAdminProducts() {
   );
 
   return {
+    allowed,
     isAdmin,
     products,
     collections,
@@ -223,7 +210,7 @@ export function useAdminProducts() {
     updateProduct,
     deleteProduct,
     bulkUpdateProducts,
-    exportCsv,
-    importCsv,
+    exportExcel,
+    importExcel,
   };
 }

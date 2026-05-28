@@ -3,6 +3,8 @@ import { matchesProductSearchQuery } from "@/lib/catalog/product-catalog";
 import { fa } from "@/lib/i18n/fa";
 import { getProductStatusConfig, PRODUCT_AVAILABILITY_OPTIONS } from "@/lib/product-status";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
+import { getProductArtisanLinks } from "@/lib/artisans";
+import { getStoneGuideForProduct } from "@/lib/stones";
 import type {
   EngravingStyle,
   Product,
@@ -16,9 +18,54 @@ import type {
   ShopFilters,
   ShopMetalStamp,
   ShopWeightBand,
-  StoneType,
 } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+
+type CatalogFilterOption = {
+  value: string;
+  label: string;
+  swatch?: string;
+};
+
+function fallbackStoneLabel(stone: Product["stone"]): string {
+  return STONE_OPTIONS.find((s) => s.value === stone)?.label ?? stone;
+}
+
+function fallbackStoneSwatch(stone: Product["stone"]): string | undefined {
+  return STONE_OPTIONS.find((s) => s.value === stone)?.color;
+}
+
+function productStoneFilterKeys(product: Product): string[] {
+  const guide = getStoneGuideForProduct(product);
+  const keys = new Set<string>([product.stone]);
+  if (guide) {
+    keys.add(guide.id);
+    keys.add(guide.slug);
+    if (guide.coreStone) keys.add(guide.coreStone);
+  }
+  return Array.from(keys);
+}
+
+function primaryProductStoneFilterValue(product: Product): string {
+  const guide = getStoneGuideForProduct(product);
+  return guide?.coreStone ?? guide?.id ?? product.stone;
+}
+
+function productArtisanFilterKeys(product: Product): string[] {
+  return getProductArtisanLinks(product).map((link) => link.artisan.slug);
+}
+
+export function productMatchesStoneFilter(product: Product, selected: readonly string[]): boolean {
+  if (selected.length === 0) return true;
+  const keys = productStoneFilterKeys(product);
+  return selected.some((value) => keys.includes(value));
+}
+
+export function productMatchesArtisanFilter(product: Product, selected: readonly string[]): boolean {
+  if (selected.length === 0) return true;
+  const keys = productArtisanFilterKeys(product);
+  return selected.some((value) => keys.includes(value));
+}
 
 export function applyShopFilters(
   catalog: Product[],
@@ -28,7 +75,8 @@ export function applyShopFilters(
   const q = options?.skipQuery ? "" : filters.query.trim().toLowerCase();
   return catalog.filter((p) => {
     if (q && !matchesProductSearchQuery(p, q)) return false;
-    if (filters.stones.length > 0 && !filters.stones.includes(p.stone)) return false;
+    if (!productMatchesStoneFilter(p, filters.stones)) return false;
+    if (!productMatchesArtisanFilter(p, filters.artisans)) return false;
     if (filters.styles.length > 0 && !filters.styles.includes(p.category)) return false;
     if (filters.engravingTypes.length > 0) {
       const matches = filters.engravingTypes.some((et) => {
@@ -114,6 +162,7 @@ const defaultOccasionsByStyle: Record<RingStyle, ProductOccasion[]> = {
 export function createDefaultShopFilters(maxPrice: number): ShopFilters {
   return {
     stones: [],
+    artisans: [],
     priceRange: [0, maxPrice],
     styles: [],
     engravingTypes: [],
@@ -175,6 +224,7 @@ const occasionLabels: Record<ProductOccasion, string> = {
 export function countActiveFilters(filters: ShopFilters, maxPrice: number): number {
   let n = 0;
   n += filters.stones.length;
+  n += filters.artisans.length;
   n += filters.styles.length;
   n += filters.engravingTypes.length;
   n += filters.weightBands.length;
@@ -207,16 +257,30 @@ function removeFromArray<T>(arr: T[], item: T): T[] {
 export function buildFilterChips(
   filters: ShopFilters,
   maxPrice: number,
-  onChange: (next: ShopFilters) => void
+  onChange: (next: ShopFilters) => void,
+  catalog: Product[] = []
 ): FilterChip[] {
   const chips: FilterChip[] = [];
+  const stoneLabels = new Map(buildCatalogStoneFilterOptions(catalog).map((option) => [option.value, option.label]));
+  const artisanLabels = new Map(
+    buildCatalogArtisanFilterOptions(catalog).map((option) => [option.value, option.label])
+  );
 
   for (const stone of filters.stones) {
-    const label = STONE_OPTIONS.find((s) => s.value === stone)?.label ?? stone;
+    const label = stoneLabels.get(stone) ?? STONE_OPTIONS.find((s) => s.value === stone)?.label ?? stone;
     chips.push({
       id: `stone-${stone}`,
       label: `${fa.shop.stone}: ${label}`,
       onRemove: () => onChange({ ...filters, stones: removeFromArray(filters.stones, stone) }),
+    });
+  }
+
+  for (const artisan of filters.artisans) {
+    const label = artisanLabels.get(artisan) ?? artisan;
+    chips.push({
+      id: `artisan-${artisan}`,
+      label: `${fa.shop.artisan}: ${label}`,
+      onRemove: () => onChange({ ...filters, artisans: removeFromArray(filters.artisans, artisan) }),
     });
   }
 
@@ -412,8 +476,40 @@ export const occasionFilterOptions: { value: ProductOccasion; label: string }[] 
   { value: "everyday", label: fa.occasions.everyday },
 ];
 
+export function buildCatalogStoneFilterOptions(catalog: Product[]): CatalogFilterOption[] {
+  const map = new Map<string, CatalogFilterOption>();
+
+  for (const product of catalog) {
+    const guide = getStoneGuideForProduct(product);
+    const value = primaryProductStoneFilterValue(product);
+    if (map.has(value)) continue;
+    map.set(value, {
+      value,
+      label: guide?.name ?? fallbackStoneLabel(product.stone),
+      swatch: guide?.colorHex ?? fallbackStoneSwatch(product.stone),
+    });
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label, "fa"));
+}
+
+export function buildCatalogArtisanFilterOptions(catalog: Product[]): CatalogFilterOption[] {
+  const map = new Map<string, CatalogFilterOption>();
+
+  for (const product of catalog) {
+    for (const link of getProductArtisanLinks(product)) {
+      map.set(link.artisan.slug, {
+        value: link.artisan.slug,
+        label: `${link.artisan.name} - ${link.roleLabel}`,
+      });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label, "fa"));
+}
+
 export const stoneFilterOptions = STONE_OPTIONS.map((s) => ({
-  value: s.value as StoneType,
+  value: s.value,
   label: s.label,
   swatch: s.color,
 }));

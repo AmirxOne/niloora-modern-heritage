@@ -10,6 +10,7 @@ import { useAdminCustomizerQuotes } from "@/lib/hooks/useAdminCustomizerQuotes";
 import type { CustomizerQuoteLiveStage, CustomizerQuoteStatus } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import { useState } from "react";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const STATUS_OPTIONS: Array<{ value: CustomizerQuoteStatus; label: string }> = [
   { value: "pending-quote", label: fa.dashboard.quoteStatus.pending_quote },
@@ -149,19 +150,13 @@ function QuoteCard({
 
 export function AdminCustomizerQuotesPanel() {
   const admin = useAdminCustomizerQuotes();
-  const { isAdmin, loadQuotes } = admin;
+  const { allowed, isAdmin, loadQuotes } = admin;
 
   useEffect(() => {
     if (isAdmin) void loadQuotes();
   }, [isAdmin, loadQuotes]);
 
-  if (!isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -171,7 +166,7 @@ export function AdminCustomizerQuotesPanel() {
         </Button>
       </div>
       {admin.isLoading ? (
-        <p className="text-silver">{fa.admin.orders.loading}</p>
+        <LoadingState variant="admin-cards" />
       ) : admin.quotes.length === 0 ? (
         <p className="admin-orders-empty">{fa.customize.liveTimeline.admin.empty}</p>
       ) : (

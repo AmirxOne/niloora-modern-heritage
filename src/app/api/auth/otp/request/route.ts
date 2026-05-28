@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     }
 
     const isDev = isOtpDevPreviewMode();
-    if (!isDev && !isSmsConfiguredForProduction()) {
+    if (!isDev && !(await isSmsConfiguredForProduction())) {
       console.error("[otp] SMS not configured for production");
       return serviceUnavailable(getOtpApiMessage("sms_not_configured"), "sms_not_configured");
     }

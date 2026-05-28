@@ -1,4 +1,4 @@
-import type { Order } from "@/lib/types";
+import type { AdminOrder, Order } from "@/lib/types";
 
 export type OrderReceiptLine = {
   id: string;
@@ -42,6 +42,31 @@ export function orderReceiptPath(orderId: string): string {
   return `/account/orders/${encodeURIComponent(orderId)}/receipt`;
 }
 
+export function adminOrderInvoicePath(orderId: string): string {
+  return `/admin/orders/${encodeURIComponent(orderId)}/invoice`;
+}
+
+export type AdminOrderInvoiceBreakdown = OrderReceiptBreakdown & {
+  customer: AdminOrder["customer"];
+  orderStatus: Order["status"];
+  trackingCode?: string;
+  orderNote?: string;
+  paymentStatus?: string;
+  paymentGateway?: string;
+  bundleDiscount: number;
+  appliedBundles: NonNullable<Order["appliedBundles"]>;
+  giftCardCode?: string | null;
+  giftCardAppliedAmount: number;
+  loyaltyTier?: Order["loyaltyTier"];
+  loyaltyDiscountAmount: number;
+  loyaltyPointsEarned: number;
+  campaignTitle?: string;
+  campaignDiscountAmount: number;
+  paymentMethod?: Order["paymentMethod"];
+  installmentMonths?: number;
+  installmentAmount?: number;
+};
+
 export function buildOrderReceipt(order: Order): OrderReceiptBreakdown {
   const lines: OrderReceiptLine[] = order.items.map((item) => ({
     id: item.id,
@@ -73,5 +98,30 @@ export function buildOrderReceipt(order: Order): OrderReceiptBreakdown {
     paymentRefId: order.payment?.refId,
     paymentVerifiedAt: order.payment?.verifiedAt,
     paymentGateway: order.payment?.gateway,
+  };
+}
+
+export function buildAdminOrderInvoice(order: AdminOrder): AdminOrderInvoiceBreakdown {
+  const base = buildOrderReceipt(order);
+  return {
+    ...base,
+    customer: order.customer,
+    orderStatus: order.status,
+    trackingCode: order.trackingCode,
+    orderNote: order.shipping?.orderNote,
+    paymentStatus: order.payment?.status,
+    paymentGateway: order.payment?.gateway,
+    bundleDiscount: order.bundleDiscount ?? 0,
+    appliedBundles: order.appliedBundles ?? [],
+    giftCardCode: order.giftCardCode,
+    giftCardAppliedAmount: order.giftCardAppliedAmount ?? 0,
+    loyaltyTier: order.loyaltyTier,
+    loyaltyDiscountAmount: order.loyaltyDiscountAmount ?? 0,
+    loyaltyPointsEarned: order.loyaltyPointsEarned ?? 0,
+    campaignTitle: order.campaignTitle,
+    campaignDiscountAmount: order.campaignDiscountAmount ?? 0,
+    paymentMethod: order.paymentMethod,
+    installmentMonths: order.installmentMonths,
+    installmentAmount: order.installmentAmount,
   };
 }

@@ -1,8 +1,12 @@
 import { cookies } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
+import type { Prisma } from "@prisma/client";
+import type { NextResponse } from "next/server";
+import type { User } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
 import { serverEnv } from "@/lib/server/env";
+import { isPrismaMissingTableOrColumn } from "@/lib/server/prisma-schema-drift";
 import {
   ACCESS_TOKEN_TTL_MS,
   SESSION_ALG,
@@ -18,6 +22,85 @@ import {
 const COOKIE_NAME = SESSION_COOKIE_NAME;
 const encoder = new TextEncoder();
 const secret = encoder.encode(serverEnv.sessionSecret);
+
+/** Core user fields for session validation — avoids optional columns missing in drifted DBs. */
+const sessionUserSelectWithoutBlocked = {
+  id: true,
+  name: true,
+  phone: true,
+  referralCode: true,
+  signupIpHash: true,
+  referredById: true,
+  referralCredit: true,
+  referralEarnedTotal: true,
+  passwordHash: true,
+  firstName: true,
+  lastName: true,
+  birthDate: true,
+  postalCode: true,
+  addressLine: true,
+  province: true,
+  city: true,
+  nationalCode: true,
+  landlinePhone: true,
+  gender: true,
+  role: true,
+  memberSince: true,
+  tier: true,
+  email: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.UserSelect;
+
+const sessionUserSelectWithBlocked = {
+  ...sessionUserSelectWithoutBlocked,
+  blocked: true,
+} satisfies Prisma.UserSelect;
+
+type SessionUserRow = Prisma.UserGetPayload<{ select: typeof sessionUserSelectWithoutBlocked }> & {
+  blocked?: boolean;
+};
+
+function coerceLegacySessionUser(user: SessionUserRow): User {
+  return {
+    ...user,
+    blocked: user.blocked ?? false,
+    favoriteStone: null,
+    favoriteStyle: null,
+    favoriteBudgetBand: null,
+    loyaltyPoints: 0,
+    loyaltyTier: "bronze",
+    loyaltyLifetimeSpend: 0,
+  } as User;
+}
+
+async function loadSessionWithUser(sessionId: string) {
+  try {
+    return await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: {
+        id: true,
+        expiresAt: true,
+        user: { select: sessionUserSelectWithBlocked },
+      },
+    });
+  } catch (error) {
+    if (!isPrismaMissingTableOrColumn(error, "blocked")) throw error;
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: {
+        id: true,
+        expiresAt: true,
+        user: { select: sessionUserSelectWithoutBlocked },
+      },
+    });
+    if (!session?.user) return session;
+    return {
+      ...session,
+      user: { ...session.user, blocked: false },
+    };
+  }
+}
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -113,13 +196,23 @@ export async function readSessionUser() {
     const tokenRefreshHash = typeof payload.sth === "string" ? payload.sth : null;
     if (!sessionId || !tokenRefreshHash || tokenRefreshHash !== refreshTokenHash) return null;
 
-    const session = await prisma.session.findUnique({
-      where: { id: sessionId },
-      include: { user: true },
-    });
+    let session;
+    try {
+      session = await loadSessionWithUser(sessionId);
+    } catch {
+      return null;
+    }
     if (!session) return null;
     if (session.expiresAt.getTime() <= Date.now()) {
       await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
+      return null;
+    }
+
+    const sessionUser = coerceLegacySessionUser(session.user);
+
+    if (sessionUser.blocked) {
+      await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
+      await clearSessionCookie();
       return null;
     }
 
@@ -128,8 +221,8 @@ export async function readSessionUser() {
     if (isAccessExpired) {
       const newAccessExpiresAt = new Date(Date.now() + ACCESS_TOKEN_TTL_MS);
       const newAccessToken = await signAccessToken(session.id, refreshTokenHash, newAccessExpiresAt, {
-        uid: session.user.id,
-        role: toSessionRole(session.user.role),
+        uid: sessionUser.id,
+        role: toSessionRole(sessionUser.role),
       });
       const remainingRefreshSec = Math.max(
         1,
@@ -138,7 +231,7 @@ export async function readSessionUser() {
       await setSessionCookie(`${parsed.rawRefreshToken}.${newAccessToken}`, remainingRefreshSec);
     }
 
-    return session.user;
+    return sessionUser;
   } catch {
     return null;
   }
@@ -162,16 +255,29 @@ export async function destroyCurrentSession() {
   }
 }
 
-export async function setSessionCookie(value: string, maxAgeSec?: number) {
-  // PURPOSE: central cookie policy for all auth entrypoints.
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, value, {
+function sessionCookieOptions(maxAgeSec?: number) {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: maxAgeSec ?? refreshTtlMs() / 1000,
-  });
+  };
+}
+
+export async function setSessionCookie(value: string, maxAgeSec?: number) {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, value, sessionCookieOptions(maxAgeSec));
+}
+
+/** Ensures Set-Cookie is attached to the route handler response (Next.js App Router). */
+export function applySessionCookieToResponse(
+  response: NextResponse,
+  value: string,
+  maxAgeSec?: number
+) {
+  response.cookies.set(COOKIE_NAME, value, sessionCookieOptions(maxAgeSec));
+  return response;
 }
 
 export async function clearSessionCookie() {

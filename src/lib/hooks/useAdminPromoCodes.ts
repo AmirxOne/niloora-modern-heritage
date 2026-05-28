@@ -4,6 +4,8 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminPromoCodeRecord } from "@/lib/server/promo/promo-code";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
+import { downloadExcelFromResponse, postExcelFile } from "@/lib/admin/excel-io";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminPromoCodes() {
@@ -13,6 +15,7 @@ export function useAdminPromoCodes() {
   const [isSaving, setIsSaving] = useState(false);
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadPromoCodes = useCallback(async () => {
     if (!isAdmin) return;
@@ -111,36 +114,19 @@ export function useAdminPromoCodes() {
     [isAdmin]
   );
 
-  const exportCsv = useCallback(async () => {
+  const exportExcel = useCallback(async () => {
     if (!isAdmin) return;
     const response = await fetch("/api/admin/promo-codes/csv");
-    if (!response.ok) {
-      toast.error("خروجی CSV کدهای تخفیف انجام نشد.");
-      return;
-    }
-    const text = await response.text();
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "promo-codes.csv";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const ok = await downloadExcelFromResponse(response, "promo-codes.xlsx");
+    if (!ok) toast.error("خروجی Excel کدهای تخفیف انجام نشد.");
   }, [isAdmin]);
 
-  const importCsv = useCallback(
+  const importExcel = useCallback(
     async (file: File) => {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const content = await file.text();
-        const response = await fetch("/api/admin/promo-codes/csv", {
-          method: "POST",
-          headers: { "Content-Type": "text/csv" },
-          body: content,
-        });
+        const response = await postExcelFile("/api/admin/promo-codes/csv", file);
         const data = await parseJsonResponse<{
           totalRows: number;
           created?: number;
@@ -150,12 +136,12 @@ export function useAdminPromoCodes() {
           message?: string;
         }>(response);
         if (!response.ok || !data) {
-          toast.error(data?.message ?? "ورود CSV کدهای تخفیف انجام نشد.");
+          toast.error(data?.message ?? "ورود Excel کدهای تخفیف انجام نشد.");
           return null;
         }
         await loadPromoCodes();
         toast.success(
-          `CSV کدها پردازش شد: ایجاد ${data.created ?? 0} · بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
+          `Excel کدها پردازش شد: ایجاد ${data.created ?? 0} · بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
         );
         return data;
       } finally {
@@ -166,6 +152,7 @@ export function useAdminPromoCodes() {
   );
 
   return {
+    allowed,
     isAdmin,
     promoCodes,
     isLoading,
@@ -174,7 +161,7 @@ export function useAdminPromoCodes() {
     createPromoCode,
     updatePromoCode,
     deletePromoCode,
-    exportCsv,
-    importCsv,
+    exportExcel,
+    importExcel,
   };
 }

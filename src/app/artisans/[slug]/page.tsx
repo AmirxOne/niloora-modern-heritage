@@ -3,21 +3,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { getArtisanBySlug, listAllArtisans } from "@/lib/artisans";
+import { getArtisanBySlugForCatalog, listArtisansForCatalog } from "@/lib/artisans";
 import { fa } from "@/lib/i18n/fa";
 import { buildPageMetadata } from "@/lib/seo/site";
+import { getCatalogProducts } from "@/lib/server/products";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  return listAllArtisans().map((a) => ({ slug: a.slug }));
+  const catalog = await getCatalogProducts();
+  return listArtisansForCatalog(catalog).map((a) => ({ slug: a.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const artisan = getArtisanBySlug(slug);
+  const catalog = await getCatalogProducts();
+  const artisan = getArtisanBySlugForCatalog(slug, catalog);
   if (!artisan) {
     return buildPageMetadata({
       title: fa.notFound.title,
@@ -37,7 +40,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArtisanDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const artisan = getArtisanBySlug(slug);
+  const catalog = await getCatalogProducts();
+  const artisan = getArtisanBySlugForCatalog(slug, catalog);
   if (!artisan) notFound();
 
   return (

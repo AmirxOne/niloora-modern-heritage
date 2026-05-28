@@ -1,14 +1,14 @@
 import { fa } from "@/lib/i18n/fa";
 import { serverEnv } from "@/lib/server/env";
+import { isSmsServiceAvailable } from "@/lib/server/site-settings/effective-services";
 import { sendKavenegarOtpLookup, sendKavenegarPlainSms } from "@/lib/server/sms/kavenegar";
 
 export function isOtpDevPreviewMode(): boolean {
   return process.env.NODE_ENV !== "production";
 }
 
-export function isSmsConfiguredForProduction(): boolean {
-  if (serverEnv.smsProvider !== "kavenegar") return false;
-  return Boolean(serverEnv.kavenegarApiKey);
+export async function isSmsConfiguredForProduction(): Promise<boolean> {
+  return isSmsServiceAvailable();
 }
 
 export async function deliverOtpSms(phone: string, code: string): Promise<void> {

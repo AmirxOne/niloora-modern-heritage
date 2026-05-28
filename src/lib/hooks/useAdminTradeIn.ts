@@ -8,6 +8,7 @@ import type {
   TradeInSubmissionStatus,
 } from "@/lib/server/trade-in/admin-trade-in";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminTradeIn() {
@@ -18,6 +19,7 @@ export function useAdminTradeIn() {
   const [statusFilter, setStatusFilter] = useState<TradeInFilterStatus>("all");
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadSubmissions = useCallback(
     async (filter: TradeInFilterStatus = statusFilter) => {
@@ -77,6 +79,7 @@ export function useAdminTradeIn() {
   );
 
   return {
+    allowed,
     isAdmin,
     submissions,
     isLoading,

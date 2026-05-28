@@ -10,22 +10,9 @@ import type {
   ShopFilters,
   ShopMetalStamp,
   ShopWeightBand,
-  StoneType,
 } from "@/lib/types";
+import { DEFAULT_PAGE_SIZE, normalizePageSize } from "@/lib/pagination";
 import { createDefaultShopFilters } from "@/lib/shop-filter-utils";
-
-const STONE_VALUES: StoneType[] = [
-  "diamond",
-  "emerald",
-  "sapphire",
-  "ruby",
-  "turquoise",
-  "onyx",
-  "zabarjad",
-  "yemen-aqeeq",
-  "durr-najaf",
-  "moral",
-];
 
 const STYLE_VALUES: RingStyle[] = [
   "solitaire",
@@ -88,6 +75,18 @@ function parseCsv<T extends string>(raw: string | null, allowed: readonly T[]): 
     .filter((s): s is T => set.has(s as T));
 }
 
+function parseFreeCsv(raw: string | null): string[] {
+  if (!raw?.trim()) return [];
+  return Array.from(
+    new Set(
+      raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
 function serializeCsv(values: readonly string[]): string | null {
   if (values.length === 0) return null;
   return values.join(",");
@@ -113,7 +112,8 @@ export function parseShopFiltersFromParams(
   }
 
   return {
-    stones: parseCsv(params.get("stones"), STONE_VALUES),
+    stones: parseFreeCsv(params.get("stones")),
+    artisans: parseFreeCsv(params.get("artisans")),
     styles: parseCsv(params.get("styles"), STYLE_VALUES),
     engravingTypes: parseCsv(params.get("engraving"), ENGRAVING_VALUES),
     weightBands: parseCsv(params.get("weight"), WEIGHT_VALUES),
@@ -136,10 +136,18 @@ export function parseShopPageFromParams(params: URLSearchParams): number {
   return Number.isFinite(n) && n > 0 ? n : 1;
 }
 
+export function parseShopPageSizeFromParams(params: URLSearchParams): number {
+  const raw = params.get("pageSize");
+  if (!raw) return DEFAULT_PAGE_SIZE;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? normalizePageSize(n) : DEFAULT_PAGE_SIZE;
+}
+
 export function buildShopSearchParams(
   filters: ShopFilters,
   maxPrice: number,
   page: number,
+  pageSize: number,
   current?: URLSearchParams
 ): URLSearchParams {
   const params = new URLSearchParams(current?.toString() ?? "");
@@ -150,6 +158,7 @@ export function buildShopSearchParams(
   };
 
   setOrDelete("stones", serializeCsv(filters.stones));
+  setOrDelete("artisans", serializeCsv(filters.artisans));
   setOrDelete("styles", serializeCsv(filters.styles));
   setOrDelete("engraving", serializeCsv(filters.engravingTypes));
   setOrDelete("weight", serializeCsv(filters.weightBands));
@@ -176,6 +185,10 @@ export function buildShopSearchParams(
 
   if (page > 1) setOrDelete("page", String(page));
   else params.delete("page");
+
+  const safePageSize = normalizePageSize(pageSize);
+  if (safePageSize !== DEFAULT_PAGE_SIZE) setOrDelete("pageSize", String(safePageSize));
+  else params.delete("pageSize");
 
   return params;
 }

@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Check, Copy } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
+import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import {
   buildGuideSearchParams,
   parseGuideAnswers,
@@ -149,6 +151,11 @@ export function InteractiveBuyingGuide() {
               }
             }}
           >
+            {copied ? (
+              <Check size={iconSizes.sm} variant="Bold" aria-hidden />
+            ) : (
+              <Copy size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+            )}
             {copied ? fa.guide.linkCopied : fa.guide.copyShareLink}
           </Button>
         </div>

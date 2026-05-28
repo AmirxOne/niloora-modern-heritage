@@ -67,6 +67,7 @@ export function useCart() {
         price: number;
         listPrice?: number;
         discountPercent?: number;
+        collectionId?: string;
       } | null = null;
       if (!options?.name || !options?.image || !options?.availability || options?.price == null) {
         const response = await fetch(`/api/products/${encodeURIComponent(productId)}`);
@@ -81,6 +82,7 @@ export function useCart() {
               price: number;
               listPrice?: number;
               discountPercent?: number;
+              collectionId?: string;
             };
           };
           if (data.product) {
@@ -117,6 +119,7 @@ export function useCart() {
           listPrice: pricing?.listPrice,
           image: options?.image ?? product?.image ?? "",
           availability: resolved,
+          collectionId: product?.collectionId,
         })
       );
       const trackedName = options?.name ?? product?.name;

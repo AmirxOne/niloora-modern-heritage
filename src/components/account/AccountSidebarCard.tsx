@@ -2,6 +2,11 @@
 
 import { Crown } from "@/components/icons";
 import { formatIranPhoneDisplay } from "@/lib/auth/phone";
+import {
+  accountDisplayInitials,
+  hasAccountProfileName,
+  resolveAccountDisplayName,
+} from "@/lib/account/display-name";
 import { fa } from "@/lib/i18n/fa";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 import { Badge } from "@/components/ui/Badge";
@@ -10,6 +15,8 @@ import { cn } from "@/lib/utils";
 type AccountUser = {
   name: string;
   phone: string;
+  firstName?: string | null;
+  lastName?: string | null;
   tier: "gold" | "platinum" | "royal";
   loyaltyTier?: "bronze" | "silver" | "gold" | "platinum";
   role?: "user" | "editor" | "reviewer" | "admin";
@@ -35,16 +42,16 @@ const loyaltyTierLabel: Record<NonNullable<AccountUser["loyaltyTier"]>, string> 
   platinum: "پلاتینیومی",
 };
 
-function initialsFromName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "؟";
-  if (parts.length === 1) return parts[0].slice(0, 1);
-  return `${parts[0].slice(0, 1)}${parts[parts.length - 1].slice(0, 1)}`;
-}
-
 export function AccountSidebarCard({ user }: { user: AccountUser }) {
-  const displayName = user.name.trim() || formatIranPhoneDisplay(user.phone);
-  const initials = initialsFromName(displayName);
+  const nameInput = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    name: user.name,
+    phone: user.phone,
+  };
+  const displayName = resolveAccountDisplayName(nameInput);
+  const showPhoneSubtitle = hasAccountProfileName(nameInput);
+  const initials = accountDisplayInitials(nameInput);
   const role = user.role ?? "user";
   const roleLabel =
     role === "admin"
@@ -65,9 +72,11 @@ export function AccountSidebarCard({ user }: { user: AccountUser }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate font-display text-lg text-ivory">{displayName}</p>
-            <p className="mt-0.5 text-xs text-silver" dir="ltr">
-              {formatIranPhoneDisplay(user.phone)}
-            </p>
+            {showPhoneSubtitle ? (
+              <p className="mt-0.5 text-xs text-silver" dir="ltr">
+                {formatIranPhoneDisplay(user.phone)}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-gold/10 pt-4">

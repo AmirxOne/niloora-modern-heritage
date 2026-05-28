@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 
 type AdminOrderRecord = Prisma.OrderGetPayload<{
   include: typeof orderInclude & {
-    user: { select: { name: true; phone: true } };
+    user: { select: { name: true; phone: true; email: true } };
   };
 }>;
 
@@ -13,6 +13,7 @@ export function toAdminOrderDto(order: AdminOrderRecord) {
     customer: {
       name: order.user.name,
       phone: order.user.phone,
+      email: order.user.email,
     },
   };
 }

@@ -3,7 +3,7 @@ import { normalizeIranPhone } from "@/lib/auth/phone";
 import { prisma } from "@/lib/server/prisma";
 import { conflict, created, badRequest, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
-import { createSession, setSessionCookie } from "@/lib/server/auth/session";
+import { applySessionCookieToResponse, createSession } from "@/lib/server/auth/session";
 import { toSessionUser } from "@/lib/server/auth/dto";
 import { queueWelcomeJourney } from "@/lib/server/notifications/journey-notify";
 import {
@@ -62,10 +62,10 @@ export async function POST(request: Request) {
     });
 
     const sessionToken = await createSession(user.id);
-    await setSessionCookie(sessionToken);
     queueWelcomeJourney(user);
 
-    return created({ user: toSessionUser(user) });
+    const response = created({ user: toSessionUser(user) });
+    return applySessionCookieToResponse(response, sessionToken);
   } catch (error) {
     return handleRouteError(error, { route: "/api/auth/register" });
   }

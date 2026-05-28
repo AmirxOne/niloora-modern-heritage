@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
 import { parseJsonResponse } from "./fetch-utils";
 import type { GiftCard } from "@/lib/types";
 
@@ -27,6 +28,7 @@ export function useAdminGiftCards() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadGiftCards = useCallback(async () => {
     if (!isAdmin) return;
@@ -95,6 +97,7 @@ export function useAdminGiftCards() {
   );
 
   return {
+    allowed,
     isAdmin,
     giftCards,
     isLoading,

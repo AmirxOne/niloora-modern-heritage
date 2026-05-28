@@ -1,6 +1,8 @@
 import { Cormorant_Garamond, Vazirmatn } from "next/font/google";
 import "@/styles/globals.css";
 import { rootSiteMetadata, rootSiteViewport } from "@/lib/seo/site";
+import { getPublicSiteSettings } from "@/lib/server/site-settings/site-settings";
+import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { StoreProvider } from "@/lib/store/StoreProvider";
 import { AppProvider } from "@/lib/context/AppContext";
 import { Header } from "@/components/layout/Header";
@@ -26,14 +28,19 @@ const vazirmatn = Vazirmatn({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-export const metadata = rootSiteMetadata();
 export const viewport = rootSiteViewport;
 
-export default function RootLayout({
+export async function generateMetadata() {
+  const settings = await getPublicSiteSettings();
+  return rootSiteMetadata(settings);
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const siteSettings = await getPublicSiteSettings();
   // PROVIDER ORDER: Redux store -> App domain context -> global chrome/widgets.
   return (
     <html
@@ -45,12 +52,14 @@ export default function RootLayout({
         <MotionOffProvider>
           <StoreProvider>
             <AppProvider>
-              <DiscountCountdownProvider>
-                <ConditionalLayoutChrome>{children}</ConditionalLayoutChrome>
+              <SiteSettingsProvider settings={siteSettings}>
+                <DiscountCountdownProvider>
+                  <ConditionalLayoutChrome>{children}</ConditionalLayoutChrome>
                 <AppToaster />
                 <PersianDigitsEnforcer />
                 <ClientObservability />
-              </DiscountCountdownProvider>
+                </DiscountCountdownProvider>
+              </SiteSettingsProvider>
             </AppProvider>
           </StoreProvider>
         </MotionOffProvider>

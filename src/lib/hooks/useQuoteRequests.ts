@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { CustomizerQuoteRequest, CustomizerState } from "@/lib/types";
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useAuth } from "./useAuth";
 import { parseJsonResponse } from "./fetch-utils";
 
@@ -20,7 +21,7 @@ export function useQuoteRequests() {
     }
     setIsLoading(true);
     try {
-      const response = await fetch("/api/customizer/quote-requests");
+      const response = await apiFetch("/api/customizer/quote-requests");
       if (!response.ok) {
         toast.error("دریافت درخواست‌های برآورد انجام نشد.");
         return;
@@ -46,7 +47,7 @@ export function useQuoteRequests() {
       if (!auth.isLoggedIn) return null;
       setIsSubmitting(true);
       try {
-        const response = await fetch("/api/customizer/quote-requests", {
+        const response = await apiFetch("/api/customizer/quote-requests", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(input),

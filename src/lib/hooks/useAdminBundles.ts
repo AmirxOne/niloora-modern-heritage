@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { BundleOfferDefinition } from "@/lib/types";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminBundles() {
@@ -13,6 +14,7 @@ export function useAdminBundles() {
   const [isSaving, setIsSaving] = useState(false);
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadBundles = useCallback(async () => {
     if (!isAdmin) return;
@@ -108,6 +110,7 @@ export function useAdminBundles() {
   );
 
   return {
+    allowed,
     isAdmin,
     bundles,
     isLoading,

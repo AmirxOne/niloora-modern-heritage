@@ -23,6 +23,7 @@ interface MobileProductBuyBarProps {
  *  - شامل تصویر کوچک، قیمت تخفیف‌خورده و دکمهٔ افزودن به سبد است
  */
 export function MobileProductBuyBar({ product }: MobileProductBuyBarProps) {
+  const displayName = product.namePersian?.trim() || product.name;
   const router = useRouter();
   const { cart } = useApp();
   const [visible, setVisible] = useState(false);
@@ -70,7 +71,7 @@ export function MobileProductBuyBar({ product }: MobileProductBuyBarProps) {
         <div className="mobile-product-buy-bar__media">
           <Image
             src={product.image}
-            alt={product.name}
+            alt={displayName}
             fill
             sizes="56px"
             className="object-cover"
@@ -78,8 +79,8 @@ export function MobileProductBuyBar({ product }: MobileProductBuyBarProps) {
         </div>
 
         <div className="mobile-product-buy-bar__info">
-          <p className="mobile-product-buy-bar__name" title={product.name}>
-            {product.name}
+          <p className="mobile-product-buy-bar__name" title={displayName}>
+            {displayName}
           </p>
           <p className="mobile-product-buy-bar__price">
             {pricing.hasProductFurooh ? (

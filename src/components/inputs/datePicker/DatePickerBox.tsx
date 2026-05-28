@@ -11,7 +11,6 @@ import { ICON_VARIANT } from "@/lib/icons";
 import { fieldControlClass, FIELD_CONTROL_ERROR_CLASS } from "../fieldStyles";
 import { isoDateToJalaliDisplay, jalaliDisplayToIsoDate } from "@/components/inputs/datePicker/jalaliDateValue";
 import "@/components/inputs/datePicker/jalaliDateBox.css";
-import "react-multi-date-picker/styles/colors/teal.css";
 import "react-multi-date-picker/styles/layouts/mobile.css";
 
 const WEEK_DAYS = ["ش", "ی", "د", "س", "چ", "پ", "ج"];
@@ -167,7 +166,7 @@ function DatePickerBox({
         zIndex={2100}
         disabled={disabled}
         containerClassName="w-full"
-        className="date-picker-box jalali-date-picker jalali-date-picker--dark w-full"
+        className="date-picker-box jalali-date-picker w-full"
         headerOrder={["MONTH_YEAR", "LEFT_BUTTON", "RIGHT_BUTTON"]}
         render={(displayValue, openCalendar) => (
           <PickerInput

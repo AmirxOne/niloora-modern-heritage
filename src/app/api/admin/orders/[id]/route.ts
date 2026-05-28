@@ -17,6 +17,31 @@ type Body = {
   trackingCode?: string | null;
 };
 
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await readSessionUser();
+    const denied = ensureAdmin(user);
+    if (denied) return denied;
+
+    const { id } = await context.params;
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        ...orderInclude,
+        user: { select: { name: true, phone: true, email: true } },
+      },
+    });
+    if (!order) return notFound("سفارش یافت نشد.");
+
+    return ok({ order: toAdminOrderDto(order) });
+  } catch (error) {
+    return handleRouteError(error, { route: "/api/admin/orders/[id]" });
+  }
+}
+
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> }

@@ -8,7 +8,7 @@ import {
   ADMIN_ORDER_STATUSES,
   type AdminSettableOrderStatus,
 } from "@/lib/server/orders/admin-order";
-import { orderHasReceipt, orderReceiptPath } from "@/lib/orders/order-receipt";
+import { adminOrderInvoicePath } from "@/lib/orders/order-receipt";
 import type { AdminOrder, Order } from "@/lib/types";
 import { useAdminOrders } from "@/lib/hooks/useAdminOrders";
 import { formatPrice } from "@/lib/utils";
@@ -16,6 +16,8 @@ import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SelectBox, TextBox } from "@/components/inputs";
+import { AdminOrderReturnsSnippet } from "@/components/admin/AdminOrderReturnsSnippet";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const statusLabels: Record<Order["status"], string> = {
   pending_payment: fa.dashboard.orderStatus.pending_payment,
@@ -122,11 +124,16 @@ function AdminOrderCard({
             {fa.receipt.paymentRef}: {order.payment.refId}
           </span>
         ) : null}
-        {orderHasReceipt(order) ? (
-          <Link href={orderReceiptPath(order.id)} className="admin-order-invoice-link">
-            {fa.dashboard.viewInvoice}
+        <div className="admin-order-invoice-actions">
+          <Link
+            href={adminOrderInvoicePath(order.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="admin-order-invoice-link"
+          >
+            {fa.admin.invoice.viewPrint}
           </Link>
-        ) : null}
+        </div>
       </div>
 
       {order.shipping ? (
@@ -134,6 +141,10 @@ function AdminOrderCard({
           {order.shipping.province}، {order.shipping.city} — {order.shipping.fullName}
         </p>
       ) : null}
+
+      <div className="admin-order-returns-wrap px-5 py-3">
+        <AdminOrderReturnsSnippet returns={order.returns ?? []} />
+      </div>
 
       <div className="admin-order-card-form">
         <SelectBox
@@ -173,7 +184,7 @@ function AdminOrderCard({
 
 export function AdminOrdersPanel() {
   const admin = useAdminOrders();
-  const [csvReport, setCsvReport] = useState<string[]>([]);
+  const [importReport, setImportReport] = useState<string[]>([]);
 
   useEffect(() => {
     if (admin.isAdmin) {
@@ -186,13 +197,7 @@ export function AdminOrdersPanel() {
     [admin.orders]
   );
 
-  if (!admin.isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!admin.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -213,41 +218,39 @@ export function AdminOrdersPanel() {
         >
           {fa.admin.orders.refresh}
         </Button>
-        <Button type="button" variant="outline" onClick={() => void admin.exportCsv()}>
-          خروجی CSV
+        <Button type="button" variant="outline" onClick={() => void admin.exportExcel()}>
+          خروجی Excel
         </Button>
-        <label className="admin-csv-upload-btn">
-          ورود CSV
+        <label className="admin-file-upload-btn">
+          ورود Excel
           <input
             type="file"
-            accept=".csv,text/csv"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             hidden
             onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) return;
-              const result = await admin.importCsv(file);
+              const result = await admin.importExcel(file);
               if (result?.errors?.length) {
-                setCsvReport(result.errors.slice(0, 20).map((item) => `ردیف ${item.row}: ${item.message}`));
+                setImportReport(result.errors.slice(0, 20).map((item) => `ردیف ${item.row}: ${item.message}`));
               } else {
-                setCsvReport([]);
+                setImportReport([]);
               }
               e.currentTarget.value = "";
             }}
           />
         </label>
       </div>
-      {csvReport.length > 0 ? (
-        <div className="admin-csv-report">
-          {csvReport.map((line) => (
+      {importReport.length > 0 ? (
+        <div className="admin-import-report">
+          {importReport.map((line) => (
             <p key={line}>{line}</p>
           ))}
         </div>
       ) : null}
 
       {admin.isLoading ? (
-        <p className="text-silver" aria-busy="true">
-          {fa.admin.orders.loading}
-        </p>
+        <LoadingState variant="admin-cards" />
       ) : sortedOrders.length === 0 ? (
         <p className="admin-orders-empty">{fa.admin.orders.empty}</p>
       ) : (

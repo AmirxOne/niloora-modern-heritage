@@ -14,7 +14,6 @@ import { fa } from "@/lib/i18n/fa";
 import { Check } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { ICON_VARIANT } from "@/lib/icons";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { toast } from "sonner";
 import { useGiftCard } from "@/lib/hooks/useGiftCard";
 import {
@@ -210,9 +209,8 @@ export function CartPageContent() {
         animate={{ opacity: 1, y: 0 }}
         className="cart-page-header"
       >
-        <span className="heritage-eyebrow">{fa.nav.cart}</span>
+        <p className="page-eyebrow">{fa.nav.cart}</p>
         <h1 className="cart-page-title">{titles[step]}</h1>
-        <OrnamentalDivider className="mx-auto my-5 max-w-[12rem]" />
         {step === "cart" ? (
           <p className="cart-page-subtitle">
             {cart.count > 0 ? fa.cart.itemsInCart(cart.count) : fa.cart.pageSubtitle}

@@ -70,6 +70,7 @@
   body {
     background: transparent;
     color: var(--color-text);
+    color-scheme: light;
     font-size: 0.875rem;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
@@ -603,6 +604,14 @@
     @apply hidden text-[#b8b0a5] md:inline;
   }
 
+  .footer-social {
+    @apply flex flex-wrap items-center gap-2.5;
+  }
+
+  .footer-social-link {
+    @apply flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E1DB] bg-white text-[#78716C] shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#B8860B] hover:text-[#B8860B] hover:shadow-md;
+  }
+
   .footer-bazaar-trust {
     @apply mb-8;
   }
@@ -643,18 +652,29 @@
 
   /* ——— میراث سنتی‑مدرن ——— */
 
-  .heritage-eyebrow {
-    @apply mb-4 inline-flex items-center gap-3 text-[11px] font-medium uppercase tracking-heritage text-turquoise-dark;
+  .heritage-eyebrow,
+  .page-eyebrow {
+    @apply mb-1 block text-xs font-medium text-turquoise-dark;
   }
 
-  .heritage-eyebrow::before,
-  .heritage-eyebrow::after {
-    content: "";
-    @apply h-px w-8 bg-gradient-to-l from-gold/50 to-transparent;
+  .page-header {
+    @apply mb-6 space-y-2 border-b border-gold/10 pb-4 text-start;
   }
 
-  .heritage-eyebrow::after {
-    @apply bg-gradient-to-r;
+  .page-header--center {
+    @apply text-center;
+  }
+
+  .page-header-title {
+    @apply font-display text-2xl font-semibold leading-snug text-ivory md:text-3xl;
+  }
+
+  .page-header-subtitle {
+    @apply max-w-2xl text-sm leading-relaxed text-silver;
+  }
+
+  .page-header--center .page-header-subtitle {
+    @apply mx-auto;
   }
 
   .heritage-card {
@@ -1051,15 +1071,55 @@
   }
 
   .header-account-menu-trigger {
-    @apply flex h-10 items-center gap-1.5 rounded-full border border-transparent px-2.5 text-ivory-light transition-colors hover:border-gold/20 hover:bg-parchment hover:text-turquoise-dark sm:px-3;
+    @apply flex h-10 max-w-[11rem] min-w-10 items-center gap-1.5 rounded-full border border-transparent px-2.5 text-ivory-light transition-colors hover:border-gold/20 hover:bg-parchment hover:text-turquoise-dark sm:max-w-[12.5rem] sm:px-3 md:max-w-[14rem];
   }
 
   .header-account-menu-trigger--open {
     @apply border-gold/25 bg-parchment text-turquoise-dark;
   }
 
+  .header-account-menu-skeleton {
+    @apply pointer-events-none flex h-10 min-w-10 items-center gap-1.5 rounded-full border border-gold/10 px-2.5 sm:min-w-[7.25rem] sm:px-3;
+  }
+
+  .header-account-menu-skeleton-icon {
+    @apply h-5 w-5 shrink-0 rounded-full;
+    background: linear-gradient(
+      105deg,
+      var(--sk-base) 30%,
+      var(--sk-shine) 50%,
+      var(--sk-base) 70%
+    );
+    background-size: 300% 100%;
+    animation: sk-wave 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .header-account-menu-skeleton-label {
+    @apply h-3 flex-1 rounded-full;
+    background: linear-gradient(
+      105deg,
+      var(--sk-base) 30%,
+      var(--sk-shine) 50%,
+      var(--sk-base) 70%
+    );
+    background-size: 300% 100%;
+    animation: sk-wave 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .header-account-menu-skeleton-chevron {
+    @apply h-3 w-3 shrink-0 rounded-sm;
+    background: linear-gradient(
+      105deg,
+      var(--sk-base) 30%,
+      var(--sk-shine) 50%,
+      var(--sk-base) 70%
+    );
+    background-size: 300% 100%;
+    animation: sk-wave 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
   .header-account-menu-label {
-    @apply max-w-[5.5rem] truncate text-xs font-medium;
+    @apply min-w-0 flex-1 truncate text-xs font-medium sm:max-w-[8.5rem] md:max-w-[10rem];
   }
 
   .header-account-menu-chevron {
@@ -1371,15 +1431,15 @@
   }
 
   .info-page-header {
-    @apply mb-10 text-center;
+    @apply page-header mb-8;
   }
 
   .info-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+    @apply page-header-title;
   }
 
   .info-page-subtitle {
-    @apply mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle;
   }
 
   .info-page-content {
@@ -1493,15 +1553,15 @@
   }
 
   .blog-page-header {
-    @apply mb-10 text-center;
+    @apply page-header mb-8;
   }
 
   .blog-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+    @apply page-header-title;
   }
 
   .blog-page-subtitle {
-    @apply mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle;
   }
 
   .blog-grid {
@@ -1529,15 +1589,15 @@
   }
 
   .support-page-header {
-    @apply mb-8 text-center;
+    @apply page-header mb-6;
   }
 
   .support-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+    @apply page-header-title;
   }
 
   .support-page-subtitle {
-    @apply mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle;
   }
 
   .support-page-content {
@@ -1553,15 +1613,15 @@
   }
 
   .verify-page-header {
-    @apply mb-8 text-center;
+    @apply page-header mb-6;
   }
 
   .verify-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+    @apply page-header-title;
   }
 
   .verify-page-subtitle {
-    @apply mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle;
   }
 
   .verify-form {
@@ -1701,27 +1761,71 @@
   }
 
   .artisans-page-header {
-    @apply mb-10 text-center;
+    @apply page-header mb-8;
   }
 
   .artisans-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+    @apply page-header-title;
   }
 
   .artisans-page-subtitle {
-    @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle max-w-3xl;
   }
 
   .artisans-search {
-    @apply mb-6;
+    @apply mb-8 space-y-4 rounded-heritage-lg border border-gold/10 bg-white/50 p-4 md:p-5;
+  }
+
+  .artisans-search__field {
+    @apply space-y-2;
   }
 
   .artisans-search__label {
-    @apply mb-2 block text-xs font-semibold text-gold-dark;
+    @apply block text-xs font-semibold text-gold-dark;
   }
 
   .artisans-search__input {
     @apply w-full rounded-heritage border border-gold/20 bg-white/80 px-3 py-2 text-sm text-ivory outline-none transition-colors placeholder:text-silver/80 focus:border-gold/40;
+  }
+
+  .artisans-role-tabs {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .artisans-role-tab {
+    @apply inline-flex items-center gap-2 rounded-full border border-gold/15 bg-matte-elevated/70 px-3 py-2 text-xs text-silver transition-colors hover:border-gold/30 hover:text-ivory;
+  }
+
+  .artisans-role-tab strong {
+    @apply rounded-full bg-parchment/40 px-2 py-0.5 text-[11px] font-semibold text-gold-dark;
+  }
+
+  .artisans-role-tab--active {
+    @apply border-gold/35 bg-gold/15 text-gold-dark;
+  }
+
+  .artisans-group-list {
+    @apply space-y-8;
+  }
+
+  .artisans-group {
+    @apply rounded-heritage-lg border border-gold/10 bg-white/45 p-4 md:p-5;
+  }
+
+  .artisans-group__header {
+    @apply mb-4 flex flex-col gap-3 border-b border-gold/10 pb-4 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .artisans-group__title {
+    @apply font-display text-xl font-semibold text-ivory md:text-2xl;
+  }
+
+  .artisans-group__description {
+    @apply mt-1 text-sm leading-relaxed text-silver;
+  }
+
+  .artisans-group__count {
+    @apply inline-flex w-fit rounded-full border border-gold/15 bg-parchment/30 px-3 py-1 text-xs font-medium text-gold-dark;
   }
 
   .artisans-grid {
@@ -1752,6 +1856,14 @@
     @apply p-4 md:p-5;
   }
 
+  .artisan-card-topline {
+    @apply mb-2 flex items-center justify-between gap-2;
+  }
+
+  .artisan-card-role {
+    @apply rounded-full border border-gold/15 bg-parchment/30 px-2.5 py-1 text-[11px] font-medium text-gold-dark;
+  }
+
   .artisan-card-name {
     @apply font-display text-lg font-semibold text-ivory;
   }
@@ -1762,6 +1874,14 @@
 
   .artisan-card-specialty {
     @apply mt-2 text-sm leading-relaxed text-silver;
+  }
+
+  .artisan-card-tags {
+    @apply mt-3 flex flex-wrap gap-1.5;
+  }
+
+  .artisan-card-tags span {
+    @apply rounded-full bg-matte/60 px-2 py-0.5 text-[11px] text-silver;
   }
 
   .artisan-card-exp {
@@ -1965,15 +2085,15 @@
   }
 
   .stones-page-header {
-    @apply mb-10 text-center;
+    @apply page-header mb-8;
   }
 
   .stones-page-title {
-    @apply font-display text-3xl font-semibold text-ivory md:text-5xl;
+    @apply page-header-title;
   }
 
   .stones-page-subtitle {
-    @apply mx-auto mt-3 max-w-3xl text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle max-w-3xl;
   }
 
   .stones-grid {
@@ -2876,15 +2996,27 @@
   }
 
   .pagination {
-    @apply flex flex-col items-center gap-4 border-t border-gold/10 pt-6 md:gap-5 md:pt-8;
+    @apply flex w-full flex-col items-stretch justify-between gap-4 border-t border-gold/10 pt-6 md:flex-row md:items-center md:gap-5 md:pt-8;
+  }
+
+  .pagination-meta {
+    @apply flex w-full flex-col items-center gap-3 sm:flex-row md:w-auto md:justify-start;
   }
 
   .pagination-summary {
     @apply text-center text-sm text-silver;
   }
 
+  .pagination-page-size {
+    @apply inline-flex items-center gap-2 text-xs font-medium text-silver;
+  }
+
+  .pagination-page-size select {
+    @apply rounded-heritage border border-gold/15 bg-matte-elevated px-3 py-2 text-xs text-ivory outline-none transition-colors hover:border-gold/30 focus:border-gold/45 focus:ring-2 focus:ring-gold/10;
+  }
+
   .pagination-controls {
-    @apply flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3;
+    @apply flex w-full max-w-full flex-wrap items-center justify-center gap-2 sm:gap-3 md:w-auto md:justify-end;
   }
 
   .pagination-nav {
@@ -3219,7 +3351,7 @@
   }
 
   .account-section-actions {
-    @apply mb-4 flex justify-end;
+    @apply mb-5 flex justify-center sm:justify-end;
   }
 
   .product-price-bahakahi-pill {
@@ -3397,47 +3529,6 @@
     margin-top: 0;
   }
 
-  .shop-product-card-add-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 50%;
-    background: var(--color-accent);
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-    flex-shrink: 0;
-  }
-  .shop-product-card-add-btn:hover {
-    background: var(--color-accent-hover);
-    transform: scale(1.08);
-  }
-
-  .shop-product-card-quick-link {
-    @apply inline-flex shrink-0 items-center gap-1 text-[10px] font-medium text-turquoise-dark transition-colors hover:text-turquoise md:text-[11px];
-  }
-
-  .shop-product-card-cta {
-    @apply inline-flex items-center justify-center;
-    min-height: 2.2rem;
-    padding-inline: 0.95rem;
-    border-radius: 999px;
-    background: var(--pc-accent);
-    color: #fff;
-    font-size: 0.74rem;
-    font-weight: 700;
-    line-height: 1;
-    transition: transform 0.2s ease, filter 0.2s ease;
-  }
-
-  .shop-product-card-cta:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.02);
-  }
-
   .shop-product-card-pricing-row {
     display: flex;
     align-items: flex-end;
@@ -3529,15 +3620,15 @@
   /* ——— سبد خرید ——— */
 
   .cart-page-header {
-    @apply mb-10 text-center md:mb-12;
+    @apply page-header mb-8 md:mb-10;
   }
 
   .cart-page-title {
-    @apply font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold text-ivory;
+    @apply page-header-title;
   }
 
   .cart-page-subtitle {
-    @apply text-sm text-silver md:text-base;
+    @apply page-header-subtitle;
   }
 
   .cart-empty-state,
@@ -4119,70 +4210,6 @@
 
   .blog-short-video {
     @apply my-5;
-  }
-
-  .locale-switcher {
-    @apply inline-flex items-center gap-1 rounded-heritage-pill border border-gold/20 bg-white/50 p-1;
-  }
-
-  .locale-switcher-link {
-    @apply rounded-heritage-pill px-2 py-1 text-[11px] font-semibold text-matte transition-colors;
-  }
-
-  .locale-switcher-link[data-active="true"] {
-    @apply bg-matte text-ivory;
-  }
-
-  .locale-simple-page {
-    @apply min-h-screen bg-matte;
-  }
-
-  .locale-simple-topbar {
-    @apply mb-6 flex justify-end;
-  }
-
-  .locale-simple-head {
-    @apply rounded-heritage border border-gold/15 bg-matte-elevated p-5 md:p-7;
-  }
-
-  .locale-simple-eyebrow {
-    @apply text-xs font-medium text-gold-light;
-  }
-
-  .locale-simple-head h1 {
-    @apply mt-2 text-xl font-semibold text-ivory md:text-2xl;
-  }
-
-  .locale-simple-head p {
-    @apply mt-2 text-sm leading-relaxed text-silver;
-  }
-
-  .locale-simple-actions {
-    @apply mt-5 grid gap-2 md:grid-cols-3;
-  }
-
-  .locale-simple-actions a {
-    @apply rounded-heritage border border-gold/15 bg-white/20 px-4 py-3 text-sm text-ivory transition-colors hover:bg-white/30;
-  }
-
-  .locale-simple-body {
-    @apply mt-5 rounded-heritage border border-gold/10 bg-white/15 p-5;
-  }
-
-  .locale-simple-body h2 {
-    @apply text-base font-semibold text-ivory;
-  }
-
-  .locale-simple-body p {
-    @apply mt-2 text-sm leading-relaxed text-silver;
-  }
-
-  .locale-simple-footer {
-    @apply mt-6;
-  }
-
-  .locale-simple-footer a {
-    @apply text-sm text-turquoise transition-colors hover:text-turquoise-light;
   }
 
   .product-content-brief {
@@ -6297,19 +6324,19 @@
   }
 
   .pre-owned-page-header {
-    @apply mx-auto max-w-3xl text-center;
+    @apply page-header mx-auto mb-8 max-w-3xl;
   }
 
   .pre-owned-page-title {
-    @apply mt-4 font-display text-3xl text-ivory md:text-4xl;
+    @apply page-header-title;
   }
 
   .pre-owned-page-subtitle {
-    @apply mt-4 text-sm leading-relaxed text-silver md:text-base;
+    @apply page-header-subtitle;
   }
 
   .pre-owned-page-header-actions {
-    @apply mt-8 flex flex-wrap justify-center gap-3;
+    @apply mt-4 flex flex-wrap gap-3;
   }
 
   .pre-owned-landing-grid {
@@ -6394,16 +6421,28 @@
     @apply mt-3 text-sm leading-relaxed text-silver md:text-base;
   }
 
+  .account-page .site-container {
+    @apply max-w-site;
+  }
+
   .account-shell {
-    @apply grid items-start gap-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[22rem_minmax(0,1fr)];
+    @apply grid w-full items-start gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8;
   }
 
   .account-shell-sidebar {
-    @apply lg:sticky lg:top-24 lg:self-start;
+    @apply w-full lg:w-[260px] lg:max-w-[260px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start;
+  }
+
+  .account-shell-main {
+    @apply min-w-0 w-full max-w-none;
+  }
+
+  .account-admin-stack {
+    @apply flex flex-col gap-8;
   }
 
   .account-sidebar-stack {
-    @apply space-y-4;
+    @apply flex flex-col gap-4;
   }
 
   .account-sidebar-card {
@@ -6438,16 +6477,20 @@
     @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated p-3 shadow-heritage;
   }
 
+  .account-nav-group--bordered {
+    @apply mt-4 border-t border-gold/10 pt-4;
+  }
+
   .account-nav-label {
     @apply mb-2 px-2 text-[11px] font-medium tracking-wide text-silver;
   }
 
   .account-nav-list {
-    @apply space-y-0.5;
+    @apply flex flex-col gap-1.5;
   }
 
   .account-nav-item {
-    @apply relative flex h-11 min-h-11 w-full items-center gap-2.5 rounded-heritage px-3 text-sm text-silver transition-colors hover:bg-parchment/50 hover:text-ivory;
+    @apply relative flex min-h-11 w-full items-center gap-3 rounded-heritage px-3 py-2.5 text-sm text-silver transition-colors hover:bg-parchment/50 hover:text-ivory;
   }
 
   .account-nav-item--active {
@@ -6472,11 +6515,19 @@
   }
 
   .account-section {
-    @apply space-y-5;
+    @apply flex w-full min-w-0 flex-col gap-6;
   }
 
   .account-section-header {
-    @apply flex flex-wrap items-start justify-between gap-4 border-b border-gold/10 pb-4;
+    @apply flex flex-col items-center gap-3 border-b border-gold/10 pb-5 text-center sm:flex-row sm:items-end sm:justify-between sm:text-start;
+  }
+
+  .account-section-header-copy {
+    @apply min-w-0 w-full sm:flex-1;
+  }
+
+  .account-section-header-action {
+    @apply shrink-0;
   }
 
   .account-section-title {
@@ -6484,11 +6535,15 @@
   }
 
   .account-section-subtitle {
-    @apply mt-1 text-sm text-silver;
+    @apply mt-2 text-sm leading-relaxed text-silver;
   }
 
   .account-section-body {
     @apply account-panel;
+  }
+
+  .account-section-body--flush {
+    @apply w-full space-y-5;
   }
 
   .account-panel {
@@ -6549,8 +6604,24 @@
     @apply mt-1 text-xs text-silver;
   }
 
+  .account-subsection {
+    @apply space-y-4;
+  }
+
+  .account-subsection-header {
+    @apply space-y-1 text-center sm:text-start;
+  }
+
   .account-subsection-title {
-    @apply mb-3 font-display text-lg text-ivory;
+    @apply font-display text-lg text-ivory;
+  }
+
+  .account-subsection-subtitle {
+    @apply text-sm leading-relaxed text-silver;
+  }
+
+  .account-empty-inline {
+    @apply flex flex-col items-center justify-center gap-3 rounded-heritage border border-dashed border-gold/20 bg-white/25 px-6 py-10 text-center text-sm text-silver;
   }
 
   .account-stat-grid {
@@ -6601,6 +6672,10 @@
     @apply shrink-0 text-silver/60;
   }
 
+  .account-referrals {
+    @apply flex flex-col gap-6;
+  }
+
   .account-referral-card {
     @apply rounded-2xl border border-gold/20 bg-white p-4 shadow-[0_16px_40px_rgba(71,60,50,0.06)] md:p-5;
   }
@@ -6622,7 +6697,7 @@
   }
 
   .account-referral-share-row {
-    @apply mt-3 flex flex-col gap-2 md:flex-row md:items-center;
+    @apply mt-4 flex flex-col gap-3 sm:flex-row sm:items-center;
   }
 
   .account-referral-share-link {
@@ -6662,7 +6737,7 @@
   }
 
   .account-resource-row {
-    @apply flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-gold/5;
+    @apply flex flex-wrap items-center gap-3 px-4 py-4 transition-colors hover:bg-gold/5 sm:gap-4;
   }
 
   .account-resource-thumb {
@@ -6687,6 +6762,10 @@
 
   .account-resource-price {
     @apply mt-1 text-sm text-price-sale;
+  }
+
+  .account-design-row {
+    @apply min-w-0;
   }
 
   .account-design-row .account-resource-row {
@@ -6714,7 +6793,7 @@
   }
 
   .account-profile-group-legend {
-    @apply mb-4 flex w-full items-start gap-3 border-b border-gold/10 pb-3;
+    @apply mb-5 flex w-full items-start gap-3 border-b border-gold/10 pb-4;
   }
 
   .account-profile-group-icon {
@@ -6730,15 +6809,19 @@
   }
 
   .account-profile-fields {
-    @apply grid gap-4 sm:grid-cols-2;
+    @apply grid gap-5 sm:grid-cols-2;
+  }
+
+  .account-profile-fields > * {
+    @apply min-w-0 w-full;
   }
 
   .account-profile-fields-full {
-    @apply sm:col-span-2;
+    @apply min-w-0 w-full sm:col-span-2;
   }
 
   .account-profile-actions {
-    @apply sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-heritage border border-gold/15 bg-matte-elevated/95 p-4 shadow-heritage backdrop-blur-md;
+    @apply sticky bottom-4 z-10 flex flex-col items-center gap-3 rounded-heritage border border-gold/15 bg-matte-elevated/95 p-4 text-center shadow-heritage backdrop-blur-md sm:flex-row sm:items-center sm:text-start;
   }
 
   .account-profile-actions-hint {
@@ -7000,6 +7083,83 @@
   [aria-busy="true"] [class*="border-stone"] {
     border-color: var(--sk-border) !important;
   }
+
+  /* ——— Loading states (spinner + skeleton shells) ——— */
+
+  .loading-state {
+    @apply w-full;
+  }
+
+  .loading-inline {
+    @apply flex flex-col items-center justify-center gap-3 py-10 text-center;
+  }
+
+  .loading-inline-caption {
+    @apply text-xs tracking-wide text-silver/80;
+  }
+
+  .loading-spinner {
+    @apply inline-block h-9 w-9 rounded-full border-2 border-gold/15 border-t-gold/70;
+    animation: loading-spin 0.85s linear infinite;
+  }
+
+  @keyframes loading-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .loading-search-bar {
+    @apply mb-4;
+  }
+
+  .loading-search-bar-track {
+    @apply h-1 overflow-hidden rounded-full bg-gold/10;
+  }
+
+  .loading-search-bar-shine {
+    @apply h-full w-1/3 min-w-[6rem] rounded-full;
+  }
+
+  .loading-admin-card {
+    pointer-events: none;
+  }
+
+  .loading-admin-row {
+    @apply flex items-center gap-3 rounded-heritage border border-gold/10 bg-matte-elevated p-3;
+  }
+
+  .admin-kpi-skeleton {
+    @apply space-y-6;
+  }
+
+  .admin-kpi-metrics-grid {
+    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-5;
+  }
+
+  .loading-kpi-metric {
+    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated p-4;
+  }
+
+  .loading-kpi-chart {
+    @apply rounded-heritage-lg border border-gold/10 bg-matte-elevated p-5;
+  }
+
+  .loading-form-section {
+    pointer-events: none;
+  }
+
+  .loading-media-grid {
+    @apply grid grid-cols-3 gap-2 sm:grid-cols-4;
+  }
+
+  .order-receipt-skeleton {
+    pointer-events: none;
+  }
+
+  .admin-guard-state {
+    @apply flex min-h-[12rem] items-center justify-center border-0 bg-transparent px-6 py-16;
+  }
 }
 
 @layer utilities {
@@ -7142,6 +7302,50 @@
     @apply mt-8 border-t border-gold/10 pt-6 text-center text-sm text-silver;
   }
 
+  .admin-order-invoice-actions {
+    @apply flex flex-wrap gap-3;
+  }
+
+  .admin-order-invoice-link {
+    @apply text-sm font-medium text-turquoise-dark transition-colors hover:text-turquoise;
+  }
+
+  .admin-order-invoice-header {
+    @apply items-start;
+  }
+
+  .admin-order-invoice-qr-block {
+    @apply flex flex-col items-center gap-1 rounded-heritage border border-gold/15 bg-parchment/30 p-3 text-center;
+  }
+
+  .admin-order-invoice-qr-wrap {
+    @apply overflow-hidden rounded-md bg-white p-1;
+  }
+
+  .admin-order-invoice-qr {
+    @apply block h-[7.5rem] w-[7.5rem];
+  }
+
+  .admin-order-invoice-code-label {
+    @apply mt-1 text-[10px] uppercase tracking-wide text-silver;
+  }
+
+  .admin-order-invoice-code {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .admin-order-invoice-meta-grid {
+    @apply grid gap-6 md:grid-cols-2;
+  }
+
+  .admin-order-invoice-kv {
+    @apply space-y-2 rounded-heritage border border-gold/10 bg-parchment/15 p-4 text-sm text-ivory-light;
+  }
+
+  .admin-order-invoice-kv strong {
+    @apply text-ivory;
+  }
+
   /* ——— پنل ادمین سفارش‌ها ——— */
 
   .admin-guard-state,
@@ -7150,15 +7354,15 @@
   }
 
   .admin-page-header {
-    @apply mb-8 text-center;
+    @apply page-header page-header--admin mb-6;
   }
 
   .admin-page-title {
-    @apply mt-2 font-display text-3xl text-ivory;
+    @apply page-header-title;
   }
 
   .admin-page-subtitle {
-    @apply mt-2 text-sm text-silver;
+    @apply page-header-subtitle;
   }
 
   .admin-orders-toolbar {
@@ -7208,6 +7412,118 @@
 
   .admin-order-save-btn {
     @apply sm:col-span-2 sm:max-w-xs sm:justify-self-end;
+  }
+
+  .admin-user-actions {
+    @apply flex flex-wrap gap-2 sm:col-span-2;
+  }
+
+  .admin-user-detail {
+    @apply border-t border-gold/10 bg-parchment/10 px-5 py-4;
+  }
+
+  .admin-user-detail-grid {
+    @apply grid gap-3 text-sm sm:grid-cols-2;
+  }
+
+  .admin-user-detail-grid dt {
+    @apply text-silver;
+  }
+
+  .admin-user-detail-grid dd {
+    @apply text-ivory;
+  }
+
+  .admin-users-pagination {
+    @apply mt-8;
+  }
+
+  .admin-finance-panel {
+    @apply flex flex-col gap-6;
+  }
+
+  .admin-finance-summary {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .admin-finance-toolbar {
+    @apply sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .admin-finance-card-actions {
+    @apply border-t border-gold/10 px-5 py-3;
+  }
+
+  .admin-finance-detail-panel {
+    @apply flex flex-col gap-6;
+  }
+
+  .admin-finance-detail-head {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .admin-finance-detail-grid {
+    @apply border-t border-gold/10 px-5 py-4;
+  }
+
+  .admin-finance-detail-section {
+    @apply rounded-heritage-lg border border-gold/15 bg-parchment/20 p-4 md:p-5;
+  }
+
+  .admin-finance-section-title {
+    @apply mb-3 font-display text-lg text-ivory;
+  }
+
+  .admin-finance-items-list {
+    @apply flex flex-col gap-2 text-sm text-ivory;
+  }
+
+  .admin-finance-items-list li {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-gold/10 pb-2 last:border-0 last:pb-0;
+  }
+
+  .admin-finance-logs-list {
+    @apply flex flex-col gap-3 text-sm;
+  }
+
+  .admin-finance-logs-list li {
+    @apply rounded-md border border-gold/10 bg-parchment/15 p-3;
+  }
+
+  .admin-finance-log-event {
+    @apply font-medium text-ivory;
+  }
+
+  .admin-order-returns-wrap {
+    @apply border-t border-gold/10 bg-parchment/10;
+  }
+
+  .admin-order-returns-list {
+    @apply mt-2 flex flex-col gap-2;
+  }
+
+  .admin-order-return-link {
+    @apply flex flex-wrap items-center gap-2 text-sm text-turquoise-dark hover:text-turquoise;
+  }
+
+  .admin-return-history {
+    @apply flex flex-col gap-3;
+  }
+
+  .admin-return-history li {
+    @apply rounded-md border border-gold/10 bg-parchment/15 p-3;
+  }
+
+  .admin-return-history-head {
+    @apply flex flex-wrap items-center justify-between gap-2 text-sm text-ivory;
+  }
+
+  .admin-return-items-summary {
+    @apply list-none space-y-1 p-0;
+  }
+
+  .admin-settings-panel label input[type="checkbox"] {
+    @apply h-4 w-4 accent-turquoise;
   }
 
   .account-loyalty-card {
@@ -7296,11 +7612,11 @@
     @apply mb-4 flex flex-wrap items-end gap-3;
   }
 
-  .admin-csv-upload-btn {
+  .admin-file-upload-btn {
     @apply inline-flex cursor-pointer items-center rounded-heritage-pill border border-gold/20 px-3 py-2 text-sm text-ivory transition-colors hover:bg-white/20;
   }
 
-  .admin-csv-report {
+  .admin-import-report {
     @apply mb-4 rounded-heritage border border-copper/30 bg-copper/10 p-3 text-xs leading-relaxed text-ivory;
   }
 
@@ -7646,5 +7962,24 @@
   .order-receipt-line-thumb {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .admin-order-invoice-page {
+    max-width: none !important;
+  }
+
+  .admin-order-invoice-qr-block {
+    border-color: #ccc !important;
+    background: #f8f8f8 !important;
+  }
+
+  .admin-order-invoice-kv {
+    border-color: #ddd !important;
+    background: #fafafa !important;
+  }
+
+  .admin-order-invoice-code,
+  .admin-order-invoice-kv strong {
+    color: #1a1a1a !important;
   }
 }

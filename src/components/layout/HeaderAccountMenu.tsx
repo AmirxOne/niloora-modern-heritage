@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
   Gem,
@@ -17,9 +17,16 @@ import {
   User,
 } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
+import {
+  accountDisplayInitials,
+  hasAccountProfileName,
+  resolveAccountDisplayName,
+} from "@/lib/account/display-name";
+import { formatIranPhoneDisplay } from "@/lib/auth/phone";
 import { useApp } from "@/lib/context/AppContext";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { HeaderAccountMenuSkeleton } from "@/components/layout/HeaderAccountMenuSkeleton";
 
 type MenuItem = {
   href: string;
@@ -41,6 +48,33 @@ export function HeaderAccountMenu() {
   const menuId = useId();
 
   const close = useCallback(() => setOpen(false), []);
+
+  const profileName = useMemo(() => {
+    if (!auth.user) {
+      return {
+        displayName: "",
+        triggerLabel: fa.nav.myAccount,
+        hasProfileName: false,
+        initials: "؟",
+        phoneDisplay: "",
+      };
+    }
+    const input = {
+      firstName: auth.user.firstName,
+      lastName: auth.user.lastName,
+      name: auth.user.name,
+      phone: auth.user.phone,
+    };
+    const displayName = resolveAccountDisplayName(input);
+    const hasProfileName = hasAccountProfileName(input);
+    return {
+      displayName,
+      triggerLabel: hasProfileName ? displayName : fa.nav.myAccount,
+      hasProfileName,
+      initials: accountDisplayInitials(input),
+      phoneDisplay: formatIranPhoneDisplay(auth.user.phone),
+    };
+  }, [auth.user]);
 
   useEffect(() => {
     close();
@@ -65,15 +99,7 @@ export function HeaderAccountMenu() {
   }, [open, close]);
 
   if (!auth.sessionResolved) {
-    return (
-      <span
-        aria-hidden
-        className="header-auth-btn header-auth-btn--primary pointer-events-none opacity-0"
-      >
-        <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-        <span className="hidden sm:inline">{fa.nav.loginOrRegister}</span>
-      </span>
-    );
+    return <HeaderAccountMenuSkeleton />;
   }
 
   if (!auth.isLoggedIn) {
@@ -97,9 +123,24 @@ export function HeaderAccountMenu() {
           ...(auth.user?.role === "admin"
             ? [
                 {
+                  href: "/admin/users",
+                  label: fa.admin.users.navLabel,
+                  icon: <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/finance",
+                  label: fa.admin.finance.navLabel,
+                  icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
                   href: "/admin/orders",
                   label: fa.admin.orders.navLabel,
                   icon: <ShoppingCart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/returns",
+                  label: fa.admin.returns.navLabel,
+                  icon: <Recycle size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
                 },
                 {
                   href: "/admin/products",
@@ -133,6 +174,11 @@ export function HeaderAccountMenu() {
                 {
                   href: "/admin/home",
                   label: fa.admin.home.navLabel,
+                  icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+                },
+                {
+                  href: "/admin/settings",
+                  label: fa.admin.settings.navLabel,
                   icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
                 },
               ]
@@ -211,10 +257,21 @@ export function HeaderAccountMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls={menuId}
-        aria-label={open ? fa.nav.accountMenuClose : fa.nav.accountMenuOpen}
+        aria-label={
+          open
+            ? fa.nav.accountMenuClose
+            : profileName.hasProfileName
+              ? `${fa.nav.accountSection}: ${profileName.displayName}`
+              : fa.nav.accountMenuOpen
+        }
       >
         <User size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
-        <span className="header-account-menu-label hidden sm:inline">{fa.nav.myAccount}</span>
+        <span
+          className="header-account-menu-label hidden sm:inline"
+          title={profileName.hasProfileName ? profileName.displayName : undefined}
+        >
+          {profileName.triggerLabel}
+        </span>
         <ChevronDown
           size={iconSizes.sm}
           variant={ICON_VARIANT}
@@ -233,12 +290,14 @@ export function HeaderAccountMenu() {
           {auth.user ? (
             <Link href="/account" className="header-account-menu-user" onClick={close}>
               <span className="header-account-menu-avatar" aria-hidden>
-                {auth.user.name?.charAt(0) ?? "؟"}
+                {profileName.initials}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="header-account-menu-user-name">{auth.user.name}</p>
+                <p className="header-account-menu-user-name" title={profileName.displayName}>
+                  {profileName.displayName}
+                </p>
                 <p className="header-account-menu-user-email" dir="ltr">
-                  {auth.user.phone}
+                  {profileName.phoneDisplay}
                 </p>
               </div>
             </Link>

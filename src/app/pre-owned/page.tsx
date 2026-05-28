@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { fa } from "@/lib/i18n/fa";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { ProductCardSkeleton } from "@/components/shop/ProductCardSkeleton";
@@ -43,10 +44,12 @@ export default function PreOwnedPage() {
     <PageTransition>
       <div className="pre-owned-page min-h-screen pb-16 pt-24 md:pt-28">
         <div className="site-container">
-          <header className="pre-owned-page-header">
-            <span className="heritage-eyebrow">{fa.preOwned.eyebrow}</span>
-            <h1 className="pre-owned-page-title">{fa.preOwned.title}</h1>
-            <p className="pre-owned-page-subtitle">{fa.preOwned.subtitle}</p>
+          <PageHeader
+            eyebrow={fa.preOwned.eyebrow}
+            title={fa.preOwned.title}
+            subtitle={fa.preOwned.subtitle}
+            className="pre-owned-page-header"
+          >
             <div className="pre-owned-page-header-actions">
               <Link href="/shop?condition=pre-owned">
                 <Button>{fa.preOwned.browseCta}</Button>
@@ -55,7 +58,7 @@ export default function PreOwnedPage() {
                 <Button variant="outline">{fa.preOwned.sellCta}</Button>
               </Link>
             </div>
-          </header>
+          </PageHeader>
 
           <div className="pre-owned-landing-grid">
             <article className="pre-owned-landing-card">

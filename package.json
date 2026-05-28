@@ -12,11 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
-    "telegram:init-session": "tsx scripts/telegram-init-session.ts",
-    "telegram:sync": "tsx scripts/telegram-sync.ts incremental",
-    "telegram:sync:full": "tsx scripts/telegram-sync.ts full",
-    "telegram:listen": "tsx scripts/telegram-sync.ts listen"
+    "db:seed": "tsx prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -47,9 +43,9 @@
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
     "swiper": "^12.1.4",
-    "telegram": "^2.26.22",
     "three": "^0.184.0",
     "vaul": "^1.1.2",
+    "xlsx": "^0.18.5",
     "yup": "^1.7.1"
   },
   "devDependencies": {

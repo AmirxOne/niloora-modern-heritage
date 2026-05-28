@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminBackInStockAlert, BackInStockAlertStatus } from "@/lib/types";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminBackInStockAlerts() {
@@ -15,6 +16,7 @@ export function useAdminBackInStockAlerts() {
   const [search, setSearch] = useState("");
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadAlerts = useCallback(
     async (options?: { status?: "all" | BackInStockAlertStatus; q?: string }) => {
@@ -71,6 +73,7 @@ export function useAdminBackInStockAlerts() {
   );
 
   return {
+    allowed,
     isAdmin,
     alerts,
     isLoading,

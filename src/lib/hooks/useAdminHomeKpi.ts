@@ -3,12 +3,14 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
 import type { AdminHomeKpiDto } from "@/lib/types/home-content";
 
 export function useAdminHomeKpi() {
   const auth = useAuth();
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
   const [kpi, setKpi] = useState<AdminHomeKpiDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,6 +31,7 @@ export function useAdminHomeKpi() {
   }, [isAdmin]);
 
   return {
+    allowed,
     isAdmin,
     kpi,
     isLoading,

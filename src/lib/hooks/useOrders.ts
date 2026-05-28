@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { CheckoutShippingInput } from "@/lib/checkout/shipping";
 import type { CartItem, Order } from "../types";
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useAuth } from "./useAuth";
 import { useAppDispatch } from "../store/hooks";
 import { incrementProductSalesFromItems } from "../store/slices/productSalesSlice";
@@ -26,7 +27,7 @@ export function useOrders() {
     }
     setIsLoading(true);
     try {
-      const response = await fetch("/api/orders");
+      const response = await apiFetch("/api/orders");
       if (!response.ok) {
         toast.error("دریافت سفارش‌ها انجام نشد.");
         return;

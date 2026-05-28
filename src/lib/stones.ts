@@ -1,8 +1,8 @@
 import { pickSiteImageByKey } from "@/lib/images";
-import type { KnownStoneGuideId, StoneType } from "@/lib/types";
+import type { KnownStoneGuideId, Product, StoneType } from "@/lib/types";
 
 export interface StoneGuideProfile {
-  id: KnownStoneGuideId;
+  id: KnownStoneGuideId | `custom-${string}`;
   coreStone?: StoneType;
   slug: string;
   name: string;
@@ -435,6 +435,101 @@ const EXTRA_STONE_GUIDES: StoneGuideProfile[] = [
 ];
 
 const STONE_GUIDES: StoneGuideProfile[] = [...CORE_STONE_GUIDES, ...EXTRA_STONE_GUIDES];
+
+function normalizeFaText(input: string): string {
+  return input
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("fa-IR");
+}
+
+function slugifyFa(input: string): string {
+  const normalized = normalizeFaText(input).replace(/[^a-z0-9\u0600-\u06ff\s-]/gi, "").trim();
+  const slug = normalized.replace(/\s+/g, "-");
+  return slug || "stone";
+}
+
+function extractStoneTypeFromProductDetails(product: Product): string | null {
+  const line = (product.listing?.details ?? []).find((item) => /^نگین\s*:/.test(item.trim()));
+  if (!line) return null;
+  const value = line.replace(/^نگین\s*:\s*/, "").trim();
+  const firstPart = value.split("-")[0]?.trim();
+  return firstPart || null;
+}
+
+export function findStoneGuideByText(query: string): StoneGuideProfile | null {
+  const normalized = normalizeFaText(query);
+  if (!normalized) return null;
+  return (
+    STONE_GUIDES.find((stone) => normalizeFaText(stone.name) === normalized) ??
+    STONE_GUIDES.find((stone) => stone.searchTags.some((tag) => normalizeFaText(tag) === normalized)) ??
+    STONE_GUIDES.find(
+      (stone) =>
+        normalizeFaText(stone.name).includes(normalized) ||
+        stone.searchTags.some((tag) => normalizeFaText(tag).includes(normalized))
+    ) ??
+    null
+  );
+}
+
+function deriveCustomStoneGuide(name: string): StoneGuideProfile {
+  const clean = name.trim();
+  const slug = `catalog-${slugifyFa(clean)}`;
+  return {
+    id: `custom-${slug}`,
+    slug,
+    name: clean,
+    image: pickSiteImageByKey(slug),
+    shortTagline: `سنگ «${clean}» در کاتالوگ محصولات ثبت شده است.`,
+    scientificFamily: "نامشخص",
+    historicalOrigin: "اطلاعات تاریخچه در کاتالوگ محصول ثبت نشده است.",
+    firstMajorUsePeriod: "نامشخص",
+    culturalStory: `این سنگ در محصولات واقعی کاتالوگ مشاهده شده و نیاز به تکمیل دانشنامه اختصاصی دارد.`,
+    psychologicalEffects: ["اطلاعات اثر روان‌شناختی ثبت نشده است."],
+    spiritualNotes: ["اطلاعات معنوی ثبت نشده است."],
+    recommendedFor: ["با توجه به ویژگی‌های محصول، انتخاب شود."],
+    cautionNotes: ["پیش از خرید، مشخصات دقیق نگین از کارگاه استعلام شود."],
+    maintenanceTips: ["نگهداری با پارچه نرم و دوری از مواد شیمیایی قوی."],
+    colorHex: "#6B7280",
+    searchTags: [clean],
+  };
+}
+
+export function listStoneGuidesForCatalog(products: Product[]): StoneGuideProfile[] {
+  const bySlug = new Map(STONE_GUIDES.map((stone) => [stone.slug, stone]));
+
+  for (const product of products) {
+    const extracted = extractStoneTypeFromProductDetails(product);
+    if (!extracted) continue;
+    const existing = findStoneGuideByText(extracted);
+    if (existing) {
+      bySlug.set(existing.slug, existing);
+      continue;
+    }
+    const custom = deriveCustomStoneGuide(extracted);
+    bySlug.set(custom.slug, custom);
+  }
+
+  return Array.from(bySlug.values());
+}
+
+export function getStoneGuideBySlugForCatalog(
+  slug: string,
+  products: Product[]
+): StoneGuideProfile | null {
+  return listStoneGuidesForCatalog(products).find((stone) => stone.slug === slug) ?? null;
+}
+
+export function getStoneGuideForProduct(product: Product): StoneGuideProfile | null {
+  const fromDetails = extractStoneTypeFromProductDetails(product);
+  if (fromDetails) {
+    const byText = findStoneGuideByText(fromDetails);
+    if (byText) return byText;
+  }
+  return getStoneGuideById(product.stone);
+}
 
 export function listStoneGuides(): StoneGuideProfile[] {
   return STONE_GUIDES;

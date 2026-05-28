@@ -11,6 +11,7 @@ import { TextAreaBox, TextBox } from "@/components/inputs";
 import { Badge } from "@/components/ui/Badge";
 import { AdminMediaPicker } from "@/components/admin/AdminMediaPicker";
 import { AdminHomeKpiPanel } from "@/components/admin/AdminHomeKpiPanel";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminHomeContentPanel() {
   const admin = useAdminHomeContent();
@@ -47,13 +48,7 @@ export function AdminHomeContentPanel() {
     if (admin.banner) setBannerForm(admin.banner);
   }, [admin.banner]);
 
-  if (!admin.isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!admin.allowed) return null;
 
   const resetTestimonialForm = () => {
     setTestimonialForm({
@@ -85,7 +80,7 @@ export function AdminHomeContentPanel() {
       </div>
 
       {admin.isLoading && !bannerForm ? (
-        <p className="text-silver">{fa.admin.home.loading}</p>
+        <LoadingState variant="admin-form" />
       ) : null}
 
       {/* Banner */}

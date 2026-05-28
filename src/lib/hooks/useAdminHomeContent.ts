@@ -9,11 +9,13 @@ import type {
   HomeTestimonialDto,
 } from "@/lib/types/home-content";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminHomeContent() {
   const auth = useAuth();
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const [banner, setBanner] = useState<HomeBannerDto | null>(null);
   const [sliderItems, setSliderItems] = useState<HomeSliderItemDto[]>([]);
@@ -255,6 +257,7 @@ export function useAdminHomeContent() {
   );
 
   return {
+    allowed,
     isAdmin,
     banner,
     sliderItems,

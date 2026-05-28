@@ -29,7 +29,7 @@ export const LOYALTY_TIER_CONFIG: Record<LoyaltyTier, LoyaltyTierConfig> = {
     minLifetimeSpend: 25_000_000,
     checkoutDiscountPercent: 2,
     pointsPer100kToman: 2,
-    perks: ["۲٪ تخفیف باشگاه در checkout", "شتاب امتیاز ۲x"],
+    perks: ["۲٪ تخفیف باشگاه در تسویه حساب", "شتاب امتیاز ۲x"],
   },
   gold: {
     minLifetimeSpend: 80_000_000,

@@ -35,6 +35,7 @@ model User {
   favoriteStyle String?
   favoriteBudgetBand String?
   role          String               @default("user")
+  blocked       Boolean              @default(false)
   memberSince   DateTime             @default(now())
   tier          String?
   sessions      Session[]
@@ -45,6 +46,7 @@ model User {
   priceDropUnsubscribeTokens PriceDropUnsubscribeToken[]
   orders                 Order[]
   supportRequests        SupportRequest[]
+  orderReturns           OrderReturn[]
   customizerQuoteRequests CustomizerQuoteRequest[]
   comments               ProductComment[]
   productQuestions       ProductQuestion[]
@@ -55,6 +57,7 @@ model User {
   referralInvitesSent    ReferralInvite[]   @relation("ReferralInviter")
   referralInviteReceived ReferralInvite[]   @relation("ReferralInvitee")
   purchasedGiftCards     GiftCard[]         @relation("GiftCardPurchaser")
+  campaignUsages         DiscountCampaignUsage[]
   preferences   UserPreference?
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
@@ -342,11 +345,63 @@ model Order {
   maintenanceReminders MaintenanceReminder[]
   ugcMedia         ProductUgcMedia[]
   supportRequests  SupportRequest[]
+  returns          OrderReturn[]
   giftCardTransactions GiftCardTransaction[]
   purchasedGiftCard GiftCard?
+  campaignId             String?
+  campaignDiscountAmount Int?
+  campaign               DiscountCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  campaignUsages         DiscountCampaignUsage[]
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([campaignId])
+}
+
+model OrderReturn {
+  id               String   @id @default(cuid())
+  orderId          String
+  userId           String?
+  reason           String
+  reasonDetail     String?
+  status           String   @default("requested")
+  refundableAmount Int      @default(0)
+  internalNotes    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items            OrderReturnItem[]
+  statusHistory    OrderReturnStatusHistory[]
+
+  @@index([orderId, createdAt])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+}
+
+model OrderReturnItem {
+  id          String      @id @default(cuid())
+  returnId    String
+  orderItemId String
+  quantity    Int
+  return      OrderReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItem   OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@unique([returnId, orderItemId])
+  @@index([orderItemId])
+}
+
+model OrderReturnStatusHistory {
+  id          String      @id @default(cuid())
+  returnId    String
+  fromStatus  String?
+  toStatus    String
+  note        String?
+  changedById String?
+  createdAt   DateTime    @default(now())
+  return      OrderReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+
+  @@index([returnId, createdAt])
 }
 
 model GiftCard {
@@ -541,6 +596,7 @@ model OrderItem {
   customizerState Json?
   order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  returnItems     OrderReturnItem[]
 
   @@index([orderId])
   @@index([productId])
@@ -616,8 +672,61 @@ model PromoCode {
   aliases          Json     @default("[]")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  linkedCampaigns  DiscountCampaign[]
 
   @@index([active, code])
+}
+
+model DiscountCampaign {
+  id                    String   @id @default(cuid())
+  slug                  String   @unique
+  title                 String
+  description           String?
+  discountType          String
+  discountValue         Int
+  minSubtotal           Int      @default(0)
+  targetScope           String   @default("all")
+  targetProductIds      Json     @default("[]")
+  targetCollectionIds   Json     @default("[]")
+  startsAt              DateTime?
+  endsAt                DateTime?
+  active                Boolean  @default(true)
+  priority              Int      @default(0)
+  replacesSiteWide      Boolean  @default(false)
+  linkedPromoCodeId     String?
+  bannerEnabled         Boolean  @default(false)
+  bannerBadge           String?
+  bannerTitle           String?
+  bannerSubtitle        String?
+  bannerCtaLabel        String?
+  bannerCtaHref         String?
+  bannerImageUrl        String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  linkedPromoCode       PromoCode? @relation(fields: [linkedPromoCodeId], references: [id], onDelete: SetNull)
+  orders                Order[]
+  usages                DiscountCampaignUsage[]
+
+  @@index([active, startsAt, endsAt])
+  @@index([slug])
+  @@index([linkedPromoCodeId])
+}
+
+model DiscountCampaignUsage {
+  id             String           @id @default(cuid())
+  campaignId     String
+  orderId        String
+  userId         String?
+  discountAmount Int
+  orderSubtotal  Int?
+  createdAt      DateTime         @default(now())
+  campaign       DiscountCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  order          Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([orderId, campaignId])
+  @@index([campaignId, createdAt])
+  @@index([userId, createdAt])
 }
 
 model TradeInSubmission {
@@ -701,6 +810,33 @@ model HomeInstagramPost {
   updatedAt DateTime @updatedAt
 }
 
+model SiteSettings {
+  id                     String   @id @default("default")
+  brandName              String
+  brandTagline           String
+  shortDescription       String?
+  logoUrl                String?
+  contactPhone           String?
+  contactPhoneSecondary  String?
+  socialInstagram        String?
+  socialBale             String?
+  socialEita             String?
+  socialTelegram         String?
+  socialWhatsapp         String?
+  socialTwitter          String?
+  socialYoutube          String?
+  seoTitle               String?
+  seoDescription         String?
+  seoOgImageUrl          String?
+  paymentGatewayEnabled  Boolean  @default(true)
+  paymentProvider        String   @default("zarinpal")
+  zarinpalMerchantId     String?
+  zarinpalSandbox        Boolean  @default(true)
+  smsEnabled             Boolean  @default(true)
+  smsProvider            String   @default("kavenegar")
+  updatedAt              DateTime @updatedAt
+}
+
 model UserPreference {
   userId             String   @id
   cartItems          Json?
@@ -727,33 +863,4 @@ model PriceDropUnsubscribeToken {
 
   @@unique([userId, channel, contact])
   @@index([userId, active])
-}
-
-model TelegramProduct {
-  id                String   @id @default(cuid())
-  title             String?
-  description       String   @default("")
-  tags              Json
-  attributes        Json
-  images            Json
-  telegramMessageId Int
-  telegramDate      DateTime
-  sourceChannel     String
-  rawText           String?
-  hasMedia          Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@unique([sourceChannel, telegramMessageId])
-  @@index([sourceChannel, telegramDate])
-}
-
-model TelegramSyncState {
-  channel         String   @id
-  lastMessageId   Int      @default(0)
-  lastSyncedAt    DateTime?
-  listenerEnabled Boolean  @default(false)
-  lastError       String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 }

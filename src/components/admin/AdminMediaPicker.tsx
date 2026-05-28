@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { SelectBox } from "@/components/inputs";
 import { ADMIN_MEDIA_CATEGORIES, type AdminMediaCategory } from "@/lib/media/categories";
 import { useAdminMedia } from "@/lib/hooks/useAdminMedia";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 type AdminMediaPickerProps = {
   category: AdminMediaCategory;
@@ -58,7 +59,7 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
               options={options}
               onValueChange={(v) => setActiveCategory(v as AdminMediaCategory)}
             />
-            <label className="admin-csv-upload-btn">
+            <label className="admin-file-upload-btn">
               آپلود فایل
               <input
                 type="file"
@@ -76,7 +77,7 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
           </div>
 
           {media.isLoading ? (
-            <p className="text-xs text-silver">در حال بارگذاری رسانه‌ها…</p>
+            <LoadingState variant="media-grid" count={8} className="py-4" />
           ) : (
             <div className="admin-media-grid">
               {media.assets.map((asset) => {

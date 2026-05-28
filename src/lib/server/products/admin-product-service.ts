@@ -63,7 +63,7 @@ function productUpdateDataFromPayload(data: AdminProductPayload): Prisma.Product
     stock: data.stock,
     featured: data.featured,
     bestseller: data.bestseller,
-    collectionId: data.collectionId,
+    collection: data.collectionId ? { connect: { id: data.collectionId } } : { disconnect: true },
   };
   if (data.discountEndsAt !== undefined) {
     updateData.discountEndsAt = toDiscountEndsAt(data.discountEndsAt);

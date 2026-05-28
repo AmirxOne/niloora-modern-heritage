@@ -10,6 +10,7 @@ import { selectAppliedPromo, selectAppliedPromoCode } from "../store/slices/prom
 import { selectGiftCardApplied } from "../store/slices/giftCardSlice";
 import { selectAuthUser } from "../store/slices/authSlice";
 import type { BundleOfferDefinition } from "@/lib/types";
+import type { PublicCampaignDto } from "@/lib/types/campaign";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useCartPricing() {
@@ -20,11 +21,18 @@ export function useCartPricing() {
   const authUser = useAppSelector(selectAuthUser);
   const { siteWideForPricing } = useSiteBanner();
   const [bundles, setBundles] = useState<BundleOfferDefinition[]>([]);
+  const [campaigns, setCampaigns] = useState<PublicCampaignDto[]>([]);
 
   useEffect(() => {
     fetch("/api/bundles/active")
       .then((response) => (response.ok ? parseJsonResponse<{ bundles: BundleOfferDefinition[] }>(response) : null))
       .then((data) => setBundles(data?.bundles ?? []))
+      .catch(() => undefined);
+    fetch("/api/campaigns/active")
+      .then((response) =>
+        response.ok ? parseJsonResponse<{ campaigns: PublicCampaignDto[] }>(response) : null
+      )
+      .then((data) => setCampaigns(data?.campaigns ?? []))
       .catch(() => undefined);
   }, []);
 
@@ -35,7 +43,7 @@ export function useCartPricing() {
         appliedAmount: giftCard?.appliedAmount ?? null,
       }, {
         tier: authUser?.loyaltyTier ?? undefined,
-      }),
-    [items, appliedPromo, appliedPromoCode, siteWideForPricing, bundles, giftCard, authUser?.loyaltyTier]
+      }, campaigns),
+    [items, appliedPromo, appliedPromoCode, siteWideForPricing, bundles, giftCard, authUser?.loyaltyTier, campaigns]
   );
 }

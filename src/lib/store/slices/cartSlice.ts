@@ -59,18 +59,22 @@ const cartSlice = createSlice({
         listPrice?: number;
         image: string;
         availability: ProductAvailability;
+        collectionId?: string;
       }>
     ) {
-      const { productId, name, price, listPrice, image, availability } = action.payload;
+      const { productId, name, price, listPrice, image, availability, collectionId } =
+        action.payload;
       const existing = state.items.find((i) => i.productId === productId && !i.customizerState);
       if (existing) {
         existing.quantity += 1;
         existing.price = price;
         if (listPrice != null) existing.listPrice = listPrice;
+        if (collectionId != null) existing.collectionId = collectionId;
       } else {
         state.items.push({
           id: generateId(),
           productId,
+          collectionId,
           name,
           price,
           listPrice,

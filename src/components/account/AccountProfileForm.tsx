@@ -53,7 +53,7 @@ function ProfileFieldGroup({
           {description ? <span className="account-profile-group-desc">{description}</span> : null}
         </span>
       </legend>
-      <div className="account-profile-fields">{children}</div>
+      <div className="account-profile-fields [&_.field-control]:w-full">{children}</div>
     </fieldset>
   );
 }

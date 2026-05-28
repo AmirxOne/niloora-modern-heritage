@@ -5,6 +5,7 @@ import { fa } from "@/lib/i18n/fa";
 import { formatTomanAmount } from "@/lib/utils";
 import { useAdminHomeKpi } from "@/lib/hooks/useAdminHomeKpi";
 import { Button } from "@/components/ui/Button";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 type PeriodKey = "daily" | "weekly" | "monthly";
 
@@ -46,7 +47,7 @@ function KpiMetric({
 
 export function AdminHomeKpiPanel() {
   const kpi = useAdminHomeKpi();
-  const { isAdmin, load, isLoading } = kpi;
+  const { allowed, isAdmin, load, isLoading } = kpi;
   const [period, setPeriod] = useState<PeriodKey>("daily");
 
   useEffect(() => {
@@ -60,9 +61,7 @@ export function AdminHomeKpiPanel() {
     return kpi.kpi.dailySales;
   }, [kpi.kpi, period]);
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!allowed) return null;
 
   return (
     <section className="admin-kpi-panel">
@@ -77,7 +76,7 @@ export function AdminHomeKpiPanel() {
       </div>
 
       {!kpi.kpi ? (
-        <p className="text-sm text-silver">{fa.admin.home.kpi.loading}</p>
+        <LoadingState variant="admin-metrics" />
       ) : (
         <>
           <div className="admin-kpi-metrics-grid">

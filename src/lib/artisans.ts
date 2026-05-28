@@ -34,11 +34,13 @@ export interface ProductArtisanLink {
   artisan: ArtisanProfile;
 }
 
-const ARTISAN_ROLE_LABELS: Record<ArtisanRole, string> = {
-  "shank-designer": "طراح رکاب",
-  "carving-master": "استاد قلم‌کاری",
-  "band-engraver": "خوشنویس رکاب",
-  "stone-engraver": "حکاکی نگین",
+type DerivedArtisanRole = "shank-designer" | "band-engraver";
+
+export const ARTISAN_ROLE_LABELS: Record<ArtisanRole, string> = {
+  "shank-designer": "استادان و طراحان ساخت رکاب",
+  "carving-master": "استادان طراحی و قلم‌کاری روی رکاب",
+  "band-engraver": "استادان حکاکی و خوشنویسی روی رکاب",
+  "stone-engraver": "استادان طراحی و حکاکی روی سنگ",
 };
 
 function slugify(input: string): string {
@@ -50,6 +52,13 @@ function slugify(input: string): string {
     .replace(/-+/g, "-");
 }
 
+function slugifyFa(input: string): string {
+  const latin = slugify(input);
+  if (latin) return latin;
+  const normalized = normalizeFaText(input).replace(/\s+/g, "-");
+  return normalized ? `artisan-${normalized}` : "artisan-unknown";
+}
+
 function fromShankMaster(masterId: ShankMasterId): ArtisanProfile | null {
   const m = getShankMaster(masterId);
   if (!m) return null;
@@ -59,12 +68,12 @@ function fromShankMaster(masterId: ShankMasterId): ArtisanProfile | null {
     slug,
     name: m.name,
     title: m.title,
-    specialty: "طراحی رکاب و ساخت بدنه انگشتر",
+    specialty: "طراحی، ساخت و پرداخت بدنه رکاب",
     bio: m.description,
     image: m.image || pickSiteImageByKey(slug),
     yearsExperience: m.id === "ebrahim-azari" ? 28 : m.id === "tehrani-azari" ? 19 : 24,
     location: "تهران، کارگاه نیلورا",
-    roleTags: ["طراحی رکاب", "ساخت دستی", "پرداخت فلز"],
+    roleTags: ["طراحی رکاب", "ساخت رکاب", "پرداخت فلز"],
     primaryRole: "shank-designer",
     legacyMasterId: m.id,
   };
@@ -79,7 +88,10 @@ function fromEngraver(masterId: EngravingMasterId): ArtisanProfile | null {
     slug,
     name: m.name,
     title: m.specialty,
-    specialty: m.scope === "stone" ? "حکاکی و خوشنویسی روی نگین" : "قلم‌زنی و خوشنویسی روی رکاب",
+    specialty:
+      m.scope === "stone"
+        ? "طراحی، حکاکی و خوشنویسی روی سنگ"
+        : "طراحی، قلم‌کاری و خوشنویسی روی رکاب",
     bio: m.description,
     image: m.image || pickSiteImageByKey(slug, 1),
     yearsExperience:
@@ -87,8 +99,8 @@ function fromEngraver(masterId: EngravingMasterId): ArtisanProfile | null {
     location: "کارگاه‌های همکار نیلورا",
     roleTags:
       m.scope === "stone"
-        ? ["حکاکی نگین", "خط سنتی", "جزئیات میکرونی"]
-        : ["قلم‌کاری رکاب", "خوشنویسی", "نقش برجسته"],
+        ? ["طراحی روی سنگ", "حکاکی سنگ", "خط سنتی"]
+        : ["طراحی روی رکاب", "قلم‌کاری رکاب", "خوشنویسی رکاب"],
     primaryRole: m.scope === "stone" ? "stone-engraver" : "band-engraver",
     legacyMasterId: m.id,
   };
@@ -137,6 +149,74 @@ export function getArtisanByName(name: string): ArtisanProfile | null {
   );
 }
 
+function deriveArtisanProfile(name: string, role: DerivedArtisanRole): ArtisanProfile {
+  return {
+    id: `artisan-derived-${slugifyFa(name)}`,
+    slug: slugifyFa(name),
+    name,
+    title: role === "shank-designer" ? "طراح ساخت رکاب" : "استاد حکاکی روی رکاب",
+    specialty: role === "shank-designer" ? "ساخت، فرم‌دهی و پرداخت رکاب" : "حکاکی و خوشنویسی روی رکاب",
+    bio:
+      role === "shank-designer"
+        ? `«${name}» در محصولات کاتالوگ به‌عنوان سازنده و طراح رکاب معرفی شده است.`
+        : `«${name}» در محصولات کاتالوگ به‌عنوان استاد حکاکی رکاب معرفی شده است.`,
+    image: pickSiteImageByKey(slugifyFa(name)),
+    yearsExperience: 12,
+    location: "کارگاه همکار",
+    roleTags: role === "shank-designer" ? ["ساخت رکاب", "طراحی رکاب"] : ["حکاکی رکاب", "خوشنویسی رکاب"],
+    primaryRole: role,
+  };
+}
+
+function extractArtisanNamesFromDetails(product: Product): Array<{ name: string; role: DerivedArtisanRole }> {
+  const details = product.listing?.details ?? [];
+  const rows: Array<{ name: string; role: DerivedArtisanRole }> = [];
+
+  for (const detail of details) {
+    const line = detail.trim();
+    const shankMatch = line.match(/^رکاب\s*:\s*(.+)$/);
+    if (shankMatch) {
+      const name = shankMatch[1]?.trim();
+      if (name) rows.push({ name, role: "shank-designer" });
+    }
+    const engraverMatch = line.match(/^حکاک\s*:\s*(.+)$/);
+    if (engraverMatch) {
+      const name = engraverMatch[1]?.trim();
+      if (name) rows.push({ name, role: "band-engraver" });
+    }
+  }
+
+  if (product.craftedBy?.trim()) {
+    rows.push({ name: product.craftedBy.trim(), role: "shank-designer" });
+  }
+
+  return rows;
+}
+
+export function listArtisansForCatalog(products: Product[]): ArtisanProfile[] {
+  const base = listAllArtisans();
+  const bySlug = new Map(base.map((artisan) => [artisan.slug, artisan]));
+
+  for (const product of products) {
+    const extracted = extractArtisanNamesFromDetails(product);
+    for (const item of extracted) {
+      const existing = getArtisanByName(item.name);
+      if (existing) {
+        bySlug.set(existing.slug, existing);
+        continue;
+      }
+      const derived = deriveArtisanProfile(item.name, item.role);
+      bySlug.set(derived.slug, derived);
+    }
+  }
+
+  return Array.from(bySlug.values()).sort((a, b) => a.name.localeCompare(b.name, "fa"));
+}
+
+export function getArtisanBySlugForCatalog(slug: string, products: Product[]): ArtisanProfile | null {
+  return listArtisansForCatalog(products).find((artisan) => artisan.slug === slug) ?? null;
+}
+
 export function getProductArtisanLinks(product: Product): ProductArtisanLink[] {
   const links: ProductArtisanLink[] = [];
   const assignments = product.artisanAssignments;
@@ -159,6 +239,15 @@ export function getProductArtisanLinks(product: Product): ProductArtisanLink[] {
       });
     }
   }
+  if (!shankDesignerId && product.craftedBy?.trim()) {
+    const existing = getArtisanByName(product.craftedBy.trim());
+    const artisan = existing ?? deriveArtisanProfile(product.craftedBy.trim(), "shank-designer");
+    links.push({
+      role: "shank-designer",
+      roleLabel: ARTISAN_ROLE_LABELS["shank-designer"],
+      artisan,
+    });
+  }
 
   const carvingId = assignments?.carvingMasterId;
   if (carvingId) {
@@ -176,6 +265,19 @@ export function getProductArtisanLinks(product: Product): ProductArtisanLink[] {
   if (bandEngraverId) {
     const artisan = fromEngraver(bandEngraverId);
     if (artisan) {
+      links.push({
+        role: "band-engraver",
+        roleLabel: ARTISAN_ROLE_LABELS["band-engraver"],
+        artisan,
+      });
+    }
+  }
+  if (!bandEngraverId) {
+    const engraverLine = (product.listing?.details ?? []).find((line) => /^حکاک\s*:/.test(line.trim()));
+    const engraverName = engraverLine?.replace(/^حکاک\s*:\s*/, "").trim();
+    if (engraverName) {
+      const existing = getArtisanByName(engraverName);
+      const artisan = existing ?? deriveArtisanProfile(engraverName, "band-engraver");
       links.push({
         role: "band-engraver",
         roleLabel: ARTISAN_ROLE_LABELS["band-engraver"],

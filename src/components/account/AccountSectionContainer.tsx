@@ -8,25 +8,34 @@ export function AccountSectionContainer({
   children,
   className,
   headerAction,
+  bodyVariant = "panel",
 }: {
   title?: string;
   subtitle?: string;
   children: React.ReactNode;
   className?: string;
   headerAction?: React.ReactNode;
+  /** flush: بدون قاب اضافه — برای لیست سفارش/پیشنهاد که خودشان کارت دارند */
+  bodyVariant?: "panel" | "flush";
 }) {
   return (
     <section className={cn("account-section", className)}>
       {title ? (
         <header className="account-section-header">
-          <div className="min-w-0">
+          <div className="account-section-header-copy">
             <h2 className="account-section-title">{title}</h2>
             {subtitle ? <p className="account-section-subtitle">{subtitle}</p> : null}
           </div>
-          {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
+          {headerAction ? <div className="account-section-header-action">{headerAction}</div> : null}
         </header>
       ) : null}
-      <div className="account-section-body">{children}</div>
+      <div
+        className={cn(
+          bodyVariant === "flush" ? "account-section-body--flush" : "account-section-body"
+        )}
+      >
+        {children}
+      </div>
     </section>
   );
 }

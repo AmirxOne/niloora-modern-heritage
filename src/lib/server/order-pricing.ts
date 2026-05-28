@@ -3,6 +3,7 @@ import { resolveCartLine } from "@/lib/server/orders/resolve-cart-line";
 import type { CartItem } from "@/lib/types";
 import { prisma } from "@/lib/server/prisma";
 import { validateCartPurchase } from "@/lib/server/products/validate-cart-purchase";
+import { calcCampaignForCheckout } from "@/lib/server/campaigns/discount-campaign-service";
 import { calcPromoFromCode } from "@/lib/server/promo/promo-code-service";
 import { listActiveBundleOffers } from "@/lib/server/bundle/bundle-offer-service";
 import { calculateAppliedBundles, totalBundleDiscount } from "@/lib/bundle/pricing";
@@ -24,6 +25,10 @@ export type PricedOrder = {
   loyaltyTier: import("@/lib/types").LoyaltyTier;
   loyaltyDiscountAmount: number;
   loyaltyPointsEarned: number;
+  campaignId: string | null;
+  campaignSlug: string | null;
+  campaignTitle: string | null;
+  campaignDiscountAmount: number;
 };
 
 /**
@@ -49,6 +54,10 @@ export async function repriceOrderItems(
       loyaltyTier: "bronze",
       loyaltyDiscountAmount: 0,
       loyaltyPointsEarned: 0,
+      campaignId: null,
+      campaignSlug: null,
+      campaignTitle: null,
+      campaignDiscountAmount: 0,
     };
   }
 
@@ -69,6 +78,7 @@ export async function repriceOrderItems(
           discountPercent: true,
           image: true,
           availability: true,
+          collectionId: true,
         },
       })
     : [];
@@ -92,6 +102,20 @@ export async function repriceOrderItems(
   const productFurooh = subtotalList - subtotalSale;
 
   const promo = await calcPromoFromCode(subtotalSale, promoCode);
+  const campaignLines = items.map((item) => {
+    const product = item.productId ? byId.get(item.productId) : undefined;
+    return {
+      productId: item.productId ?? null,
+      collectionId: product && "collectionId" in product ? product.collectionId : null,
+      price: item.price,
+      quantity: item.quantity,
+    };
+  });
+  const campaign = await calcCampaignForCheckout(
+    campaignLines,
+    subtotalSale,
+    promo.normalizedCode
+  );
   const siteWideDiscount = await getSiteWideDiscountConfig();
   const bundles = await listActiveBundleOffers();
 
@@ -99,14 +123,15 @@ export async function repriceOrderItems(
   if (
     siteWideDiscount.enabled &&
     siteWideDiscount.percent > 0 &&
-    !promo.replacesSiteWide
+    !promo.replacesSiteWide &&
+    !campaign.replacesSiteWide
   ) {
     siteWide = Math.round(
-      (subtotalSale - promo.amount) * (siteWideDiscount.percent / 100)
+      (subtotalSale - promo.amount - campaign.amount) * (siteWideDiscount.percent / 100)
     );
   }
 
-  const checkoutFurooh = promo.amount + siteWide;
+  const checkoutFurooh = promo.amount + siteWide + campaign.amount;
   const appliedBundles = calculateAppliedBundles(items, bundles);
   const bundleDiscount = totalBundleDiscount(appliedBundles);
   const loyaltyTier = normalizeLoyaltyTier(input?.loyaltyTier);
@@ -132,5 +157,9 @@ export async function repriceOrderItems(
       title: item.bundle.title,
       amount: item.amount,
     })),
+    campaignId: campaign.campaignId,
+    campaignSlug: campaign.campaignSlug,
+    campaignTitle: campaign.campaignTitle,
+    campaignDiscountAmount: campaign.amount,
   };
 }

@@ -14,6 +14,7 @@ import {
   selectDesignsHydrated,
   setDesignsFromServer,
 } from "@/lib/store/slices/designsSlice";
+import { apiFetch } from "@/lib/api/client-fetch";
 import { clearPromoCode, setPromoFromServer, setAppliedPromo } from "@/lib/store/slices/promoSlice";
 import type { PromoCodeDefinition } from "@/lib/types";
 
@@ -48,7 +49,7 @@ export function useUserPreferencesSync(isLoggedIn: boolean) {
 
     let cancelled = false;
     async function sync() {
-      const response = await fetch("/api/user/preferences");
+      const response = await apiFetch("/api/user/preferences");
       if (!response.ok || cancelled) return;
 
       const data = (await response.json()) as PreferencesResponse;

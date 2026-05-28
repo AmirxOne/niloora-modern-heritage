@@ -7,6 +7,11 @@ export type SiteWideDiscountInput = {
   enabled: boolean;
   percent: number;
 };
+import {
+  pickBestCampaignForCart,
+  type CampaignLineInput,
+} from "@/lib/campaign/campaign-discount";
+import type { PublicCampaignDto } from "@/lib/types/campaign";
 import { calcPromoDiscountAmount } from "@/lib/promo-utils";
 
 export {
@@ -39,6 +44,8 @@ export interface CartPricingBreakdown {
   productFurooh: number;
   siteWideFurooh: number;
   promoFurooh: number;
+  campaignFurooh: number;
+  appliedCampaign: PublicCampaignDto | null;
   checkoutFurooh: number;
   totalFurooh: number;
   payable: number;
@@ -84,7 +91,8 @@ export function calculateCartPricing(
   siteWide: SiteWideDiscountInput = SITE_WIDE_DISCOUNT,
   bundles: BundleOfferDefinition[] = [],
   giftCardInput?: { code: string | null; appliedAmount: number | null },
-  loyaltyInput?: { tier?: import("@/lib/types").LoyaltyTier | null }
+  loyaltyInput?: { tier?: import("@/lib/types").LoyaltyTier | null },
+  campaigns: PublicCampaignDto[] = []
 ): CartPricingBreakdown {
   const lines: CartLinePricing[] = items.map((item) => {
     const unitListPrice = item.listPrice ?? item.price;
@@ -113,14 +121,35 @@ export function calculateCartPricing(
 
   if (promoValid) {
     promoFurooh = calcPromoDiscountAmount(subtotalSale, promoValid);
-    if (!promoValid.replacesSiteWide && siteWide.enabled) {
-      siteWideFurooh = Math.round((subtotalSale - promoFurooh) * (siteWide.percent / 100));
-    }
-  } else if (siteWide.enabled && siteWide.percent > 0) {
-    siteWideFurooh = Math.round(subtotalSale * (siteWide.percent / 100));
   }
 
-  const checkoutFurooh = siteWideFurooh + promoFurooh;
+  const campaignLines: CampaignLineInput[] = items.map((item) => ({
+    productId: item.productId ?? null,
+    collectionId: item.collectionId ?? null,
+    price: item.price,
+    quantity: item.quantity,
+  }));
+  const campaignPick = pickBestCampaignForCart(
+    campaigns,
+    campaignLines,
+    subtotalSale,
+    appliedPromoCode
+  );
+  const campaignFurooh = campaignPick?.amount ?? 0;
+  const appliedCampaign = campaignPick
+    ? (campaigns.find((c) => c.id === campaignPick.campaign.id) ?? null)
+    : null;
+  const campaignReplacesSiteWide = campaignPick?.campaign.replacesSiteWide ?? false;
+
+  if (campaignReplacesSiteWide) {
+    siteWideFurooh = 0;
+  } else if (siteWide.enabled && siteWide.percent > 0 && !promoValid?.replacesSiteWide) {
+    siteWideFurooh = Math.round(
+      (subtotalSale - promoFurooh - campaignFurooh) * (siteWide.percent / 100)
+    );
+  }
+
+  const checkoutFurooh = siteWideFurooh + promoFurooh + campaignFurooh;
   const appliedBundles = calculateAppliedBundles(items, bundles);
   const bundleFurooh = totalBundleDiscount(appliedBundles);
   const loyaltyTier = normalizeLoyaltyTier(loyaltyInput?.tier);
@@ -140,6 +169,8 @@ export function calculateCartPricing(
     productFurooh,
     siteWideFurooh,
     promoFurooh,
+    campaignFurooh,
+    appliedCampaign,
     checkoutFurooh,
     totalFurooh,
     payable,
@@ -148,7 +179,8 @@ export function calculateCartPricing(
     loyaltyTier,
     loyaltyDiscountPercent,
     appliedBundles,
-    siteWideActive: siteWide.enabled && !promoValid?.replacesSiteWide,
+    siteWideActive:
+      siteWide.enabled && !promoValid?.replacesSiteWide && !campaignReplacesSiteWide,
     siteWidePercent: siteWide.percent,
     appliedPromo: promoValid,
     promoCodeInput: appliedPromoCode,

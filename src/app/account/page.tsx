@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   accountSectionHref,
+  isAccountAdminSectionId,
   parseAccountSection,
-  type AccountSectionId,
+  type AccountNavSectionId,
 } from "@/lib/account/sections";
+import { AccountAdminSectionContent } from "@/components/account/AccountAdminSectionContent";
 import { Compare, Heart, History, PenTool } from "@/components/icons";
 import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -21,7 +23,7 @@ import { useCatalogProducts } from "@/lib/hooks/useCatalogProducts";
 import { useAccount } from "@/lib/hooks/useAccount";
 import { AccountShell } from "@/components/account/AccountShell";
 import { AccountSidebarCard } from "@/components/account/AccountSidebarCard";
-import { AccountNavMenu, type AccountNavItem } from "@/components/account/AccountNavMenu";
+import { AccountNavMenu, type AccountNavGroup, type AccountNavItem } from "@/components/account/AccountNavMenu";
 import { AccountProfileForm } from "@/components/account/AccountProfileForm";
 import { AccountSectionContainer } from "@/components/account/AccountSectionContainer";
 import { AccountOverviewPanel } from "@/components/account/AccountOverviewPanel";
@@ -31,13 +33,12 @@ import { AccountReferralPanel } from "@/components/account/AccountReferralPanel"
 import { AccountUgcPanel } from "@/components/account/AccountUgcPanel";
 
 export default function AccountPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { auth, orders, quoteRequests, wishlist, compareList, recentlyViewed, designs, comments } =
     useApp();
   const account = useAccount();
-  const { products } = useCatalogProducts();
-  const [activeSection, setActiveSection] = useState<AccountSectionId>("overview");
+  const { products, isLoading: catalogLoading } = useCatalogProducts();
+  const [activeSection, setActiveSection] = useState<AccountNavSectionId>("overview");
 
   const applySectionFromUrl = useCallback(() => {
     const section = parseAccountSection(
@@ -61,6 +62,10 @@ export default function AccountPage() {
   const wishlistedProducts = products.filter((p) => wishlist.isWishlisted(p.id));
   const compareProducts = useProductsByIds(compareList.ids);
   const recentlyViewedProducts = useProductsByIds(recentlyViewed.ids);
+  const recentlyViewedBadge = catalogLoading
+    ? recentlyViewed.ids.length
+    : recentlyViewedProducts.length;
+  const compareBadge = catalogLoading ? compareList.count : compareProducts.length;
   const activeUser = account.user ?? auth.user;
   const memberSince =
     activeUser?.memberSince
@@ -68,49 +73,14 @@ export default function AccountPage() {
       : "—";
 
   const navigate = (id: string) => {
-    if (id === "admin-orders") {
-      router.push("/admin/orders");
-      return;
-    }
-    if (id === "admin-products") {
-      router.push("/admin/products");
-      return;
-    }
-    if (id === "admin-trade-in") {
-      router.push("/admin/trade-in");
-      return;
-    }
-    if (id === "admin-promo-codes") {
-      router.push("/admin/promo-codes");
-      return;
-    }
-    if (id === "admin-home") {
-      router.push("/admin/home");
-      return;
-    }
-    if (id === "admin-posts") {
-      router.push("/admin/posts");
-      return;
-    }
-    if (id === "admin-gift-cards") {
-      router.push("/admin/gift-cards");
-      return;
-    }
-    if (id === "admin-moderation") {
-      router.push("/admin/moderation");
-      return;
-    }
-    if (id === "admin-customizer-quotes") {
-      router.push("/admin/customizer-quotes");
-      return;
-    }
-    const section = id as AccountSectionId;
+    const section = id as AccountNavSectionId;
     setActiveSection(section);
     window.history.replaceState(null, "", accountSectionHref(section));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const menuItems = useMemo((): AccountNavItem[] => {
-    const items: AccountNavItem[] = [
+  const navGroups = useMemo((): AccountNavGroup[] => {
+    const accountItems: AccountNavItem[] = [
       { id: "overview", label: "خلاصه حساب" },
       { id: "referrals", label: fa.referral.navLabel },
       { id: "profile", label: "اطلاعات کاربری" },
@@ -122,62 +92,55 @@ export default function AccountPage() {
       },
       { id: "ugc", label: fa.product.ugc.navLabel },
       { id: "wishlist", label: fa.dashboard.wishlist, badge: wishlistedProducts.length },
-      { id: "compare", label: fa.dashboard.compareList, badge: compareList.count },
+      { id: "compare", label: fa.dashboard.compareList, badge: compareBadge },
       {
         id: "recently-viewed",
         label: fa.dashboard.recentlyViewed,
-        badge: recentlyViewed.ids.length,
+        badge: recentlyViewedBadge,
       },
       { id: "designs", label: fa.dashboard.savedDesigns, badge: designs.designs.length },
     ];
+
+    const adminItems: AccountNavItem[] = [];
+
     if (comments.canModerate) {
-      items.push({
+      adminItems.push({
         id: "admin-moderation",
         label: fa.admin.moderation.navLabel,
         badge: comments.pendingCount,
       });
     }
+
     if (auth.user?.role === "admin") {
-      items.push({
-        id: "admin-orders",
-        label: fa.admin.orders.navLabel,
-      });
-      items.push({
-        id: "admin-products",
-        label: fa.admin.products.navLabel,
-      });
-      items.push({
-        id: "admin-trade-in",
-        label: fa.admin.tradeIn.navLabel,
-      });
-      items.push({
-        id: "admin-promo-codes",
-        label: fa.admin.promoCodes.navLabel,
-      });
-      items.push({
-        id: "admin-home",
-        label: fa.admin.home.navLabel,
-      });
-      items.push({
-        id: "admin-posts",
-        label: fa.admin.posts.navLabel,
-      });
-      items.push({
-        id: "admin-gift-cards",
-        label: fa.admin.giftCards.navLabel,
-      });
-      items.push({
-        id: "admin-customizer-quotes",
-        label: fa.customize.liveTimeline.admin.navLabel,
-      });
-    }
-    if (auth.user?.role === "editor" || auth.user?.role === "reviewer") {
-      items.push({
+      adminItems.push(
+        { id: "admin-orders", label: fa.admin.orders.navLabel },
+        { id: "admin-products", label: fa.admin.products.navLabel },
+        { id: "admin-trade-in", label: fa.admin.tradeIn.navLabel },
+        { id: "admin-promo-codes", label: fa.admin.promoCodes.navLabel },
+        { id: "admin-home", label: fa.admin.home.navLabel },
+        { id: "admin-posts", label: fa.admin.posts.navLabel },
+        { id: "admin-gift-cards", label: fa.admin.giftCards.navLabel },
+        {
+          id: "admin-customizer-quotes",
+          label: fa.customize.liveTimeline.admin.navLabel,
+        }
+      );
+    } else if (auth.user?.role === "editor" || auth.user?.role === "reviewer") {
+      adminItems.push({
         id: "admin-posts",
         label: fa.admin.posts.navLabel,
       });
     }
-    return items;
+
+    const groups: AccountNavGroup[] = [
+      { label: fa.dashboard.navSectionsLabel, items: accountItems },
+    ];
+
+    if (adminItems.length > 0) {
+      groups.push({ label: fa.dashboard.navAdminLabel, items: adminItems });
+    }
+
+    return groups;
   }, [
     auth.user?.role,
     comments.canModerate,
@@ -186,11 +149,15 @@ export default function AccountPage() {
     orders.orders.length,
     quoteRequests.quotes.length,
     wishlistedProducts.length,
-    compareList.count,
-    recentlyViewed.ids.length,
+    compareBadge,
+    recentlyViewedBadge,
   ]);
 
   const sectionContent = () => {
+    if (isAccountAdminSectionId(activeSection)) {
+      return <AccountAdminSectionContent section={activeSection} />;
+    }
+
     if (activeSection === "profile" && account.user) {
       const profileUser = account.user;
       return (
@@ -239,6 +206,7 @@ export default function AccountPage() {
         <AccountSectionContainer
           title={fa.dashboard.purchaseHistory}
           subtitle={fa.dashboard.ordersCount(orders.orders.length)}
+          bodyVariant="flush"
         >
           <OrderHistory orders={orders.orders} isLoading={orders.isLoading} />
         </AccountSectionContainer>
@@ -250,6 +218,7 @@ export default function AccountPage() {
         <AccountSectionContainer
           title={fa.dashboard.workshopQuotes}
           subtitle={fa.dashboard.workshopQuotesCount(quoteRequests.quotes.length)}
+          bodyVariant="flush"
         >
           <QuoteRequestHistory
             quotes={quoteRequests.quotes}
@@ -307,7 +276,13 @@ export default function AccountPage() {
     if (activeSection === "compare") {
       return (
         <AccountSectionContainer title={fa.dashboard.compareList}>
-          {compareProducts.length === 0 ? (
+          {catalogLoading && compareList.count > 0 ? (
+            <div className="account-panel account-panel--loading" aria-busy="true">
+              {Array.from({ length: Math.min(compareList.count, 4) }).map((_, i) => (
+                <div key={i} className="account-skeleton account-skeleton--tile" />
+              ))}
+            </div>
+          ) : compareProducts.length === 0 ? (
             <AccountEmptyState
               icon={Compare}
               title={fa.dashboard.emptyCompare}
@@ -348,7 +323,13 @@ export default function AccountPage() {
     if (activeSection === "recently-viewed") {
       return (
         <AccountSectionContainer title={fa.dashboard.recentlyViewed}>
-          {recentlyViewedProducts.length === 0 ? (
+          {catalogLoading && recentlyViewed.ids.length > 0 ? (
+            <div className="account-panel account-panel--loading" aria-busy="true">
+              {Array.from({ length: Math.min(recentlyViewed.ids.length, 4) }).map((_, i) => (
+                <div key={i} className="account-skeleton account-skeleton--tile" />
+              ))}
+            </div>
+          ) : recentlyViewedProducts.length === 0 ? (
             <AccountEmptyState
               icon={History}
               title={fa.dashboard.emptyRecentlyViewed}
@@ -449,7 +430,7 @@ export default function AccountPage() {
     <AuthGuard redirectTo="/account">
       <PageTransition>
         <div className="account-page pb-24 pt-6 md:pt-8">
-          <div className="site-container space-y-8">
+          <div className="site-container">
             <AccountShell
               sidebar={
                 <div className="account-sidebar-stack">
@@ -458,6 +439,8 @@ export default function AccountPage() {
                       user={{
                         name: activeUser.name,
                         phone: activeUser.phone,
+                        firstName: activeUser.firstName,
+                        lastName: activeUser.lastName,
                         tier: activeUser.tier ?? "royal",
                         loyaltyTier: activeUser.loyaltyTier ?? "bronze",
                         role: activeUser.role ?? "user",
@@ -466,7 +449,7 @@ export default function AccountPage() {
                     />
                   ) : null}
                   <AccountNavMenu
-                    items={menuItems}
+                    groups={navGroups}
                     activeId={activeSection}
                     onChange={navigate}
                   />

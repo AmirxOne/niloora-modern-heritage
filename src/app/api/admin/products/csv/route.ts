@@ -2,19 +2,9 @@ import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { ok, badRequest } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
-import { parseCsv, serializeCsv } from "@/lib/server/csv";
+import { excelResponse, parseExcelBuffer, serializeExcelBuffer } from "@/lib/server/excel";
 import { listAdminProducts, createAdminProduct, updateAdminProduct, getAdminProductById } from "@/lib/server/products/admin-product-service";
 import { parseAdminProductBody } from "@/lib/server/products/admin-product";
-
-function csvResponse(filename: string, content: string): Response {
-  return new Response(content, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    },
-  });
-}
 
 export async function GET() {
   try {
@@ -69,7 +59,7 @@ export async function GET() {
       listingTier: p.listing?.tier ?? "premium",
       listingHeadline: p.listing?.headline ?? p.namePersian,
     }));
-    return csvResponse("products.csv", serializeCsv(headers, rows));
+    return excelResponse("products.xlsx", serializeExcelBuffer(headers, rows));
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/products/csv" });
   }
@@ -81,9 +71,9 @@ export async function POST(request: Request) {
     const denied = ensureAdmin(user);
     if (denied) return denied;
 
-    const csvText = await request.text();
-    const { rows } = parseCsv(csvText);
-    if (rows.length === 0) return badRequest("CSV خالی است.");
+    const buffer = await request.arrayBuffer();
+    const { rows } = parseExcelBuffer(buffer);
+    if (rows.length === 0) return badRequest("فایل Excel خالی است.");
 
     const errors: Array<{ row: number; id?: string; message: string }> = [];
     let created = 0;

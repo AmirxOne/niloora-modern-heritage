@@ -5,7 +5,6 @@ import { buildOrderReceipt, type OrderReceiptBreakdown } from "@/lib/orders/orde
 import type { Order } from "@/lib/types";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 
 interface OrderReceiptViewProps {
   order: Order;
@@ -93,7 +92,7 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
     <article className="order-receipt" id="order-receipt-print">
       <header className="order-receipt-header">
         <div>
-          <p className="heritage-eyebrow">{fa.receipt.eyebrow}</p>
+          <p className="page-eyebrow">{fa.receipt.eyebrow}</p>
           <h1 className="order-receipt-title">{fa.receipt.title}</h1>
           <p className="order-receipt-brand">{fa.brand.name}</p>
           <p className="order-receipt-tagline">{fa.brand.tagline}</p>
@@ -117,8 +116,6 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
           ) : null}
         </div>
       </header>
-
-      <OrnamentalDivider className="order-receipt-divider" />
 
       <section className="order-receipt-section">
         <h2 className="order-receipt-section-title">{fa.receipt.itemsTitle}</h2>

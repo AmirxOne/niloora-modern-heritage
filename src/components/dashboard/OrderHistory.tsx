@@ -15,6 +15,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { ORDERS_PAGE_SIZE } from "@/lib/pagination";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const statusLabels: Record<Order["status"], string> = {
   pending_payment: fa.dashboard.orderStatus.pending_payment,
@@ -198,57 +199,7 @@ export function OrderHistory({ orders, isLoading = false }: OrderHistoryProps) {
   } = usePagination(sortedOrders, ORDERS_PAGE_SIZE);
 
   if (isLoading) {
-    return (
-      <div className="order-history-list space-y-5" aria-busy="true" aria-live="polite">
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <article
-            key={idx}
-            className="order-history-card rounded-heritage-lg border border-[#F0EDE9] bg-white p-5"
-          >
-            <header className="order-history-card-header">
-              <div>
-                <div className="sk h-4 w-40" />
-                <div className="sk mt-2 h-3 w-28" />
-              </div>
-              <div className="sk h-6 w-24 rounded-full" />
-            </header>
-            <div className="order-timeline order-timeline--skeleton border-b border-[#F0EDE9] px-5 py-4 md:px-6">
-              <div className="sk h-3 w-36" />
-              <div className="mt-4 space-y-4">
-                {Array.from({ length: 5 }).map((_, stepIdx) => (
-                  <div key={stepIdx} className="flex gap-3">
-                    <div className="sk h-3 w-3 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <div className="sk h-3 w-24" />
-                      <div className="sk h-3 w-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <ul className="order-history-items">
-              {Array.from({ length: 2 }).map((_, lineIdx) => (
-                <li key={lineIdx} className="order-history-line">
-                  <div className="sk order-history-thumb" />
-                  <div className="order-history-line-body">
-                    <div className="sk h-4 w-40" />
-                    <div className="sk mt-2 h-3 w-24" />
-                  </div>
-                  <div className="sk h-4 w-20" />
-                </li>
-              ))}
-            </ul>
-            <footer className="order-history-card-footer">
-              <div>
-                <div className="sk h-3 w-36" />
-                <div className="sk mt-2 h-3 w-28" />
-              </div>
-              <div className="sk h-5 w-24" />
-            </footer>
-          </article>
-        ))}
-      </div>
-    );
+    return <LoadingState variant="order-cards" />;
   }
 
   if (orders.length === 0) {

@@ -6,7 +6,6 @@ import {
   getRelatedProducts,
   getSmartRecommendations,
 } from "@/lib/server/products";
-import { getTelegramProductById } from "@/lib/server/telegram/sync";
 import { listActiveBundleOffers } from "@/lib/server/bundle/bundle-offer-service";
 
 export async function GET(
@@ -15,15 +14,6 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const telegramProduct = await getTelegramProductById(id);
-    if (telegramProduct) {
-      return ok({
-        product: telegramProduct,
-        related: [],
-        smartRecommendations: { similar: [], complementary: [], budget: [] },
-        activeBundles: [],
-      });
-    }
     const product = await getProductByIdFromDb(id);
     if (!product) return notFound("Product not found");
 

@@ -6,6 +6,10 @@ vi.mock("@/lib/server/order-pricing", () => ({
   repriceOrderItems: vi.fn(),
 }));
 
+vi.mock("@/lib/server/campaigns/discount-campaign-service", () => ({
+  recordCampaignUsage: vi.fn(),
+}));
+
 vi.mock("@/lib/server/prisma", () => ({
   prisma: {
     order: {
@@ -61,6 +65,10 @@ describe("createOrderFromCart", () => {
       loyaltyPointsEarned: 10,
       bundleDiscount: 0,
       appliedBundles: [],
+      campaignId: null,
+      campaignSlug: null,
+      campaignTitle: null,
+      campaignDiscountAmount: 0,
     });
 
     vi.mocked(prisma.order.create).mockResolvedValue({
@@ -122,6 +130,10 @@ describe("createOrderFromCart", () => {
       loyaltyPointsEarned: 0,
       bundleDiscount: 0,
       appliedBundles: [],
+      campaignId: null,
+      campaignSlug: null,
+      campaignTitle: null,
+      campaignDiscountAmount: 0,
     });
 
     await expect(

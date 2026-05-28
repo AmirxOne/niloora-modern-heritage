@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminPostRecord } from "@/lib/server/blog/post";
 import { useAuth } from "./useAuth";
+import { useContentWorkflowAccess } from "./useContentWorkflowAccess";
 import { parseJsonResponse } from "./fetch-utils";
 import { canAccessContentWorkflow, canCreateContent, canDeleteContent } from "@/lib/auth/content-workflow";
 
@@ -13,6 +14,7 @@ export function useAdminPosts() {
   const isWorkflowUser = canAccessContentWorkflow(role);
   const canCreate = canCreateContent(role);
   const canDelete = canDeleteContent(role);
+  const allowed = useContentWorkflowAccess(isWorkflowUser);
   const [posts, setPosts] = useState<AdminPostRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -106,6 +108,7 @@ export function useAdminPosts() {
   );
 
   return {
+    allowed,
     role,
     isWorkflowUser,
     canCreate,

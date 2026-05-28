@@ -24,7 +24,6 @@ export const serverEnv = {
   sessionMaxAgeDays: readNumber("SESSION_MAX_AGE_DAYS", 30),
   resetTokenTtlMinutes: readNumber("RESET_TOKEN_TTL_MINUTES", 30),
   otpTtlMinutes: readNumber("OTP_TTL_MINUTES", 3),
-  telegramChannel: process.env.TELEGRAM_CHANNEL ?? "galleryhannan",
   zarinpalMerchantId: process.env.ZARINPAL_MERCHANT_ID?.trim() ?? "",
   zarinpalSandbox: process.env.ZARINPAL_SANDBOX !== "false",
   smsProvider: (process.env.SMS_PROVIDER ?? "kavenegar").trim().toLowerCase(),

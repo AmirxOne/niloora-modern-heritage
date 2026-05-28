@@ -2,21 +2,11 @@ import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { ok, badRequest } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
-import { parseCsv, serializeCsv } from "@/lib/server/csv";
+import { excelResponse, parseExcelBuffer, serializeExcelBuffer } from "@/lib/server/excel";
 import { ADMIN_ORDER_STATUSES, isAdminSettableStatus } from "@/lib/server/orders/admin-order";
 import { prisma } from "@/lib/server/prisma";
 import { orderInclude } from "@/lib/server/orders/order-dto";
 import { toAdminOrderDto } from "@/lib/server/orders/admin-order-dto";
-
-function csvResponse(filename: string, content: string): Response {
-  return new Response(content, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    },
-  });
-}
 
 export async function GET() {
   try {
@@ -27,7 +17,7 @@ export async function GET() {
     const orders = await prisma.order.findMany({
       include: {
         ...orderInclude,
-        user: { select: { name: true, phone: true } },
+        user: { select: { name: true, phone: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 2000,
@@ -46,9 +36,9 @@ export async function GET() {
         itemsCount: dto.items.reduce((sum, item) => sum + item.quantity, 0),
       };
     });
-    return csvResponse(
-      "orders.csv",
-      serializeCsv(
+    return excelResponse(
+      "orders.xlsx",
+      serializeExcelBuffer(
         ["id", "status", "trackingCode", "total", "date", "customerName", "customerPhone", "itemsCount"],
         rows
       )
@@ -64,9 +54,9 @@ export async function POST(request: Request) {
     const denied = ensureAdmin(user);
     if (denied) return denied;
 
-    const csvText = await request.text();
-    const { rows } = parseCsv(csvText);
-    if (rows.length === 0) return badRequest("CSV خالی است.");
+    const buffer = await request.arrayBuffer();
+    const { rows } = parseExcelBuffer(buffer);
+    if (rows.length === 0) return badRequest("فایل Excel خالی است.");
 
     const errors: Array<{ row: number; id?: string; message: string }> = [];
     let updated = 0;

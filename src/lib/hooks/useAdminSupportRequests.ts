@@ -9,6 +9,7 @@ import type {
   SupportRequestStatus,
 } from "@/lib/server/support-request/support-request";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminSupportRequests() {
@@ -20,6 +21,7 @@ export function useAdminSupportRequests() {
   const [kindFilter, setKindFilter] = useState<SupportRequestFilterKind>("all");
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadRequests = useCallback(
     async (
@@ -86,6 +88,7 @@ export function useAdminSupportRequests() {
   );
 
   return {
+    allowed,
     isAdmin,
     requests,
     isLoading,

@@ -9,11 +9,20 @@ type StonesSearchGridProps = {
   stones: StoneGuideProfile[];
 };
 
+function normalizeSearchText(value: string): string {
+  return value
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("fa-IR");
+}
+
 export function StonesSearchGrid({ stones }: StonesSearchGridProps) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase("fa-IR");
+    const normalized = normalizeSearchText(query);
     if (!normalized) return stones;
     return stones.filter((stone) => {
       const searchable = [
@@ -24,6 +33,8 @@ export function StonesSearchGrid({ stones }: StonesSearchGridProps) {
         ...stone.searchTags,
       ]
         .join(" ")
+        .replace(/ي/g, "ی")
+        .replace(/ك/g, "ک")
         .toLocaleLowerCase("fa-IR");
       return searchable.includes(normalized);
     });

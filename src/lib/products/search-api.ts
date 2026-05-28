@@ -5,7 +5,6 @@ export type ProductSearchResponse = {
   normalizedQuery?: string;
   products: {
     catalog: Product[];
-    telegram: unknown[];
   };
 };
 

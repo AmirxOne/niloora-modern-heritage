@@ -15,8 +15,8 @@ import {
 } from "@/lib/constants";
 import { fa } from "@/lib/i18n/fa";
 import { resolvePieceCode } from "@/lib/products/piece-code";
-import { getStoneGuideById } from "@/lib/stones";
-import { getArtisanByName } from "@/lib/artisans";
+import { getStoneGuideForProduct } from "@/lib/stones";
+import { getArtisanByName, getProductArtisanLinks } from "@/lib/artisans";
 
 /* -------------------------------------------------------------------------- */
 /*  Smart defaults                                                            */
@@ -88,12 +88,13 @@ function metalLabel(metal: MetalType): string {
   return METAL_OPTIONS.find((m) => m.value === metal)?.label ?? "";
 }
 
-function stoneLabel(stone: StoneType): string {
-  return STONE_OPTIONS.find((s) => s.value === stone)?.label ?? "";
+function stoneLabel(product: Product): string {
+  const guide = getStoneGuideForProduct(product);
+  return guide?.name ?? STONE_OPTIONS.find((s) => s.value === product.stone)?.label ?? "";
 }
 
-function stoneHref(stone: StoneType): string | undefined {
-  const guide = getStoneGuideById(stone);
+function stoneHref(product: Product): string | undefined {
+  const guide = getStoneGuideForProduct(product);
   return guide ? `/stones/${guide.slug}` : undefined;
 }
 
@@ -181,6 +182,7 @@ const occasionLabels = fa.occasions;
 
 export function getProductSpecGroups(product: Product): SpecGroup[] {
   const r = resolveProductSpecs(product);
+  const artisanLinks = getProductArtisanLinks(product);
   const groups: SpecGroup[] = [];
 
   // ——— مواد و عیار ———
@@ -197,8 +199,8 @@ export function getProductSpecGroups(product: Product): SpecGroup[] {
   const stoneEntries: SpecEntry[] = [
     {
       key: t.stoneType,
-      value: stoneLabel(product.stone),
-      href: stoneHref(product.stone),
+      value: stoneLabel(product),
+      href: stoneHref(product),
     },
     { key: t.stoneShape, value: shapeLabel(product.stoneShape) },
   ];
@@ -262,10 +264,19 @@ export function getProductSpecGroups(product: Product): SpecGroup[] {
     { key: t.craftedIn, value: r.craftedIn },
   ];
   if (r.craftedBy) {
+    const artisan = artisanLinks.find((link) => link.artisan.name === r.craftedBy)?.artisan;
     craftEntries.push({
       key: t.craftedBy,
       value: r.craftedBy,
-      href: artisanHrefByName(r.craftedBy),
+      href: artisan ? `/artisans/${artisan.slug}` : artisanHrefByName(r.craftedBy),
+    });
+  }
+  for (const link of artisanLinks) {
+    if (link.artisan.name === r.craftedBy) continue;
+    craftEntries.push({
+      key: link.roleLabel,
+      value: link.artisan.name,
+      href: `/artisans/${link.artisan.slug}`,
     });
   }
   groups.push({ id: "crafting", title: t.groupCrafting, entries: craftEntries });

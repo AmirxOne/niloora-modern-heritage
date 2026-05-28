@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAdminAuditLogs } from "@/lib/hooks/useAdminAuditLogs";
 import { Button } from "@/components/ui/Button";
 import { SelectBox, TextBox } from "@/components/inputs";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const actionOptions = [
   { value: "", label: "همه اقدامات" },
@@ -67,13 +68,7 @@ export function AdminAuditLogPanel() {
     }
   }, [audit, query]);
 
-  if (!audit.isAdmin) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">فقط مدیران به این بخش دسترسی دارند.</p>
-      </div>
-    );
-  }
+  if (!audit.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -89,7 +84,7 @@ export function AdminAuditLogPanel() {
       </div>
 
       {audit.isLoading ? (
-        <p className="text-silver">در حال بارگذاری لاگ‌ها…</p>
+        <LoadingState variant="admin-cards" count={4} />
       ) : audit.logs.length === 0 ? (
         <p className="admin-orders-empty">لاگی ثبت نشده است.</p>
       ) : (

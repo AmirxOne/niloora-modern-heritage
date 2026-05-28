@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { brandMarkSizes } from "@/lib/brand/assets";
 import { ArrowUpLeft } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
+import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { SalesTrustStrip } from "@/components/commerce/SalesTrustStrip";
+import { FooterSocialLinks } from "@/components/layout/FooterSocialLinks";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 
 const COLS = [
@@ -41,6 +45,8 @@ const COLS = [
 ];
 
 export function Footer() {
+  const site = useSiteSettings();
+
   const scrollToTop = () => {
     if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -52,9 +58,10 @@ export function Footer() {
         <div className="footer-bazaar-head">
           <Link
             href="/"
-            className="inline-flex items-center text-xl font-bold text-[#2C2A29] transition-colors hover:text-[#B8860B] md:text-2xl"
+            className="inline-flex items-center gap-2 text-xl font-bold leading-none text-[#2C2A29] transition-colors hover:text-[#B8860B] md:text-2xl"
           >
-            {fa.brand.name}
+            <BrandMark size={brandMarkSizes.footer} />
+            <span>{site.brandName}</span>
           </Link>
           <button type="button" onClick={scrollToTop} className="footer-bazaar-top-btn">
             <span>{fa.footer.backToTop}</span>
@@ -63,14 +70,20 @@ export function Footer() {
         </div>
 
         <div className="footer-bazaar-support-row">
-          <p>{`تلفن پشتیبانی ${fa.footer.supportPrimaryPhone}`}</p>
-          <span className="footer-bazaar-support-sep" aria-hidden>
-            |
-          </span>
-          <p dir="ltr">{fa.footer.supportSecondaryPhone}</p>
-          <span className="footer-bazaar-support-sep" aria-hidden>
-            |
-          </span>
+          {site.contactPhone ? <p>{`تلفن پشتیبانی ${site.contactPhone}`}</p> : null}
+          {site.contactPhone && site.contactPhoneSecondary ? (
+            <span className="footer-bazaar-support-sep" aria-hidden>
+              |
+            </span>
+          ) : null}
+          {site.contactPhoneSecondary ? (
+            <p dir="ltr">{site.contactPhoneSecondary}</p>
+          ) : null}
+          {(site.contactPhone || site.contactPhoneSecondary) ? (
+            <span className="footer-bazaar-support-sep" aria-hidden>
+              |
+            </span>
+          ) : null}
           <p>{fa.footer.supportHours}</p>
         </div>
 
@@ -81,30 +94,19 @@ export function Footer() {
 
           {/* ستون برند */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link href="/" className="inline-block text-2xl font-bold text-[#2C2A29] hover:text-[#B8860B] transition-colors">
-              {fa.brand.name}
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-2xl font-bold leading-none text-[#2C2A29] transition-colors hover:text-[#B8860B]"
+            >
+              <BrandMark size={brandMarkSizes.footerProminent} />
+              <span>{site.brandName}</span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#78716C]">
-              {fa.footer.description}
+              {site.shortDescription ?? fa.footer.description}
             </p>
-            <p className="mt-2 text-sm font-medium text-[#B8860B]">{fa.brand.tagline}</p>
+            <p className="mt-2 text-sm font-medium text-[#B8860B]">{site.brandTagline}</p>
 
-            {/* اینستاگرام */}
-            <div className="mt-6 flex items-center gap-3">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="اینستاگرام نیلورا"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E1DB] text-[#78716C] transition-all hover:border-[#B8860B] hover:text-[#B8860B]"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden>
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" strokeWidth="0" />
-                </svg>
-              </a>
-            </div>
+            <FooterSocialLinks social={site.social} className="mt-6" />
           </div>
 
           {/* ستون‌های لینک */}
@@ -134,7 +136,9 @@ export function Footer() {
 
         {/* ── ردیف پایین ── */}
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-[#78716C] sm:flex-row">
-          <p>{fa.footer.copyright(new Date().getFullYear())}</p>
+          <p>
+            © {new Date().getFullYear()} {site.brandName} · تمامی حقوق محفوظ است
+          </p>
           <p className="tracking-wider opacity-60">{fa.footer.cities}</p>
         </div>
       </div>

@@ -2,20 +2,10 @@ import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { ok, badRequest } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
-import { parseCsv, serializeCsv } from "@/lib/server/csv";
+import { excelResponse, parseExcelBuffer, serializeExcelBuffer } from "@/lib/server/excel";
 import { listAdminPromoCodes, createPromoCode, updatePromoCode } from "@/lib/server/promo/promo-code-service";
 import { parseAdminPromoBody } from "@/lib/server/promo/admin-promo-parse";
 import { prisma } from "@/lib/server/prisma";
-
-function csvResponse(filename: string, content: string): Response {
-  return new Response(content, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    },
-  });
-}
 
 export async function GET() {
   try {
@@ -35,9 +25,9 @@ export async function GET() {
       active: item.active ? "1" : "0",
       aliases: item.aliases.join("|"),
     }));
-    return csvResponse(
-      "promo-codes.csv",
-      serializeCsv(
+    return excelResponse(
+      "promo-codes.xlsx",
+      serializeExcelBuffer(
         ["id", "code", "label", "type", "value", "minSubtotal", "replacesSiteWide", "active", "aliases"],
         rows
       )
@@ -53,9 +43,9 @@ export async function POST(request: Request) {
     const denied = ensureAdmin(user);
     if (denied) return denied;
 
-    const csvText = await request.text();
-    const { rows } = parseCsv(csvText);
-    if (rows.length === 0) return badRequest("CSV خالی است.");
+    const buffer = await request.arrayBuffer();
+    const { rows } = parseExcelBuffer(buffer);
+    if (rows.length === 0) return badRequest("فایل Excel خالی است.");
 
     const errors: Array<{ row: number; code?: string; message: string }> = [];
     let created = 0;

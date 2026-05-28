@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import type { AdminOrder } from "@/lib/types";
 import type { AdminOrderFilterStatus, AdminSettableOrderStatus } from "@/lib/server/orders/admin-order";
 import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
+import { downloadExcelFromResponse, postExcelFile } from "@/lib/admin/excel-io";
 import { parseJsonResponse } from "./fetch-utils";
 
 export function useAdminOrders() {
@@ -15,6 +17,7 @@ export function useAdminOrders() {
   const [statusFilter, setStatusFilter] = useState<AdminOrderFilterStatus>("all");
 
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
 
   const loadOrders = useCallback(
     async (filter: AdminOrderFilterStatus = statusFilter) => {
@@ -69,36 +72,19 @@ export function useAdminOrders() {
     [isAdmin]
   );
 
-  const exportCsv = useCallback(async () => {
+  const exportExcel = useCallback(async () => {
     if (!isAdmin) return;
     const response = await fetch("/api/admin/orders/csv");
-    if (!response.ok) {
-      toast.error("خروجی CSV سفارش‌ها انجام نشد.");
-      return;
-    }
-    const text = await response.text();
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "orders.csv";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const ok = await downloadExcelFromResponse(response, "orders.xlsx");
+    if (!ok) toast.error("خروجی Excel سفارش‌ها انجام نشد.");
   }, [isAdmin]);
 
-  const importCsv = useCallback(
+  const importExcel = useCallback(
     async (file: File) => {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const content = await file.text();
-        const response = await fetch("/api/admin/orders/csv", {
-          method: "POST",
-          headers: { "Content-Type": "text/csv" },
-          body: content,
-        });
+        const response = await postExcelFile("/api/admin/orders/csv", file);
         const data = await parseJsonResponse<{
           totalRows: number;
           updated?: number;
@@ -107,12 +93,12 @@ export function useAdminOrders() {
           message?: string;
         }>(response);
         if (!response.ok || !data) {
-          toast.error(data?.message ?? "ورود CSV سفارش‌ها انجام نشد.");
+          toast.error(data?.message ?? "ورود Excel سفارش‌ها انجام نشد.");
           return null;
         }
         await loadOrders(statusFilter);
         toast.success(
-          `CSV سفارش‌ها پردازش شد: بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
+          `Excel سفارش‌ها پردازش شد: بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
         );
         return data;
       } finally {
@@ -123,6 +109,7 @@ export function useAdminOrders() {
   );
 
   return {
+    allowed,
     isAdmin,
     orders,
     isLoading,
@@ -131,7 +118,7 @@ export function useAdminOrders() {
     setStatusFilter,
     loadOrders,
     updateOrder,
-    exportCsv,
-    importCsv,
+    exportExcel,
+    importExcel,
   };
 }

@@ -3,20 +3,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { getStoneGuideBySlug, listStoneGuides } from "@/lib/stones";
+import { getStoneGuideBySlugForCatalog, listStoneGuidesForCatalog } from "@/lib/stones";
 import { buildPageMetadata } from "@/lib/seo/site";
+import { getCatalogProducts } from "@/lib/server/products";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  return listStoneGuides().map((s) => ({ slug: s.slug }));
+  const catalog = await getCatalogProducts();
+  return listStoneGuidesForCatalog(catalog).map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const stone = getStoneGuideBySlug(slug);
+  const catalog = await getCatalogProducts();
+  const stone = getStoneGuideBySlugForCatalog(slug, catalog);
   if (!stone) {
     return buildPageMetadata({
       title: "سنگ یافت نشد",
@@ -34,7 +37,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function StoneDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const stone = getStoneGuideBySlug(slug);
+  const catalog = await getCatalogProducts();
+  const stone = getStoneGuideBySlugForCatalog(slug, catalog);
   if (!stone) notFound();
 
   return (
@@ -114,7 +118,7 @@ export default async function StoneDetailPage({ params }: PageProps) {
               <Link href="/stones" className="stone-detail-back">
                 بازگشت به لیست سنگ‌ها
               </Link>
-              <Link href={`/shop?stone=${stone.id}`} className="stone-detail-shop">
+              <Link href={stone.coreStone ? `/shop?stone=${stone.coreStone}` : "/shop"} className="stone-detail-shop">
                 مشاهده انگشترهای این سنگ
               </Link>
             </div>

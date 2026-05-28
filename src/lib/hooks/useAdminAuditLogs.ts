@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
 
 export type AdminAuditLogEntry = {
@@ -26,6 +27,7 @@ export type AdminAuditLogEntry = {
 export function useAdminAuditLogs() {
   const auth = useAuth();
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
   const [logs, setLogs] = useState<AdminAuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -49,5 +51,5 @@ export function useAdminAuditLogs() {
     [isAdmin]
   );
 
-  return { isAdmin, logs, isLoading, load };
+  return { allowed, isAdmin, logs, isLoading, load };
 }

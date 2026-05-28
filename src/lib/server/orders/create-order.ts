@@ -5,6 +5,7 @@ import { computeShippingCost } from "@/lib/orders/shipping-cost";
 import { calculateInstallmentAmount } from "@/lib/checkout/bnpl";
 import { CartPurchaseError } from "@/lib/server/products/validate-cart-purchase";
 import { prisma } from "@/lib/server/prisma";
+import { recordCampaignUsage } from "@/lib/server/campaigns/discount-campaign-service";
 import { repriceOrderItems } from "@/lib/server/order-pricing";
 import { validateGiftCardForCheckout } from "@/lib/server/gift-card/gift-card-service";
 import type { CartItem } from "@/lib/types";
@@ -79,6 +80,8 @@ export async function createOrderFromCart(input: {
       loyaltyTier: normalizeLoyaltyTier(input.loyaltyTier),
       loyaltyDiscountAmount: priced.loyaltyDiscountAmount || null,
       loyaltyPointsEarned: priced.loyaltyPointsEarned || null,
+      campaignId: priced.campaignId,
+      campaignDiscountAmount: priced.campaignDiscountAmount || null,
       shippingName: input.shipping.fullName,
       shippingPhone: input.shipping.mobile,
       shippingProvince: input.shipping.province,
@@ -106,6 +109,16 @@ export async function createOrderFromCart(input: {
     },
     include: { items: true },
   });
+
+  if (priced.campaignId && priced.campaignDiscountAmount > 0) {
+    await recordCampaignUsage({
+      campaignId: priced.campaignId,
+      orderId: order.id,
+      userId: input.userId,
+      discountAmount: priced.campaignDiscountAmount,
+      orderSubtotal: priced.subtotalSale,
+    });
+  }
 
   return { order, priced, shippingCost, orderTotal, giftCardApplied, giftCardCode: normalizedGiftCardCode };
 }

@@ -1,15 +1,19 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { productMatchesCampaignTarget } from "@/lib/campaign/campaign-discount";
+import { useCampaignBySlug } from "@/lib/hooks/useActiveCampaigns";
+import { CampaignShopBanner } from "@/components/shop/CampaignShopBanner";
 import { motion } from "framer-motion";
 import { fa } from "@/lib/i18n/fa";
-import { applyShopFilters } from "@/lib/shop-filter-utils";
+import { applyShopFilters, productMatchesStoneFilter } from "@/lib/shop-filter-utils";
 import { useShopFiltersUrl } from "@/lib/hooks/useShopFiltersUrl";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
 import { usePagination } from "@/lib/hooks/usePagination";
-import { SHOP_PAGE_SIZE } from "@/lib/pagination";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { ProductCardSkeleton } from "@/components/shop/ProductCardSkeleton";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { ShopFiltersPanel, ShopFiltersDrawer } from "@/components/shop/ShopFilters";
 import { PreOwnedShopStrip } from "@/components/pre-owned/PreOwnedShopStrip";
 import { Pagination } from "@/components/ui/Pagination";
@@ -105,10 +109,13 @@ export function ShopPageClientWithSeoLanding({ seoLanding }: { seoLanding: SeoLa
 }
 
 function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
+  const searchParams = useSearchParams();
+  const campaignSlug = searchParams.get("campaign");
+  const { campaign: shopCampaign } = useCampaignBySlug(campaignSlug);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sort, setSort] = useState<ShopSortKey>("bestselling");
   const { products, maxPrice, isLoading: isCatalogLoading } = useCatalogProducts();
-  const { filters, setFilters, page, setPage, resetFilters } = useShopFiltersUrl(maxPrice);
+  const { filters, setFilters, page, pageSize, setPage, setPageSize, resetFilters } = useShopFiltersUrl(maxPrice);
   const search = useProductSearch(filters.query);
   const { auth } = useApp();
   const cardLayoutExperiment = useAbExperiment("shop_card_layout_v1");
@@ -129,17 +136,27 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
   const landingFiltered = useMemo(() => {
     if (!seoLanding) return filtered;
     return filtered.filter((p) => {
-      if (seoLanding.facet === "stone") return p.stone === seoLanding.slug;
+      if (seoLanding.facet === "stone") return productMatchesStoneFilter(p, [seoLanding.slug]);
       if (seoLanding.facet === "style") return p.category === seoLanding.slug;
       const occasions = p.occasions ?? [];
       return occasions.includes(seoLanding.slug as ProductOccasion);
     });
   }, [filtered, seoLanding]);
+
+  const campaignFiltered = useMemo(() => {
+    if (!shopCampaign) return landingFiltered;
+    return landingFiltered.filter((p) =>
+      productMatchesCampaignTarget(
+        { productId: p.id, collectionId: p.collectionId ?? null },
+        shopCampaign
+      )
+    );
+  }, [landingFiltered, shopCampaign]);
   const preferenceSorted = useMemo(() => {
     const prefStone = auth.user?.favoriteStone;
     const prefStyle = auth.user?.favoriteStyle;
     const prefBudget = auth.user?.favoriteBudgetBand;
-    if (!prefStone && !prefStyle && !prefBudget) return landingFiltered;
+    if (!prefStone && !prefStyle && !prefBudget) return campaignFiltered;
 
     const budgetOf = (price: number): "entry" | "mid" | "premium" | "luxury" => {
       if (price <= 40_000_000) return "entry";
@@ -148,7 +165,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
       return "luxury";
     };
 
-    return [...landingFiltered].sort((a, b) => {
+    return [...campaignFiltered].sort((a, b) => {
       const score = (p: Product) => {
         let s = 0;
         if (prefStone && p.stone === prefStone) s += 5;
@@ -162,7 +179,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
       if (delta !== 0) return delta;
       return 0;
     });
-  }, [landingFiltered, auth.user?.favoriteStone, auth.user?.favoriteStyle, auth.user?.favoriteBudgetBand]);
+  }, [campaignFiltered, auth.user?.favoriteStone, auth.user?.favoriteStyle, auth.user?.favoriteBudgetBand]);
   const sorted = useMemo(() => sortShopProducts(preferenceSorted, sort), [preferenceSorted, sort]);
   const personalizedPicks = useMemo(() => {
     const prefStone = auth.user?.favoriteStone;
@@ -231,7 +248,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
     totalItems,
     showPagination,
     setPage: setPaginationPage,
-  } = usePagination(displayProducts, SHOP_PAGE_SIZE, `${filterResetKey}|${sort}|${cardUiQaMode}`, {
+  } = usePagination(displayProducts, pageSize, `${filterResetKey}|${sort}|${cardUiQaMode}|${pageSize}`, {
     page,
     onPageChange: setPage,
   });
@@ -264,9 +281,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
           {!isSearchMode ? <PreOwnedShopStrip /> : null}
 
           {isSearchMode && isLoading ? (
-            <p className="mb-4 text-sm text-silver" aria-live="polite">
-              {fa.shop.searchLoading}
-            </p>
+            <LoadingState variant="search-bar" label={fa.shop.searchLoading} />
           ) : null}
 
           <div className="shop-collection-layout shop-collection-layout--with-sidebar">
@@ -278,12 +293,21 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                   maxPrice={maxPrice}
                   priceRangeReady={priceRangeReady}
                   onReset={resetFilters}
+                  products={products}
                   variant="sidebar"
                 />
               </div>
             </aside>
 
             <motion.div className="shop-collection-main">
+              {shopCampaign ? (
+                <div className="mb-4 space-y-2">
+                  <CampaignShopBanner campaign={shopCampaign} />
+                  <p className="text-sm text-silver">
+                    {fa.shop.campaignFilterActive(shopCampaign.title)}
+                  </p>
+                </div>
+              ) : null}
               <ShopFiltersDrawer
                 open={filtersOpen}
                 onClose={() => setFiltersOpen(false)}
@@ -292,6 +316,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                 maxPrice={maxPrice}
                 priceRangeReady={priceRangeReady}
                 onReset={resetFilters}
+                products={products}
               />
 
               <div className="shop-sort-inline mb-4 md:mb-5">
@@ -410,6 +435,8 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                       totalItems={totalItems}
                       from={from}
                       to={to}
+                      pageSize={pageSize}
+                      onPageSizeChange={setPageSize}
                       scrollTargetId="shop-products"
                       className="shop-product-pagination"
                     />

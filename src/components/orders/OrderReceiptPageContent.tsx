@@ -4,10 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { OrderReceiptView } from "@/components/orders/OrderReceiptView";
 import { Button } from "@/components/ui/Button";
-import { OrnamentalDivider } from "@/components/ui/OrnamentalDivider";
 import { orderHasReceipt } from "@/lib/orders/order-receipt";
 import type { Order } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 interface OrderReceiptPageContentProps {
   orderId: string;
 }
@@ -53,8 +53,8 @@ export function OrderReceiptPageContent({ orderId }: OrderReceiptPageContentProp
 
   if (loading) {
     return (
-      <div className="order-receipt-page-state" aria-busy="true">
-        <p className="text-silver">{fa.receipt.loading}</p>
+      <div className="order-receipt-page-state">
+        <LoadingState variant="receipt" label={fa.receipt.loading} />
       </div>
     );
   }
@@ -79,7 +79,7 @@ export function OrderReceiptPageContent({ orderId }: OrderReceiptPageContentProp
     <div className="order-receipt-page">
       <header className="order-receipt-page-toolbar no-print">
         <div>
-          <span className="heritage-eyebrow">{fa.receipt.eyebrow}</span>
+          <span className="page-eyebrow">{fa.receipt.eyebrow}</span>
           <h1 className="order-receipt-page-title">{fa.receipt.pageTitle}</h1>
         </div>
         <div className="order-receipt-page-actions">
@@ -91,8 +91,6 @@ export function OrderReceiptPageContent({ orderId }: OrderReceiptPageContentProp
           </Link>
         </div>
       </header>
-
-      <OrnamentalDivider className="order-receipt-page-divider no-print" />
 
       <OrderReceiptView order={order} />
 

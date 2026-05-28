@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { TextBox, TextAreaBox } from "@/components/inputs";
 import { useAdminGiftCards } from "@/lib/hooks/useAdminGiftCards";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminGiftCardsPanel() {
   const admin = useAdminGiftCards();
@@ -17,9 +18,7 @@ export function AdminGiftCardsPanel() {
     if (admin.isAdmin) void admin.loadGiftCards();
   }, [admin.isAdmin, admin.loadGiftCards]);
 
-  if (!admin.isAdmin) {
-    return <p className="text-silver">دسترسی مدیریت ندارید.</p>;
-  }
+  if (!admin.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -69,7 +68,7 @@ export function AdminGiftCardsPanel() {
       </section>
 
       {admin.isLoading ? (
-        <p className="text-silver">در حال بارگذاری کارت‌های هدیه…</p>
+        <LoadingState variant="admin-cards" count={2} />
       ) : admin.giftCards.length === 0 ? (
         <p className="admin-orders-empty">کارت هدیه‌ای ثبت نشده است.</p>
       ) : (

@@ -16,6 +16,7 @@ export {
   Check,
   Clock as History,
   CloseCircle as X,
+  Copy,
   Crown,
   Diamonds as Gem,
   Element4 as LayoutDashboard,

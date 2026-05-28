@@ -91,17 +91,21 @@ export async function rewardLoyaltyOnPaidOrder(
 }
 
 export async function getUserLoyaltySummary(userId: string): Promise<LoyaltySummary> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      loyaltyPoints: true,
-      loyaltyTier: true,
-      loyaltyLifetimeSpend: true,
-    },
-  });
-  return buildLoyaltySummary({
-    points: user?.loyaltyPoints ?? 0,
-    tier: user?.loyaltyTier ?? "bronze",
-    lifetimeSpend: user?.loyaltyLifetimeSpend ?? 0,
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        loyaltyPoints: true,
+        loyaltyTier: true,
+        loyaltyLifetimeSpend: true,
+      },
+    });
+    return buildLoyaltySummary({
+      points: user?.loyaltyPoints ?? 0,
+      tier: user?.loyaltyTier ?? "bronze",
+      lifetimeSpend: user?.loyaltyLifetimeSpend ?? 0,
+    });
+  } catch {
+    return buildLoyaltySummary({});
+  }
 }

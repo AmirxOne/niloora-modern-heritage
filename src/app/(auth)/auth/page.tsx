@@ -65,6 +65,7 @@ function UnifiedAuthPageInner() {
     const result = await auth.verifyOtp(requestState.phone, otpCode, undefined, referralCode);
     setIsVerifyingOtp(false);
     if (!result) return;
+    await auth.syncSessionAfterLogin();
     router.replace(redirectTo);
   };
 

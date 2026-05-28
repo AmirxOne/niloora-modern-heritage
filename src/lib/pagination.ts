@@ -1,5 +1,8 @@
-/** اندازهٔ پیش‌فرض صفحه‌بندی گالری (۴ ستون × ۳ ردیف در دسکتاپ) */
-export const SHOP_PAGE_SIZE = 12;
+export const DEFAULT_PAGE_SIZE = 20;
+export const PAGE_SIZE_OPTIONS = [20, 40, 60, 100] as const;
+
+/** اندازهٔ پیش‌فرض صفحه‌بندی گالری */
+export const SHOP_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 export const COMMENTS_PAGE_SIZE = 5;
 export const QUESTIONS_PAGE_SIZE = 5;
@@ -14,6 +17,14 @@ export function getTotalPages(totalItems: number, pageSize: number): number {
 export function clampPage(page: number, totalPages: number): number {
   if (totalPages < 1) return 1;
   return Math.min(Math.max(1, page), totalPages);
+}
+
+export function normalizePageSize(
+  pageSize: number,
+  options: readonly number[] = PAGE_SIZE_OPTIONS
+): number {
+  if (options.includes(pageSize)) return pageSize;
+  return DEFAULT_PAGE_SIZE;
 }
 
 export function paginateSlice<T>(items: readonly T[], page: number, pageSize: number): T[] {

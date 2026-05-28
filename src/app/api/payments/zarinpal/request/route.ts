@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   try {
     const sessionUser = await readSessionUser();
 
-    if (!isZarinpalConfigured()) {
+    if (!(await isZarinpalConfigured())) {
       return badRequest("درگاه پرداخت پیکربندی نشده است.");
     }
 

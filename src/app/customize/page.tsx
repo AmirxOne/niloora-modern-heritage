@@ -59,7 +59,7 @@ export default function CustomizePage() {
 
   const selectedHighlights = useMemo(
     () => [
-      { label: "استادکار", value: state.shankMaster },
+      { label: "طراح رکاب", value: state.shankMaster },
       { label: "مدل رکاب", value: state.shankModelId },
       { label: "نگین", value: state.stone },
       { label: "برش", value: state.stoneShape },

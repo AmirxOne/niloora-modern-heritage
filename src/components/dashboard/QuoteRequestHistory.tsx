@@ -12,6 +12,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { ORDERS_PAGE_SIZE } from "@/lib/pagination";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 const statusLabels: Record<CustomizerQuoteStatus, string> = {
   "pending-quote": fa.dashboard.quoteStatus.pending_quote,
@@ -199,11 +200,7 @@ export function QuoteRequestHistory({
   } = usePagination(quotes, ORDERS_PAGE_SIZE);
 
   if (isLoading) {
-    return (
-      <div className="order-history-loading" aria-busy="true">
-        <p className="text-silver">{fa.common.loading}</p>
-      </div>
-    );
+    return <LoadingState variant="quote-cards" />;
   }
 
   if (quotes.length === 0) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import Link from "next/link";
 import {
   adminPostFormToPayload,
@@ -82,13 +83,7 @@ export function AdminPostsPanel() {
     if (ok) cancelForm();
   };
 
-  if (!admin.isWorkflowUser) {
-    return (
-      <div className="admin-orders-forbidden">
-        <p className="text-ivory">{fa.admin.forbidden}</p>
-      </div>
-    );
-  }
+  if (!admin.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
@@ -172,7 +167,7 @@ export function AdminPostsPanel() {
       ) : null}
 
       {admin.isLoading ? (
-        <p className="text-silver">{fa.admin.posts.loading}</p>
+        <LoadingState variant="admin-cards" />
       ) : admin.posts.length === 0 ? (
         <p className="admin-orders-empty">{fa.admin.posts.empty}</p>
       ) : (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Refresh, User } from "@/components/icons";
+import { Check, Copy, User } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
@@ -46,7 +46,7 @@ export function AccountReferralPanel({ referral }: { referral: ReferralSummary |
             <p className="account-referral-code">{referral.referralCode}</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => copy(referral.referralCode)}>
-            <Refresh size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+            <Copy size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
             {fa.referral.copyCode}
           </Button>
         </div>
@@ -54,6 +54,7 @@ export function AccountReferralPanel({ referral }: { referral: ReferralSummary |
         <div className="account-referral-share-row">
           <code className="account-referral-share-link">{shareLink}</code>
           <Button variant="secondary" size="sm" onClick={() => copy(shareLink)}>
+            <Copy size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
             {fa.referral.copyLink}
           </Button>
         </div>
@@ -80,37 +81,33 @@ export function AccountReferralPanel({ referral }: { referral: ReferralSummary |
         </div>
       </div>
 
-      <div className="account-section">
-        <header className="account-section-header">
-          <div>
-            <h3 className="account-section-title">{fa.referral.recentInvitesTitle}</h3>
-            <p className="account-section-subtitle">{fa.referral.recentInvitesSubtitle}</p>
-          </div>
+      <div className="account-subsection">
+        <header className="account-subsection-header">
+          <h3 className="account-subsection-title">{fa.referral.recentInvitesTitle}</h3>
+          <p className="account-subsection-subtitle">{fa.referral.recentInvitesSubtitle}</p>
         </header>
-        <div className="account-section-body">
-          {referral.recentInvites.length === 0 ? (
-            <div className="account-empty">
-              <User size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
-              <p>{fa.referral.empty}</p>
-            </div>
-          ) : (
-            <ul className="account-resource-list">
-              {referral.recentInvites.map((item) => (
-                <li key={item.id}>
-                  <div className="account-resource-row">
-                    <div className="account-resource-main">
-                      <p className="account-resource-title">{item.invitee.name}</p>
-                      <p className="account-resource-subtitle">{item.invitee.phone}</p>
-                    </div>
-                    <div className="account-referral-invite-meta">
-                      <span className="account-referral-status">{statusLabel(item.status)}</span>
-                    </div>
+        {referral.recentInvites.length === 0 ? (
+          <div className="account-empty-inline">
+            <User size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
+            <p>{fa.referral.empty}</p>
+          </div>
+        ) : (
+          <ul className="account-resource-list">
+            {referral.recentInvites.map((item) => (
+              <li key={item.id}>
+                <div className="account-resource-row">
+                  <div className="account-resource-body">
+                    <p className="account-resource-title">{item.invitee.name}</p>
+                    <p className="account-resource-subtitle">{item.invitee.phone}</p>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  <div className="account-referral-invite-meta">
+                    <span className="account-referral-status">{statusLabel(item.status)}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

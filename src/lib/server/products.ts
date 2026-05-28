@@ -32,6 +32,8 @@ const productIncludeWithoutUgc = {
 
 type DbProduct = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
 type DbProductWithoutUgc = Prisma.ProductGetPayload<{ include: typeof productIncludeWithoutUgc }>;
+let hasCheckedUgcTable = false;
+let hasProductUgcTable = true;
 
 export type CollectionDto = {
   id: string;
@@ -55,6 +57,58 @@ function merchandiseScore(product: Product): number {
   return (product.featured ? 4 : 0) + (product.bestseller ? 2 : 0);
 }
 
+function parseRingSize(value: string): number | undefined {
+  const normalized = value
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/\//g, ".")
+    .replace(/[^0-9.]/g, "");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function deriveListingMetadata(details: string[]): Pick<
+  Product,
+  "craftedBy" | "stoneColorLabel" | "ringSize" | "artisanAssignments"
+> {
+  let craftedBy: string | undefined;
+  let stoneColorLabel: string | undefined;
+  let ringSize: number | undefined;
+
+  for (const line of details) {
+    const value = line.trim();
+    if (value.startsWith("رکاب:")) {
+      const maker = value.replace("رکاب:", "").trim();
+      if (maker) craftedBy = maker;
+    }
+    if (value.startsWith("نگین:")) {
+      const stoneParts = value
+        .replace("نگین:", "")
+        .split("-")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (stoneParts.length >= 2) {
+        stoneColorLabel = stoneParts[1];
+      }
+    }
+    if (value.startsWith("سایز:")) {
+      const parsedSize = parseRingSize(value.replace("سایز:", "").trim());
+      if (parsedSize) ringSize = parsedSize;
+    }
+  }
+
+  const artisanAssignments: Product["artisanAssignments"] = {};
+  if (craftedBy?.includes("ابراهیم")) artisanAssignments.shankDesignerId = "ebrahim-azari";
+  else if (craftedBy?.includes("تهرانی")) artisanAssignments.shankDesignerId = "tehrani-azari";
+  else if (craftedBy?.includes("میراث")) artisanAssignments.shankDesignerId = "heritage-atelier";
+
+  return {
+    craftedBy,
+    stoneColorLabel,
+    ringSize,
+    artisanAssignments: Object.keys(artisanAssignments).length > 0 ? artisanAssignments : undefined,
+  };
+}
+
 export function mapDbProduct(product: DbProduct): Product {
   // PURPOSE: isolate DB-to-domain mapping so UI never depends on Prisma shapes.
   const preOwnedGrade = product.preOwnedInfo?.grade ?? "good";
@@ -63,6 +117,8 @@ export function mapDbProduct(product: DbProduct): Product {
     listPrice: product.listPrice ?? undefined,
     discountPercent: product.discountPercent ?? undefined,
   });
+  const listingDetails = Array.isArray(product.listing?.details) ? (product.listing.details as string[]) : [];
+  const derived = deriveListingMetadata(listingDetails);
 
   return {
     id: product.id,
@@ -72,7 +128,7 @@ export function mapDbProduct(product: DbProduct): Product {
     listing: {
       tier: product.listing?.tier === "economy" ? "economy" : "premium",
       headline: product.listing?.headline ?? "",
-      details: Array.isArray(product.listing?.details) ? (product.listing?.details as string[]) : [],
+      details: listingDetails,
       extraTags: Array.isArray(product.listing?.extraTags)
         ? (product.listing?.extraTags as ("pre-owned")[])
         : undefined,
@@ -94,6 +150,10 @@ export function mapDbProduct(product: DbProduct): Product {
     initialSalesCount: product.initialSalesCount ?? 0,
     condition: product.condition as Product["condition"],
     discountEndsAt: product.discountEndsAt?.toISOString(),
+    craftedBy: derived.craftedBy,
+    stoneColorLabel: derived.stoneColorLabel,
+    ringSize: derived.ringSize,
+    artisanAssignments: derived.artisanAssignments,
     preOwned: product.preOwnedInfo
       ? {
           originalPrice: product.preOwnedInfo.originalPrice,
@@ -130,6 +190,24 @@ function isMissingProductUgcTable(error: unknown): boolean {
   return message.includes("ProductUgcMedia") && message.includes("does not exist");
 }
 
+async function canUseProductUgcTable(): Promise<boolean> {
+  if (hasCheckedUgcTable) return hasProductUgcTable;
+  hasCheckedUgcTable = true;
+  try {
+    const rows = await prisma.$queryRaw<Array<{ exists: boolean }>>`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = 'ProductUgcMedia'
+      ) AS "exists";
+    `;
+    hasProductUgcTable = Boolean(rows[0]?.exists);
+  } catch {
+    hasProductUgcTable = true;
+  }
+  return hasProductUgcTable;
+}
+
 function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
   const preOwnedGrade = product.preOwnedInfo?.grade ?? "good";
   const pricing = normalizeCatalogProductPricing({
@@ -137,6 +215,8 @@ function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
     listPrice: product.listPrice ?? undefined,
     discountPercent: product.discountPercent ?? undefined,
   });
+  const listingDetails = Array.isArray(product.listing?.details) ? (product.listing.details as string[]) : [];
+  const derived = deriveListingMetadata(listingDetails);
 
   return {
     id: product.id,
@@ -146,7 +226,7 @@ function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
     listing: {
       tier: product.listing?.tier === "economy" ? "economy" : "premium",
       headline: product.listing?.headline ?? "",
-      details: Array.isArray(product.listing?.details) ? (product.listing?.details as string[]) : [],
+      details: listingDetails,
       extraTags: Array.isArray(product.listing?.extraTags)
         ? (product.listing?.extraTags as ("pre-owned")[])
         : undefined,
@@ -168,6 +248,10 @@ function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
     initialSalesCount: product.initialSalesCount ?? 0,
     condition: product.condition as Product["condition"],
     discountEndsAt: product.discountEndsAt?.toISOString(),
+    craftedBy: derived.craftedBy,
+    stoneColorLabel: derived.stoneColorLabel,
+    ringSize: derived.ringSize,
+    artisanAssignments: derived.artisanAssignments,
     preOwned: product.preOwnedInfo
       ? {
           originalPrice: product.preOwnedInfo.originalPrice,
@@ -187,6 +271,13 @@ function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
 
 export async function getCatalogProducts(): Promise<Product[]> {
   // FLOW: read full catalog with include graph, then map to shared Product type.
+  const includeUgc = await canUseProductUgcTable();
+  if (!includeUgc) {
+    const rows = await prisma.product.findMany({
+      include: productIncludeWithoutUgc,
+    });
+    return rows.map(mapDbProductWithoutUgc);
+  }
   try {
     const rows = await prisma.product.findMany({
       include: productInclude,
@@ -202,6 +293,14 @@ export async function getCatalogProducts(): Promise<Product[]> {
 }
 
 export async function getProductByIdFromDb(id: string): Promise<Product | null> {
+  const includeUgc = await canUseProductUgcTable();
+  if (!includeUgc) {
+    const row = await prisma.product.findUnique({
+      where: { id },
+      include: productIncludeWithoutUgc,
+    });
+    return row ? mapDbProductWithoutUgc(row) : null;
+  }
   try {
     const row = await prisma.product.findUnique({
       where: { id },
@@ -219,6 +318,15 @@ export async function getProductByIdFromDb(id: string): Promise<Product | null> 
 }
 
 export async function getPreOwnedProductsFromDb(): Promise<Product[]> {
+  const includeUgc = await canUseProductUgcTable();
+  if (!includeUgc) {
+    const rows = await prisma.product.findMany({
+      where: { condition: "pre-owned" },
+      include: productIncludeWithoutUgc,
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+    });
+    return rows.map(mapDbProductWithoutUgc);
+  }
   try {
     const rows = await prisma.product.findMany({
       where: { condition: "pre-owned" },

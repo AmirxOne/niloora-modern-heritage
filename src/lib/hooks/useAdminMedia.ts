@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
 import type { AdminMediaCategory } from "@/lib/media/categories";
 
@@ -22,6 +23,7 @@ export type AdminMediaAsset = {
 export function useAdminMedia() {
   const auth = useAuth();
   const isAdmin = auth.user?.role === "admin";
+  const allowed = useAdminAccess(isAdmin);
   const [assets, setAssets] = useState<AdminMediaAsset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -90,5 +92,5 @@ export function useAdminMedia() {
     [isAdmin]
   );
 
-  return { isAdmin, assets, isLoading, isSaving, load, upload, remove };
+  return { allowed, isAdmin, assets, isLoading, isSaving, load, upload, remove };
 }

@@ -14,7 +14,7 @@ A production-grade Next.js 14 e-commerce platform for Persian (RTL) jewelry stor
 - Admin APIs and dashboards for products, orders, promos, posts, support requests
 - Prisma + PostgreSQL backend layer with typed server services
 - Centralized modal system based on `vaul` (`src/components/ui/Modal.tsx`)
-- Integrated optional channels: OTP/SMS, Zarinpal payment, Sentry, Telegram sync
+- Integrated optional channels: OTP/SMS, Zarinpal payment, Sentry
 
 ## Tech Stack
 
@@ -115,10 +115,6 @@ Open `http://localhost:3000`.
 - `npm run prisma:migrate:dev` - Run development migrations
 - `npm run prisma:migrate:deploy` - Apply migrations in production
 - `npm run db:seed` - Seed local database
-- `npm run telegram:init-session` - Initialize Telegram session
-- `npm run telegram:sync` - Incremental Telegram sync
-- `npm run telegram:sync:full` - Full Telegram sync
-- `npm run telegram:listen` - Listen mode for Telegram sync
 
 ## Git Workflow (Recommended)
 
