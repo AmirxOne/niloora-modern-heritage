@@ -10,7 +10,7 @@ Avoid direct imports from internal files in feature code.
 
 ## Styling Contract
 - Base field class: `field-control`
-- Current default single-line height: `h-12`
+- Current default single-line height: `h-11`
 - Error class: `field-control--error`
 - Shared helper classes: `fieldStyles.ts`
 

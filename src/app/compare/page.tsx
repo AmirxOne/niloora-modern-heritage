@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { ProductCompareTable } from "@/components/compare/ProductCompareTable";
 import { useApp } from "@/lib/context/AppContext";
@@ -8,10 +9,15 @@ import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { fa } from "@/lib/i18n/fa";
 import { Button } from "@/components/ui/Button";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
+import { MAX_COMPARE_PRODUCTS } from "@/lib/product-lists/constants";
 
 export default function ComparePage() {
   const { compareList } = useApp();
   const products = useProductsByIds(compareList.ids);
+  const visibleProducts = useMemo(
+    () => products.slice(0, MAX_COMPARE_PRODUCTS),
+    [products]
+  );
 
   return (
     <PageTransition>
@@ -30,7 +36,7 @@ export default function ComparePage() {
           ) : null}
         </header>
 
-        {products.length === 0 ? (
+        {visibleProducts.length === 0 ? (
           <UnifiedEmptyState
             visual="compare"
             title={fa.compare.emptyTitle}
@@ -43,7 +49,7 @@ export default function ComparePage() {
             }
           />
         ) : (
-          <ProductCompareTable products={products} />
+          <ProductCompareTable products={visibleProducts} />
         )}
       </div>
     </PageTransition>

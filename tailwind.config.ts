@@ -103,14 +103,12 @@ const config: Config = {
         "control-lg": "3rem",
       },
       borderRadius: {
-        /** 12px — اینپوت، فیلدها */
-        heritage: "0.75rem",
-        /** 16px — کارت محصول */
-        "heritage-lg": "1rem",
-        /** 24px — مدال */
-        "heritage-xl": "1.5rem",
-        /** 40px — دکمه بزرگ */
-        "heritage-pill": "2.5rem",
+        /** 10px — شعاع یکتا برای کل پروژه */
+        heritage: "0.625rem",
+        /** aliases (backward-compat): unified with heritage */
+        "heritage-lg": "0.625rem",
+        "heritage-xl": "0.625rem",
+        "heritage-pill": "0.625rem",
       },
       letterSpacing: {
         heritage: "0.2em",

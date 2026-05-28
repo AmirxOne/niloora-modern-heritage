@@ -94,6 +94,19 @@ function isMissingSiteSettingsTable(error: unknown): boolean {
   return false;
 }
 
+function isMissingSiteSettingsColumn(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P2022";
+  }
+  if (error instanceof Error) {
+    return (
+      error.message.includes("SiteSettings") &&
+      error.message.includes("does not exist in the current database")
+    );
+  }
+  return false;
+}
+
 function defaultSiteSettingsRow(): SiteSettings {
   return {
     ...buildDefaultSiteSettingsRecord(),
@@ -119,6 +132,12 @@ async function ensureSiteSettingsRow(): Promise<SiteSettings> {
     if (isMissingSiteSettingsTable(error)) {
       console.warn(
         "[site-settings] SiteSettings table missing — using defaults. Run: npx prisma migrate deploy"
+      );
+      return defaultSiteSettingsRow();
+    }
+    if (isMissingSiteSettingsColumn(error)) {
+      console.warn(
+        "[site-settings] SiteSettings columns out of date — using defaults. Run: npx prisma migrate deploy"
       );
       return defaultSiteSettingsRow();
     }
@@ -186,6 +205,11 @@ export async function updateSiteSettings(input: UpdateSiteSettingsInput) {
     if (isMissingSiteSettingsTable(error)) {
       throw new Error(
         "جدول تنظیمات سایت در پایگاه داده وجود ندارد. دستور npx prisma migrate deploy را اجرا کنید."
+      );
+    }
+    if (isMissingSiteSettingsColumn(error)) {
+      throw new Error(
+        "ستون‌های جدید جدول تنظیمات سایت در پایگاه داده اعمال نشده‌اند. دستور npx prisma migrate deploy را اجرا کنید."
       );
     }
     throw error;
@@ -269,6 +293,11 @@ export async function updateSiteSettings(input: UpdateSiteSettingsInput) {
     if (isMissingSiteSettingsTable(error)) {
       throw new Error(
         "جدول تنظیمات سایت در پایگاه داده وجود ندارد. دستور npx prisma migrate deploy را اجرا کنید."
+      );
+    }
+    if (isMissingSiteSettingsColumn(error)) {
+      throw new Error(
+        "ستون‌های جدید جدول تنظیمات سایت در پایگاه داده اعمال نشده‌اند. دستور npx prisma migrate deploy را اجرا کنید."
       );
     }
     throw error;

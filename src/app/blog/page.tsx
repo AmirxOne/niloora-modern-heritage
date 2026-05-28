@@ -36,7 +36,7 @@ export default async function BlogPage() {
                 className="blog-empty"
                 action={
                   <Link href="/shop">
-                    <span className="inline-flex items-center rounded-heritage-pill border border-gold/20 bg-white px-4 py-2 text-sm text-turquoise-dark transition-colors hover:text-turquoise">
+                    <span className="inline-flex items-center rounded-heritage border border-gold/20 bg-white px-4 py-2 text-sm text-turquoise-dark transition-colors hover:text-turquoise">
                       {fa.blog.backToShop}
                     </span>
                   </Link>

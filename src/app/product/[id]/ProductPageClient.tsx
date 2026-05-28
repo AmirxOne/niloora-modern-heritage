@@ -144,7 +144,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
       <div className="site-container py-16" aria-busy="true">
         <div className="product-detail-grid">
           <div className="product-detail-media">
-            <div className="sk aspect-[4/5] w-full rounded-heritage-lg" />
+            <div className="sk aspect-[4/5] w-full rounded-heritage" />
           </div>
           <div className="product-detail-info">
             <header className="product-detail-header">
@@ -160,10 +160,10 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
               <div className="sk h-3 w-9/12" />
             </div>
             <div className="product-detail-actions">
-              <div className="sk h-12 w-full rounded-heritage-pill" />
+              <div className="sk h-12 w-full rounded-heritage" />
               <div className="product-detail-actions-secondary">
-                <div className="sk h-12 w-full rounded-heritage-pill" />
-                <div className="sk h-12 w-full rounded-heritage-pill" />
+                <div className="sk h-12 w-full rounded-heritage" />
+                <div className="sk h-12 w-full rounded-heritage" />
               </div>
             </div>
           </div>
@@ -329,10 +329,6 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   onAddBundleToCart={handleAddBundleToCart}
                 />
                 <BackInStockAlertCard product={product} />
-                <ProductAuthenticityCard product={product} />
-
-                <ProductArtisansPanel product={product} className="product-detail-artisans-panel" />
-                <ProductStoneInsight product={product} className="product-detail-stone-insight" />
               </aside>
             </div>
 
@@ -349,6 +345,12 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         />
 
         <ProductStoryCard product={product} className="product-detail-story-card" />
+
+        <section className="product-detail-insights-grid" aria-label="اطلاعات تکمیلی محصول">
+          <ProductAuthenticityCard product={product} />
+          <ProductArtisansPanel product={product} className="product-detail-artisans-panel" />
+          <ProductStoneInsight product={product} className="product-detail-stone-insight" />
+        </section>
 
         <ProductSectionNav className="product-detail-section-nav" />
 

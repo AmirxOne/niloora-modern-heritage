@@ -12,16 +12,20 @@ const initialState: CompareListState = {
   hydrated: false,
 };
 
+function clampCompareIds(ids: string[]) {
+  return ids.slice(0, MAX_COMPARE_PRODUCTS);
+}
+
 const compareListSlice = createSlice({
   name: "compareList",
   initialState,
   reducers: {
     hydrateCompareList(state) {
-      state.ids = loadJson<string[]>(storageKeys.compareList, []);
+      state.ids = clampCompareIds(loadJson<string[]>(storageKeys.compareList, []));
       state.hydrated = true;
     },
     setCompareListFromServer(state, action: PayloadAction<string[]>) {
-      state.ids = action.payload;
+      state.ids = clampCompareIds(action.payload);
       state.hydrated = true;
     },
     addToCompareList(state, action: PayloadAction<string>) {

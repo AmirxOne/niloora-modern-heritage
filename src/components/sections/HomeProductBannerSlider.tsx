@@ -51,7 +51,7 @@ export function HomeProductBannerSlider() {
     return (
       <section className={homeBannerSliderSection} aria-busy="true">
         <div className="site-container pb-3 pt-1 md:pb-5 md:pt-3">
-          <div className="sk relative overflow-hidden rounded-heritage-lg aspect-[4/3] min-h-[280px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[380px]">
+          <div className="sk relative overflow-hidden rounded-heritage aspect-[4/3] min-h-[280px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[380px]">
             <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10 lg:flex-row lg:items-end lg:justify-between lg:p-12">
               <div className="max-w-xl flex-1 space-y-3">
                 <div className="sk h-6 w-24 rounded-full" />
@@ -62,7 +62,7 @@ export function HomeProductBannerSlider() {
                 <div className="sk mt-2 h-6 w-32" />
               </div>
               <div className="mt-6 w-full max-w-[15rem] space-y-3 lg:mt-0">
-                <div className="sk h-11 w-full rounded-heritage-pill" />
+                <div className="sk h-11 w-full rounded-heritage" />
                 <div className="sk h-4 w-24" />
               </div>
             </div>
@@ -96,7 +96,7 @@ export function HomeProductBannerSlider() {
           </p>
         </header>
 
-        <div className="relative overflow-hidden rounded-heritage-lg border border-gold/15 shadow-luxury">
+        <div className="relative overflow-hidden rounded-heritage border border-gold/15 shadow-luxury">
           <div className="relative aspect-[4/3] min-h-[280px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[380px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div

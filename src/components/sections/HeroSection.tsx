@@ -171,7 +171,7 @@ export function HeroSection() {
           >
             {/* قاب اصلی — بدون لایه‌های شلوغ روی عکس */}
             <div className="hero-visual-frame">
-              <div className="relative w-full min-w-0 overflow-hidden rounded-heritage-lg bg-parchment/40 shadow-hojreh ring-1 ring-gold/10 aspect-[4/5] sm:aspect-[5/6] lg:aspect-auto lg:h-[min(56vh,480px)] lg:min-h-[300px]">
+              <div className="relative w-full min-w-0 overflow-hidden rounded-heritage bg-parchment/40 shadow-hojreh ring-1 ring-gold/10 aspect-[4/5] sm:aspect-[5/6] lg:aspect-auto lg:h-[min(56vh,480px)] lg:min-h-[300px]">
                 <Image
                   src={SITE_IMAGE_1}
                   alt={`انگشتر دست‌ساز ${fa.brand.name}`}

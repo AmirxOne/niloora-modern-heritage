@@ -6,6 +6,7 @@ import { fa } from "@/lib/i18n/fa";
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS, getVisiblePageTokens, normalizePageSize } from "@/lib/pagination";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { SelectBox, type SelectBoxOption } from "@/components/inputs";
 
 export interface PaginationProps {
   page: number;
@@ -50,6 +51,10 @@ export function Pagination({
 
   const tokens = getVisiblePageTokens(page, totalPages);
   const normalizedPageSize = normalizePageSize(pageSize, pageSizeOptions);
+  const pageSizeSelectOptions: SelectBoxOption[] = pageSizeOptions.map((option) => ({
+    value: String(option),
+    label: fa.pagination.pageSizeOption(option),
+  }));
 
   const updateQueryParams = (nextPage: number, nextPageSize = normalizedPageSize) => {
     if (!syncWithQueryParams) return;
@@ -106,17 +111,11 @@ export function Pagination({
         {onPageSizeChange ? (
           <label className="pagination-page-size">
             <span>{fa.pagination.pageSizeLabel}</span>
-            <select
-              value={normalizedPageSize}
-              onChange={(event) => changePageSize(event.target.value)}
-              aria-label={fa.pagination.pageSizeAriaLabel}
-            >
-              {pageSizeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {fa.pagination.pageSizeOption(option)}
-                </option>
-              ))}
-            </select>
+            <SelectBox
+              value={String(normalizedPageSize)}
+              options={pageSizeSelectOptions}
+              onValueChange={changePageSize}
+            />
           </label>
         ) : null}
       </div>

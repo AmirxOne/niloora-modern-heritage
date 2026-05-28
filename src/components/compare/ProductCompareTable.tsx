@@ -11,6 +11,7 @@ import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { Button } from "@/components/ui/Button";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { SelectBox, type SelectBoxOption } from "@/components/inputs";
 
 type CompareRow = {
   key: string;
@@ -131,6 +132,12 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
   const { compareList } = useApp();
   const rows = buildRows(products);
   const [need, setNeed] = useState<RecommendationNeed>("budget");
+  const needOptions: SelectBoxOption[] = [
+    { value: "budget", label: fa.compare.recommendationNeedOptions.budget },
+    { value: "fastDelivery", label: fa.compare.recommendationNeedOptions.fastDelivery },
+    { value: "luxury", label: fa.compare.recommendationNeedOptions.luxury },
+    { value: "gifting", label: fa.compare.recommendationNeedOptions.gifting },
+  ];
 
   const recommended = useMemo(() => {
     const sorted = [...products].sort((a, b) => compareNeedScore(b, need) - compareNeedScore(a, need));
@@ -143,20 +150,15 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
         <h2 className="compare-enhanced__section-title">{fa.compare.recommendationTitle}</h2>
         <p className="compare-enhanced__hint">{fa.compare.recommendationNeedHint}</p>
         <div className="compare-enhanced__need-row">
-          <label htmlFor="compare-need-select" className="compare-enhanced__need-label">
-            {fa.compare.recommendationNeedLabel}
-          </label>
-          <select
-            id="compare-need-select"
-            value={need}
-            onChange={(event) => setNeed(event.target.value as RecommendationNeed)}
-            className="compare-enhanced__need-select"
-          >
-            <option value="budget">{fa.compare.recommendationNeedOptions.budget}</option>
-            <option value="fastDelivery">{fa.compare.recommendationNeedOptions.fastDelivery}</option>
-            <option value="luxury">{fa.compare.recommendationNeedOptions.luxury}</option>
-            <option value="gifting">{fa.compare.recommendationNeedOptions.gifting}</option>
-          </select>
+          <div className="compare-enhanced__need-select">
+            <SelectBox
+              id="compare-need-select"
+              label={fa.compare.recommendationNeedLabel}
+              value={need}
+              options={needOptions}
+              onValueChange={(value) => setNeed(value as RecommendationNeed)}
+            />
+          </div>
         </div>
         {recommended ? (
           <div className="compare-enhanced__recommendation-result">
@@ -209,10 +211,16 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
                   <th key={product.id} scope="col" className="product-compare-table__product-col">
                     <div className="product-compare-table__product-head">
                       <Link href={`/product/${product.id}`} className="product-compare-table__thumb">
-                        <Image src={product.image} alt={product.name} fill sizes="160px" className="object-cover" />
+                        <Image
+                          src={product.image}
+                          alt={product.namePersian || product.name}
+                          fill
+                          sizes="160px"
+                          className="object-cover"
+                        />
                       </Link>
                       <Link href={`/product/${product.id}`} className="product-compare-table__name">
-                        {product.name}
+                        {product.namePersian || product.name}
                       </Link>
                       <ProductPriceDisplay product={product} size="sm" />
                       <div className="product-compare-table__actions">
