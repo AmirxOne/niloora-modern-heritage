@@ -1,0 +1,1 @@
+-- No-op: User.block already added in 20260527120000_user_blocked

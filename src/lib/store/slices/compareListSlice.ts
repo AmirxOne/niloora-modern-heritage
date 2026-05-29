@@ -21,7 +21,17 @@ const compareListSlice = createSlice({
   initialState,
   reducers: {
     hydrateCompareList(state) {
-      state.ids = clampCompareIds(loadJson<string[]>(storageKeys.compareList, []));
+      if (state.hydrated) return;
+      const stored = clampCompareIds(loadJson<string[]>(storageKeys.compareList, []));
+      if (state.ids.length > 0) {
+        const merged = [...stored];
+        for (const id of state.ids) {
+          if (!merged.includes(id)) merged.push(id);
+        }
+        state.ids = clampCompareIds(merged);
+      } else {
+        state.ids = stored;
+      }
       state.hydrated = true;
     },
     setCompareListFromServer(state, action: PayloadAction<string[]>) {
@@ -29,12 +39,15 @@ const compareListSlice = createSlice({
       state.hydrated = true;
     },
     addToCompareList(state, action: PayloadAction<string>) {
+      state.hydrated = true;
       state.ids = pushUniqueProductId(state.ids, action.payload, MAX_COMPARE_PRODUCTS);
     },
     removeFromCompareList(state, action: PayloadAction<string>) {
+      state.hydrated = true;
       state.ids = state.ids.filter((id) => id !== action.payload);
     },
     clearCompareList(state) {
+      state.hydrated = true;
       state.ids = [];
     },
   },

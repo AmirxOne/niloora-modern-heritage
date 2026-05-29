@@ -4,6 +4,8 @@ import { Compare } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
+import { useAppSelector } from "@/lib/store/hooks";
+import { selectIsInCompareList } from "@/lib/store/slices/compareListSlice";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +21,7 @@ export function ProductCompareButton({
   className?: string;
 }) {
   const { compareList } = useApp();
-  const active = compareList.isInCompare(productId);
+  const active = useAppSelector(selectIsInCompareList(productId));
 
   if (variant === "card") {
     return (
@@ -37,6 +39,8 @@ export function ProductCompareButton({
         )}
         aria-label={active ? fa.product.compareRemoveAria : fa.product.compareAddAria}
         aria-pressed={active}
+        title={active ? fa.product.compared : fa.product.compare}
+        data-compared={active ? "true" : "false"}
       >
         <Compare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
       </button>

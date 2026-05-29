@@ -777,17 +777,25 @@ model HomeSliderItem {
 }
 
 model HomeBannerSettings {
-  id               String    @id @default("default")
-  enabled          Boolean   @default(true)
-  badge            String
-  title            String
-  subtitle         String
-  percent          Int       @default(20)
-  countdownEnabled Boolean   @default(true)
-  countdownEndsAt  DateTime?
-  ctaLabel         String?
-  ctaHref          String    @default("/shop")
-  updatedAt        DateTime  @updatedAt
+  id                 String    @id @default("default")
+  enabled            Boolean   @default(true)
+  badge              String
+  title              String
+  subtitle           String
+  percent            Int       @default(20)
+  countdownEnabled   Boolean   @default(true)
+  countdownEndsAt    DateTime?
+  ctaLabel           String?
+  ctaHref            String    @default("/shop")
+  headerStripEnabled Boolean   @default(false)
+  headerStripMode    String    @default("text")
+  headerStripImageUrl String?
+  headerStripBadge   String    @default("")
+  headerStripTitle   String    @default("")
+  headerStripSubtitle String   @default("")
+  headerStripCtaLabel String?
+  headerStripCtaHref String    @default("/shop")
+  updatedAt          DateTime  @updatedAt
 }
 
 model HomeTestimonial {

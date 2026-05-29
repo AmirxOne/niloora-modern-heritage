@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
@@ -20,7 +21,10 @@ interface CartLineItemProps {
   onRemove: () => void;
 }
 
-export function CartLineItem({ item, onDecrease, onIncrease, onRemove }: CartLineItemProps) {
+export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(function CartLineItem(
+  { item, onDecrease, onIncrease, onRemove },
+  ref
+) {
   const lineList = (item.listPrice ?? item.price) * item.quantity;
   const lineTotal = item.price * item.quantity;
   const lineFurooh = Math.max(0, lineList - lineTotal);
@@ -29,6 +33,7 @@ export function CartLineItem({ item, onDecrease, onIncrease, onRemove }: CartLin
 
   return (
     <motion.li
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -110,4 +115,4 @@ export function CartLineItem({ item, onDecrease, onIncrease, onRemove }: CartLin
       </div>
     </motion.li>
   );
-}
+});

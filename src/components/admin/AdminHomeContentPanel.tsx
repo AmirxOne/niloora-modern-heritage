@@ -143,6 +143,132 @@ export function AdminHomeContentPanel() {
         ) : null}
       </section>
 
+      {/* Header strip */}
+      <section className="admin-order-card">
+        <h2 className="admin-page-title text-lg">{fa.admin.home.headerStripTitle}</h2>
+        <p className="mb-4 text-xs text-silver">{fa.admin.home.headerStripHint}</p>
+        {bannerForm ? (
+          <div className="grid gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={bannerForm.headerStripEnabled}
+                onChange={(e) =>
+                  setBannerForm({ ...bannerForm, headerStripEnabled: e.target.checked })
+                }
+              />
+              {fa.admin.home.headerStripEnabled}
+            </label>
+
+            <fieldset className="grid gap-2">
+              <legend className="mb-1 text-xs font-medium text-silver">
+                {fa.admin.home.headerStripMode}
+              </legend>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="headerStripMode"
+                  checked={bannerForm.headerStripMode === "text"}
+                  onChange={() => setBannerForm({ ...bannerForm, headerStripMode: "text" })}
+                />
+                {fa.admin.home.headerStripModeText}
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="headerStripMode"
+                  checked={bannerForm.headerStripMode === "image"}
+                  onChange={() => setBannerForm({ ...bannerForm, headerStripMode: "image" })}
+                />
+                {fa.admin.home.headerStripModeImage}
+              </label>
+            </fieldset>
+
+            {bannerForm.headerStripMode === "image" ? (
+              <>
+                <TextBox
+                  label={fa.admin.home.headerStripImageUrl}
+                  value={bannerForm.headerStripImageUrl ?? ""}
+                  onChange={(e) =>
+                    setBannerForm({
+                      ...bannerForm,
+                      headerStripImageUrl: e.target.value || null,
+                    })
+                  }
+                  inputClassName="auth-input-ltr"
+                />
+                <AdminMediaPicker
+                  category="home"
+                  value={bannerForm.headerStripImageUrl ?? undefined}
+                  label={fa.admin.home.headerStripImageUrl}
+                  onPick={(url) => setBannerForm({ ...bannerForm, headerStripImageUrl: url })}
+                />
+                {bannerForm.headerStripImageUrl ? (
+                  <div className="relative h-16 w-full max-w-xl overflow-hidden rounded-lg border border-gold/15">
+                    <Image
+                      src={bannerForm.headerStripImageUrl}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="640px"
+                    />
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <TextBox
+                  label={fa.admin.home.headerStripBadge}
+                  value={bannerForm.headerStripBadge}
+                  onChange={(e) =>
+                    setBannerForm({ ...bannerForm, headerStripBadge: e.target.value })
+                  }
+                />
+                <TextBox
+                  label={fa.admin.home.headerStripHeadline}
+                  value={bannerForm.headerStripTitle}
+                  onChange={(e) =>
+                    setBannerForm({ ...bannerForm, headerStripTitle: e.target.value })
+                  }
+                />
+                <TextAreaBox
+                  label={fa.admin.home.headerStripSubtitle}
+                  value={bannerForm.headerStripSubtitle}
+                  onChange={(e) =>
+                    setBannerForm({ ...bannerForm, headerStripSubtitle: e.target.value })
+                  }
+                  rows={2}
+                />
+                <TextBox
+                  label={fa.admin.home.headerStripCtaLabel}
+                  value={bannerForm.headerStripCtaLabel ?? ""}
+                  onChange={(e) =>
+                    setBannerForm({ ...bannerForm, headerStripCtaLabel: e.target.value })
+                  }
+                />
+              </>
+            )}
+
+            <TextBox
+              label={fa.admin.home.headerStripCtaHref}
+              value={bannerForm.headerStripCtaHref}
+              onChange={(e) =>
+                setBannerForm({ ...bannerForm, headerStripCtaHref: e.target.value })
+              }
+              inputClassName="auth-input-ltr"
+            />
+
+            <Button
+              type="button"
+              disabled={admin.isSaving}
+              onClick={() => void admin.saveBanner(bannerForm)}
+            >
+              {fa.admin.home.save}
+            </Button>
+          </div>
+        ) : null}
+      </section>
+
       {/* Slider */}
       <section className="admin-order-card">
         <h2 className="admin-page-title text-lg">{fa.admin.home.sliderTitle}</h2>

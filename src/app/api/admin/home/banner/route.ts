@@ -29,6 +29,11 @@ export async function PATCH(request: Request) {
       return badRequest("درصد بهاکاهی باید بین ۰ تا ۱۰۰ باشد.");
     }
 
+    const headerStripMode =
+      body.headerStripMode === "image" || body.headerStripMode === "text"
+        ? body.headerStripMode
+        : undefined;
+
     const banner = await upsertHomeBannerSettings({
       enabled: typeof body.enabled === "boolean" ? body.enabled : undefined,
       badge: typeof body.badge === "string" ? body.badge : undefined,
@@ -43,8 +48,31 @@ export async function PATCH(request: Request) {
           : typeof body.countdownEndsAt === "string"
             ? body.countdownEndsAt
             : undefined,
-      ctaLabel: typeof body.ctaLabel === "string" ? body.ctaLabel : undefined,
+      ctaLabel: typeof body.ctaLabel === "string" ? body.ctaLabel : body.ctaLabel === null ? null : undefined,
       ctaHref: typeof body.ctaHref === "string" ? body.ctaHref : undefined,
+      headerStripEnabled:
+        typeof body.headerStripEnabled === "boolean" ? body.headerStripEnabled : undefined,
+      headerStripMode,
+      headerStripImageUrl:
+        body.headerStripImageUrl === null
+          ? null
+          : typeof body.headerStripImageUrl === "string"
+            ? body.headerStripImageUrl
+            : undefined,
+      headerStripBadge:
+        typeof body.headerStripBadge === "string" ? body.headerStripBadge : undefined,
+      headerStripTitle:
+        typeof body.headerStripTitle === "string" ? body.headerStripTitle : undefined,
+      headerStripSubtitle:
+        typeof body.headerStripSubtitle === "string" ? body.headerStripSubtitle : undefined,
+      headerStripCtaLabel:
+        typeof body.headerStripCtaLabel === "string"
+          ? body.headerStripCtaLabel
+          : body.headerStripCtaLabel === null
+            ? null
+            : undefined,
+      headerStripCtaHref:
+        typeof body.headerStripCtaHref === "string" ? body.headerStripCtaHref : undefined,
     });
 
     return ok({ banner });

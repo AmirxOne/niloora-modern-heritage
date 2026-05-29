@@ -1,3 +1,5 @@
+export type HomeBannerHeaderStripMode = "text" | "image";
+
 export type HomeBannerDto = {
   enabled: boolean;
   badge: string;
@@ -8,6 +10,14 @@ export type HomeBannerDto = {
   countdownEndsAt: string | null;
   ctaLabel: string | null;
   ctaHref: string;
+  headerStripEnabled: boolean;
+  headerStripMode: HomeBannerHeaderStripMode;
+  headerStripImageUrl: string | null;
+  headerStripBadge: string;
+  headerStripTitle: string;
+  headerStripSubtitle: string;
+  headerStripCtaLabel: string | null;
+  headerStripCtaHref: string;
 };
 
 export type HomeSliderItemDto = {

@@ -1,10 +1,14 @@
-import type { HomeBannerDto } from "@/lib/types/home-content";
+import type { HomeBannerDto, HomeBannerHeaderStripMode } from "@/lib/types/home-content";
 import { defaultHomeBannerDto } from "@/lib/home-banner-defaults";
 import { prisma } from "@/lib/server/prisma";
 
 const DEFAULT_ID = "default";
 
 export { defaultHomeBannerDto };
+
+function parseHeaderStripMode(value: string | null | undefined): HomeBannerHeaderStripMode {
+  return value === "image" ? "image" : "text";
+}
 
 export function mapHomeBanner(row: {
   enabled: boolean;
@@ -16,6 +20,14 @@ export function mapHomeBanner(row: {
   countdownEndsAt: Date | null;
   ctaLabel: string | null;
   ctaHref: string;
+  headerStripEnabled: boolean;
+  headerStripMode: string;
+  headerStripImageUrl: string | null;
+  headerStripBadge: string;
+  headerStripTitle: string;
+  headerStripSubtitle: string;
+  headerStripCtaLabel: string | null;
+  headerStripCtaHref: string;
 }): HomeBannerDto {
   return {
     enabled: row.enabled,
@@ -27,6 +39,14 @@ export function mapHomeBanner(row: {
     countdownEndsAt: row.countdownEndsAt?.toISOString() ?? null,
     ctaLabel: row.ctaLabel,
     ctaHref: row.ctaHref,
+    headerStripEnabled: row.headerStripEnabled,
+    headerStripMode: parseHeaderStripMode(row.headerStripMode),
+    headerStripImageUrl: row.headerStripImageUrl,
+    headerStripBadge: row.headerStripBadge,
+    headerStripTitle: row.headerStripTitle,
+    headerStripSubtitle: row.headerStripSubtitle,
+    headerStripCtaLabel: row.headerStripCtaLabel,
+    headerStripCtaHref: row.headerStripCtaHref,
   };
 }
 
@@ -57,6 +77,11 @@ export async function upsertHomeBannerSettings(
   input: Partial<HomeBannerDto>
 ): Promise<HomeBannerDto> {
   const current = await getHomeBannerSettings();
+  const headerStripMode =
+    input.headerStripMode !== undefined
+      ? input.headerStripMode
+      : current.headerStripMode;
+
   const row = await prisma.homeBannerSettings.upsert({
     where: { id: DEFAULT_ID },
     create: {
@@ -82,6 +107,24 @@ export async function upsertHomeBannerSettings(
             ? null
             : input.ctaLabel.trim() || null,
       ctaHref: input.ctaHref?.trim() || current.ctaHref,
+      headerStripEnabled: input.headerStripEnabled ?? current.headerStripEnabled,
+      headerStripMode,
+      headerStripImageUrl:
+        input.headerStripImageUrl === undefined
+          ? current.headerStripImageUrl
+          : input.headerStripImageUrl === null
+            ? null
+            : input.headerStripImageUrl.trim() || null,
+      headerStripBadge: input.headerStripBadge?.trim() ?? current.headerStripBadge,
+      headerStripTitle: input.headerStripTitle?.trim() ?? current.headerStripTitle,
+      headerStripSubtitle: input.headerStripSubtitle?.trim() ?? current.headerStripSubtitle,
+      headerStripCtaLabel:
+        input.headerStripCtaLabel === undefined
+          ? current.headerStripCtaLabel
+          : input.headerStripCtaLabel === null
+            ? null
+            : input.headerStripCtaLabel.trim() || null,
+      headerStripCtaHref: input.headerStripCtaHref?.trim() || current.headerStripCtaHref,
     },
     update: {
       ...(input.enabled !== undefined ? { enabled: input.enabled } : {}),
@@ -100,6 +143,38 @@ export async function upsertHomeBannerSettings(
           }
         : {}),
       ...(input.ctaHref !== undefined ? { ctaHref: input.ctaHref.trim() || "/shop" } : {}),
+      ...(input.headerStripEnabled !== undefined
+        ? { headerStripEnabled: input.headerStripEnabled }
+        : {}),
+      ...(input.headerStripMode !== undefined ? { headerStripMode: input.headerStripMode } : {}),
+      ...(input.headerStripImageUrl !== undefined
+        ? {
+            headerStripImageUrl:
+              input.headerStripImageUrl === null
+                ? null
+                : input.headerStripImageUrl.trim() || null,
+          }
+        : {}),
+      ...(input.headerStripBadge !== undefined
+        ? { headerStripBadge: input.headerStripBadge.trim() }
+        : {}),
+      ...(input.headerStripTitle !== undefined
+        ? { headerStripTitle: input.headerStripTitle.trim() }
+        : {}),
+      ...(input.headerStripSubtitle !== undefined
+        ? { headerStripSubtitle: input.headerStripSubtitle.trim() }
+        : {}),
+      ...(input.headerStripCtaLabel !== undefined
+        ? {
+            headerStripCtaLabel:
+              input.headerStripCtaLabel === null
+                ? null
+                : input.headerStripCtaLabel.trim() || null,
+          }
+        : {}),
+      ...(input.headerStripCtaHref !== undefined
+        ? { headerStripCtaHref: input.headerStripCtaHref.trim() || "/shop" }
+        : {}),
     },
   });
   return mapHomeBanner(row);

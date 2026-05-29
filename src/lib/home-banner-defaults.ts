@@ -12,5 +12,13 @@ export function defaultHomeBannerDto(): HomeBannerDto {
     countdownEndsAt: DISCOUNT_COUNTDOWN.defaultEndsAt,
     ctaLabel: "ورود به گالری",
     ctaHref: "/shop",
+    headerStripEnabled: false,
+    headerStripMode: "text",
+    headerStripImageUrl: null,
+    headerStripBadge: "",
+    headerStripTitle: "",
+    headerStripSubtitle: "",
+    headerStripCtaLabel: null,
+    headerStripCtaHref: "/shop",
   };
 }
