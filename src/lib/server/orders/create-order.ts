@@ -104,6 +104,8 @@ export async function createOrderFromCart(input: {
           image: item.image,
           availability: item.availability ?? null,
           customizerState: item.customizerState as Prisma.InputJsonValue | undefined,
+          ringPurchaseCustomization:
+            item.ringPurchaseCustomization as Prisma.InputJsonValue | undefined,
         })),
       },
     },

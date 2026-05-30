@@ -10,6 +10,7 @@ import type { AdminOrder } from "@/lib/types";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
 import { formatPrice } from "@/lib/utils";
+import { summarizeRingCustomization } from "@/lib/orders/ring-customization-view";
 
 function formatReceiptDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fa-IR", {
@@ -302,6 +303,12 @@ export function AdminOrderInvoiceView({ order }: { order: AdminOrder }) {
             <span>{fa.admin.invoice.orderTotal}: </span>
             <strong>{formatPrice(invoice.paidTotal)}</strong>
           </p>
+          {order.estimatedReadyDays ? (
+            <p>
+              <span>زمان آماده‌سازی تقریبی: </span>
+              <strong>{order.estimatedReadyDays.toLocaleString("fa-IR")} روز</strong>
+            </p>
+          ) : null}
         </div>
       </section>
 
@@ -336,6 +343,11 @@ export function AdminOrderInvoiceView({ order }: { order: AdminOrder }) {
                         </div>
                       ) : null}
                       <span>{line.name}</span>
+                      <div className="text-[11px] text-silver">
+                        {(item ? summarizeRingCustomization(item) : []).map((detail) => (
+                          <p key={detail}>{detail}</p>
+                        ))}
+                      </div>
                     </div>
                   </td>
                   <td className="font-mono text-xs" dir="ltr">

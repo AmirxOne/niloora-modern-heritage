@@ -138,6 +138,7 @@ model Product {
   authenticityVerifications ProductAuthenticityVerification[]
   backInStockAlerts BackInStockAlert[]
   homeSliderItems   HomeSliderItem[]
+  ringCustomizationConfig ProductRingCustomizationConfig?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
@@ -594,6 +595,7 @@ model OrderItem {
   image           String
   availability    String?
   customizerState Json?
+  ringPurchaseCustomization Json?
   order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   returnItems     OrderReturnItem[]
@@ -816,6 +818,158 @@ model HomeInstagramPost {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ProductRingCustomizationConfig {
+  id                       String   @id @default(cuid())
+  productId                String   @unique
+  enabled                  Boolean  @default(false)
+  sizeBase                 Int?
+  sizeMin                  Int?
+  sizeMax                  Int?
+  sizePricingMode          String   @default("free")
+  sizeFixedDelta           Int      @default(0)
+  sizeStepAmount           Int      @default(0)
+  shankEnabled             Boolean  @default(false)
+  shankDefaultIncluded     Boolean  @default(false)
+  shankDefaultRemovalCredit Int     @default(0)
+  stoneEnabled             Boolean  @default(false)
+  stoneDefaultIncluded     Boolean  @default(false)
+  stoneDefaultRemovalCredit Int     @default(0)
+  baseLeadTimeDays         Int      @default(0)
+  sizeLeadTimeDays         Int      @default(0)
+  shankLeadTimeDays        Int      @default(0)
+  stoneLeadTimeDays        Int      @default(0)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  product                  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  allowedShankArtisans     ProductAllowedShankArtisan[]
+  allowedShankPatterns     ProductAllowedShankPattern[]
+  allowedStoneArtisans     ProductAllowedStoneArtisan[]
+  allowedStoneTexts        ProductAllowedStoneText[]
+  allowedScriptStyles      ProductAllowedScriptStyle[]
+
+  @@index([enabled, updatedAt])
+}
+
+model RingCustomizationArtisan {
+  id              String   @id @default(cuid())
+  name            String
+  scope           String
+  active          Boolean  @default(true)
+  priceMode       String   @default("fixed")
+  priceAdd        Int      @default(0)
+  priceMultiplier Float    @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  allowedInShank  ProductAllowedShankArtisan[]
+  allowedInStone  ProductAllowedStoneArtisan[]
+
+  @@index([scope, active, updatedAt])
+}
+
+model RingCustomizationShankPattern {
+  id              String   @id @default(cuid())
+  title           String
+  imageUrl        String?
+  complexityLevel Int      @default(1)
+  priceAdd        Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  allowedInConfig ProductAllowedShankPattern[]
+
+  @@index([active, updatedAt])
+}
+
+model RingCustomizationStoneText {
+  id              String   @id @default(cuid())
+  text            String
+  meaning         String?
+  previewImageUrl String?
+  priceAdd        Int      @default(0)
+  active          Boolean  @default(true)
+  searchKeywords  Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  allowedInConfig ProductAllowedStoneText[]
+  allowedScripts  StoneTextAllowedScript[]
+
+  @@index([active, updatedAt])
+}
+
+model RingCustomizationScriptStyle {
+  id              String   @id @default(cuid())
+  title           String
+  previewImageUrl String?
+  priceAdd        Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  allowedInConfig ProductAllowedScriptStyle[]
+  allowedTexts    StoneTextAllowedScript[]
+
+  @@index([active, updatedAt])
+}
+
+model ProductAllowedShankArtisan {
+  configId   String
+  artisanId  String
+  config     ProductRingCustomizationConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  artisan    RingCustomizationArtisan       @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+
+  @@id([configId, artisanId])
+  @@index([artisanId])
+}
+
+model ProductAllowedShankPattern {
+  configId   String
+  patternId  String
+  config     ProductRingCustomizationConfig  @relation(fields: [configId], references: [id], onDelete: Cascade)
+  pattern    RingCustomizationShankPattern   @relation(fields: [patternId], references: [id], onDelete: Cascade)
+
+  @@id([configId, patternId])
+  @@index([patternId])
+}
+
+model ProductAllowedStoneArtisan {
+  configId   String
+  artisanId  String
+  config     ProductRingCustomizationConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  artisan    RingCustomizationArtisan       @relation(fields: [artisanId], references: [id], onDelete: Cascade)
+
+  @@id([configId, artisanId])
+  @@index([artisanId])
+}
+
+model ProductAllowedStoneText {
+  configId  String
+  textId    String
+  config    ProductRingCustomizationConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  text      RingCustomizationStoneText     @relation(fields: [textId], references: [id], onDelete: Cascade)
+
+  @@id([configId, textId])
+  @@index([textId])
+}
+
+model ProductAllowedScriptStyle {
+  configId  String
+  styleId   String
+  config    ProductRingCustomizationConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  style     RingCustomizationScriptStyle   @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  @@id([configId, styleId])
+  @@index([styleId])
+}
+
+model StoneTextAllowedScript {
+  textId   String
+  styleId  String
+  text     RingCustomizationStoneText   @relation(fields: [textId], references: [id], onDelete: Cascade)
+  style    RingCustomizationScriptStyle @relation(fields: [styleId], references: [id], onDelete: Cascade)
+
+  @@id([textId, styleId])
+  @@index([styleId])
 }
 
 model SiteSettings {

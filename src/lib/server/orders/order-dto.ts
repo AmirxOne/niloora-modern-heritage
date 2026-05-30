@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { shippingMethodLabel } from "@/lib/orders/shipping-methods";
 import type { CartItem, OrderShipping } from "@/lib/types";
 import { normalizeLoyaltyTier } from "@/lib/loyalty/program";
+import type { RingPurchaseCustomization } from "@/lib/types/ring-customization";
 
 type OrderWithItems = {
   id: string;
@@ -45,6 +46,7 @@ type OrderWithItems = {
     image: string;
     availability: string | null;
     customizerState: Prisma.JsonValue;
+    ringPurchaseCustomization: Prisma.JsonValue;
   }>;
   payment?: {
     status: string;
@@ -79,6 +81,11 @@ export function toOrderDto(order: OrderWithItems) {
       }
     : undefined;
 
+  const estimatedReadyDays = order.items.reduce((max, item) => {
+    const ring = item.ringPurchaseCustomization as RingPurchaseCustomization | null;
+    return Math.max(max, ring?.leadTimeDaysDelta ?? 0);
+  }, 0);
+
   return {
     id: order.id,
     date: order.createdAt.toISOString(),
@@ -110,6 +117,7 @@ export function toOrderDto(order: OrderWithItems) {
     shipping,
     trackingCode: order.trackingCode ?? undefined,
     payment,
+    estimatedReadyDays: estimatedReadyDays > 0 ? estimatedReadyDays : undefined,
     items: order.items.map((item) => ({
       id: item.id,
       productId: item.productId ?? undefined,
@@ -120,6 +128,9 @@ export function toOrderDto(order: OrderWithItems) {
       image: item.image,
       availability: (item.availability as CartItem["availability"]) ?? undefined,
       customizerState: (item.customizerState as unknown as CartItem["customizerState"]) ?? undefined,
+      ringPurchaseCustomization:
+        (item.ringPurchaseCustomization as unknown as CartItem["ringPurchaseCustomization"]) ??
+        undefined,
     })),
   };
 }

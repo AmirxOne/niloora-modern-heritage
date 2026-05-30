@@ -7,6 +7,27 @@ vi.mock("@/lib/server/prisma", () => ({
     product: {
       findMany: vi.fn(),
     },
+    productRingCustomizationConfig: {
+      findMany: vi.fn(),
+    },
+    ringCustomizationArtisan: {
+      findMany: vi.fn(),
+    },
+    ringCustomizationShankPattern: {
+      findMany: vi.fn(),
+    },
+    ringCustomizationStoneText: {
+      findMany: vi.fn(),
+    },
+    ringCustomizationScriptStyle: {
+      findMany: vi.fn(),
+    },
+    discountCampaign: {
+      findMany: vi.fn(),
+    },
+    bundleOffer: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -77,6 +98,13 @@ describe("repriceOrderItems", () => {
   beforeEach(() => {
     vi.mocked(validateCartPurchase).mockResolvedValue(undefined);
     vi.mocked(prisma.product.findMany).mockResolvedValue([dbProduct]);
+    vi.mocked(prisma.productRingCustomizationConfig.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.ringCustomizationArtisan.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.ringCustomizationShankPattern.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.ringCustomizationStoneText.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.ringCustomizationScriptStyle.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.discountCampaign.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.bundleOffer.findMany).mockResolvedValue([]);
     vi.mocked(calcPromoFromCode).mockResolvedValue({
       amount: 0,
       normalizedCode: null,
@@ -197,5 +225,60 @@ describe("repriceOrderItems", () => {
         null
       )
     ).rejects.toThrow("قلم سبد باید محصول گالری یا طرح سفارشی باشد");
+  });
+
+  it("rejects tampered ring customization delta on catalog lines", async () => {
+    vi.mocked(prisma.productRingCustomizationConfig.findMany).mockResolvedValueOnce([
+      {
+        id: "cfg-1",
+        productId: "prod-1",
+        enabled: true,
+        sizeBase: 50,
+        sizeMin: 45,
+        sizeMax: 55,
+        sizePricingMode: "step",
+        sizeFixedDelta: 0,
+        sizeStepAmount: 100_000,
+        shankEnabled: false,
+        shankDefaultIncluded: false,
+        shankDefaultRemovalCredit: 0,
+        stoneEnabled: false,
+        stoneDefaultIncluded: false,
+        stoneDefaultRemovalCredit: 0,
+        baseLeadTimeDays: 0,
+        sizeLeadTimeDays: 0,
+        shankLeadTimeDays: 0,
+        stoneLeadTimeDays: 0,
+        allowedShankArtisans: [],
+        allowedShankPatterns: [],
+        allowedStoneArtisans: [],
+        allowedStoneTexts: [],
+        allowedScriptStyles: [],
+      },
+    ] as never);
+
+    await expect(
+      repriceOrderItems(
+        [
+          catalogLine({
+            ringPurchaseCustomization: {
+              version: 1,
+              productId: "prod-1",
+              size: {
+                enabled: true,
+                base: 50,
+                min: 45,
+                max: 55,
+                selected: 52,
+                priceDelta: 999_999,
+              },
+              leadTimeDaysDelta: 0,
+              totalCustomizationDelta: 999_999,
+            },
+          }),
+        ],
+        null
+      )
+    ).rejects.toThrow("قیمت شخصی‌سازی معتبر نیست");
   });
 });

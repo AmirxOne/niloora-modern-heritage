@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { forwardRef } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Minus, Plus } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
@@ -19,10 +19,11 @@ interface CartLineItemProps {
   onDecrease: () => void;
   onIncrease: () => void;
   onRemove: () => void;
+  customizationControl?: ReactNode;
 }
 
 export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(function CartLineItem(
-  { item, onDecrease, onIncrease, onRemove },
+  { item, onDecrease, onIncrease, onRemove, customizationControl },
   ref
 ) {
   const lineList = (item.listPrice ?? item.price) * item.quantity;
@@ -112,6 +113,7 @@ export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(functio
             {fa.common.remove}
           </button>
         </div>
+        {customizationControl}
       </div>
     </motion.li>
   );

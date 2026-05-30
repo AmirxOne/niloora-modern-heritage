@@ -314,12 +314,10 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                       باز کردن راهنمای سایز
                     </Link>
                     <Link
-                      href={`/customize?productId=${encodeURIComponent(product.id)}&ringSize=${encodeURIComponent(
-                        (product.ringSize ?? 7).toString()
-                      )}`}
+                      href={`/customize?productId=${encodeURIComponent(product.id)}`}
                       className="product-detail-ring-size-link product-detail-ring-size-link--subtle"
                     >
-                      سفارشی‌سازی با سایز پیش‌فرض این محصول
+                      شخصی‌سازی خرید
                     </Link>
                   </div>
                 </section>

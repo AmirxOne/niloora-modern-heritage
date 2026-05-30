@@ -17,6 +17,7 @@ import {
   addCustomDesignToCart,
   removeCartItem,
   updateCartItemQuantity,
+  updateCartItemRingCustomization,
   clearCart,
   selectCartItems,
   selectCartIsOpen,
@@ -188,6 +189,27 @@ export function useCart() {
     toast.info("سبد خرید خالی شد.");
   }, [dispatch]);
 
+  const updateRingCustomization = useCallback(
+    (
+      id: string,
+      payload: {
+        price: number;
+        listPrice?: number;
+        ringPurchaseCustomization?: CartItem["ringPurchaseCustomization"];
+      }
+    ) => {
+      dispatch(
+        updateCartItemRingCustomization({
+          id,
+          price: payload.price,
+          listPrice: payload.listPrice,
+          ringPurchaseCustomization: payload.ringPurchaseCustomization,
+        })
+      );
+    },
+    [dispatch]
+  );
+
   return {
     items,
     total,
@@ -199,6 +221,7 @@ export function useCart() {
     addCustomDesign,
     removeItem,
     updateQuantity,
+    updateRingCustomization,
     clearCart: clearCartFn,
     hydrated,
   };

@@ -1,310 +1,705 @@
 "use client";
 
-import { useEffect } from "react";
-import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { buildQuoteRequestTitle } from "@/lib/customizer/quote-summary";
-import { useCustomizer } from "@/lib/hooks/useCustomizer";
-import { useApp } from "@/lib/context/AppContext";
-import { TomanPrice } from "@/components/commerce/TomanPrice";
-import { fa } from "@/lib/i18n/fa";
-import { CustomizerWizard } from "@/components/customizer/CustomizerWizard";
-import { CompatibilityNotice } from "@/components/customizer/CompatibilityNotice";
-import { Ring3DPreview, getPreviewModeForStep } from "@/components/customizer/Ring3DPreview";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
+import { Stepper, type StepperStep } from "@/components/ui/Stepper";
 import { TextBox } from "@/components/inputs";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Share } from "@/components/icons";
-import { ICON_VARIANT, iconSizes } from "@/lib/icons";
-import type { WizardStepId } from "@/lib/customizer/wizard";
+import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { StatusAlert } from "@/components/ui/StatusAlert";
+import { listAllArtisans } from "@/lib/artisans";
+import { useApp } from "@/lib/context/AppContext";
+import { ImageChoiceGrid } from "@/components/customizer/wizard/ImageChoiceGrid";
+import type { ProductAvailability } from "@/lib/types";
+import type {
+  RingCustomizationPublicConfigDto,
+  RingPurchaseCustomization,
+} from "@/lib/types/ring-customization";
+import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
+
+type BranchState = "unchanged" | "customized" | "opted_out";
+type CustomizeStep = "size" | "shank" | "stone" | "review";
+
+type ProductPayload = {
+  id: string;
+  name: string;
+  namePersian: string;
+  image: string;
+  price: number;
+  listPrice?: number;
+  availability: ProductAvailability;
+};
+
+function normalizeFaText(value: string): string {
+  return value
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("fa-IR");
+}
 
 export default function CustomizePage() {
+  const { cart } = useApp();
   const router = useRouter();
-  const { state, update, batchUpdate, loadState, reset, price, recentChanges, dismissChanges } =
-    useCustomizer();
-  const { cart, designs, auth, quoteRequests } = useApp();
   const searchParams = useSearchParams();
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
-  const [quoteNote, setQuoteNote] = useState("");
-  const [quoteSuccessId, setQuoteSuccessId] = useState<string | null>(null);
-  const [designName, setDesignName] = useState("");
-  const [shareToast, setShareToast] = useState(false);
-  const [wizardStep, setWizardStep] = useState<WizardStepId>("master");
+  const productId = searchParams.get("productId") ?? "";
+  const cartItemId = searchParams.get("cartItemId") ?? "";
 
-  useEffect(() => {
-    const ringSizeParam = searchParams.get("ringSize");
-    if (!ringSizeParam) return;
-    const numeric = Number(ringSizeParam);
-    if (!Number.isFinite(numeric)) return;
-    if (numeric < 4 || numeric > 12) return;
-    update("size", numeric);
-  }, [searchParams, update]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [product, setProduct] = useState<ProductPayload | null>(null);
+  const [config, setConfig] = useState<RingCustomizationPublicConfigDto | null>(null);
 
-  useEffect(() => {
-    const encoded = searchParams.get("design");
-    if (!encoded) return;
-    try {
-      const parsed = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-      if (parsed && typeof parsed === "object") {
-        loadState(parsed);
-      }
-    } catch {
-      // Invalid shared config is ignored intentionally.
-    }
-  }, [searchParams, loadState]);
+  const [useSize, setUseSize] = useState(true);
+  const [useShank, setUseShank] = useState(true);
+  const [useStone, setUseStone] = useState(true);
+  const [size, setSize] = useState<number | null>(null);
+  const [shankState, setShankState] = useState<BranchState>("unchanged");
+  const [stoneState, setStoneState] = useState<BranchState>("unchanged");
+  const [shankArtisanId, setShankArtisanId] = useState("");
+  const [shankPatternId, setShankPatternId] = useState("");
+  const [stoneArtisanId, setStoneArtisanId] = useState("");
+  const [stoneTextId, setStoneTextId] = useState("");
+  const [scriptStyleId, setScriptStyleId] = useState("");
+  const [shankDesignerQuery, setShankDesignerQuery] = useState("");
+  const [textQuery, setTextQuery] = useState("");
+  const [preview, setPreview] = useState<RingPurchaseCustomization | null>(null);
+  const [step, setStep] = useState<CustomizeStep>("size");
 
-  const selectedHighlights = useMemo(
-    () => [
-      { label: "طراح رکاب", value: state.shankMaster },
-      { label: "مدل رکاب", value: state.shankModelId },
-      { label: "نگین", value: state.stone },
-      { label: "برش", value: state.stoneShape },
-      { label: "سایز", value: state.size.toLocaleString("fa-IR") },
-      { label: "ضخامت", value: `${state.thickness.toLocaleString("fa-IR")} mm` },
-    ],
-    [state]
+  const cartItem = useMemo(
+    () => cart.items.find((item) => item.id === cartItemId),
+    [cart.items, cartItemId]
   );
 
-  const handleSave = () => {
-    if (!designName.trim()) return;
-    designs.saveDesign(designName.trim(), state, price);
-    setSaveModalOpen(false);
-    setDesignName("");
+  const filteredStoneTexts = useMemo(() => {
+    const texts = config?.catalog.stoneTexts ?? [];
+    const query = textQuery.trim();
+    if (!query) return texts;
+    return texts.filter(
+      (item) => item.name.includes(query) || (item.meaning ?? "").includes(query)
+    );
+  }, [config?.catalog.stoneTexts, textQuery]);
+
+  const carvingArtisansFromDirectory = useMemo(
+    () => {
+      const all = listAllArtisans();
+      const carvingOnly = all.filter((artisan) => artisan.primaryRole === "carving-master");
+      if (carvingOnly.length > 0) return carvingOnly;
+      return all.filter((artisan) => artisan.primaryRole === "band-engraver");
+    },
+    []
+  );
+
+  const shankDesignerOptions = useMemo(() => {
+    const catalog = config?.catalog.shankArtisans ?? [];
+    if (!catalog.length) return [];
+    if (!carvingArtisansFromDirectory.length) {
+      return catalog.map((item) => ({
+        id: item.id,
+        name: item.name,
+        image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+        meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
+      }));
+    }
+
+    const normalizedCatalog = catalog.map((item) => ({
+      ...item,
+      normalizedName: normalizeFaText(item.name),
+    }));
+    const usedIds = new Set<string>();
+    const matchedArtisanSlugs = new Set<string>();
+
+    const mapped = carvingArtisansFromDirectory.flatMap((artisan) => {
+      const normalizedArtisanName = normalizeFaText(artisan.name);
+      const match = normalizedCatalog.find(
+        (item) =>
+          !usedIds.has(item.id) &&
+          (item.normalizedName === normalizedArtisanName ||
+            item.normalizedName.includes(normalizedArtisanName) ||
+            normalizedArtisanName.includes(item.normalizedName))
+      );
+      if (!match) return [];
+      usedIds.add(match.id);
+      matchedArtisanSlugs.add(artisan.slug);
+      return [
+        {
+          id: match.id,
+          name: artisan.name,
+          image: artisan.image || match.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+          meta: `+${match.priceAdd.toLocaleString("fa-IR")} تومان`,
+        },
+      ];
+    });
+
+    const remainingCatalog = catalog.filter((item) => !usedIds.has(item.id));
+    const unmatchedArtisans = carvingArtisansFromDirectory.filter(
+      (artisan) => !matchedArtisanSlugs.has(artisan.slug)
+    );
+    const pairedFromPeople = unmatchedArtisans
+      .slice(0, remainingCatalog.length)
+      .map((artisan, idx) => {
+        const source = remainingCatalog[idx];
+        return {
+          id: source.id,
+          name: artisan.name,
+          image: artisan.image || source.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+          meta: `+${source.priceAdd.toLocaleString("fa-IR")} تومان`,
+        };
+      });
+
+    return [...mapped, ...pairedFromPeople];
+  }, [carvingArtisansFromDirectory, config?.catalog.shankArtisans]);
+
+  const filteredShankDesigners = useMemo(() => {
+    const query = normalizeFaText(shankDesignerQuery);
+    if (!query) return shankDesignerOptions;
+    return shankDesignerOptions.filter((item) => normalizeFaText(item.name).includes(query));
+  }, [shankDesignerOptions, shankDesignerQuery]);
+
+  const unitBasePrice = product?.price ?? 0;
+  const estimatedUnitPrice = unitBasePrice + (preview?.totalCustomizationDelta ?? 0);
+  const stepOrder: CustomizeStep[] = ["size", "shank", "stone", "review"];
+  const stepIndex = Math.max(0, stepOrder.indexOf(step));
+  const nextStep = stepOrder[Math.min(stepOrder.length - 1, stepIndex + 1)];
+  const prevStep = stepOrder[Math.max(0, stepIndex - 1)];
+  const stepperSteps = useMemo<StepperStep[]>(
+    () =>
+      stepOrder.map((item) => ({
+        id: item,
+        label:
+          item === "size"
+            ? "سایز"
+            : item === "shank"
+              ? "قلم‌کاری"
+              : item === "stone"
+                ? "حکاکی"
+                : "بازبینی",
+        description:
+          item === "size"
+            ? "ثبت سایز نهایی تحویل"
+            : item === "shank"
+              ? "تنظیمات قلم‌کاری رکاب"
+              : item === "stone"
+                ? "تنظیمات حکاکی سنگ"
+                : "تایید نهایی و اعمال در سبد",
+      })),
+    [stepOrder]
+  );
+
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    void (async () => {
+      try {
+        const [productRes, configRes] = await Promise.all([
+          fetch(`/api/products/${encodeURIComponent(productId)}`),
+          fetch(`/api/products/${encodeURIComponent(productId)}/ring-customization`),
+        ]);
+        const productData = await parseJsonResponse<{ product?: ProductPayload }>(productRes);
+        const configData = await parseJsonResponse<{
+          ringCustomization?: RingCustomizationPublicConfigDto;
+          message?: string;
+        }>(configRes);
+        if (!productRes.ok || !productData?.product) {
+          toast.error("محصول پیدا نشد.");
+          return;
+        }
+        if (!configRes.ok || !configData?.ringCustomization) {
+          toast.error(configData?.message ?? "شخصی‌سازی برای این محصول فعال نیست.");
+          return;
+        }
+        setProduct(productData.product);
+        setConfig(configData.ringCustomization);
+        setSize(configData.ringCustomization.config.sizeBase ?? null);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [productId]);
+
+  useEffect(() => {
+    if (!cartItem?.ringPurchaseCustomization) return;
+    const ring = cartItem.ringPurchaseCustomization;
+    setPreview(ring);
+    if (ring.size) {
+      setUseSize(true);
+      setSize(ring.size.selected);
+    }
+    if (ring.shank) {
+      setUseShank(true);
+      setShankState(ring.shank.state);
+      setShankArtisanId(ring.shank.artisanId ?? "");
+      setShankPatternId(ring.shank.patternId ?? "");
+    }
+    if (ring.stone) {
+      setUseStone(true);
+      setStoneState(ring.stone.state);
+      setStoneArtisanId(ring.stone.artisanId ?? "");
+      setStoneTextId(ring.stone.textId ?? "");
+      setScriptStyleId(ring.stone.scriptStyleId ?? "");
+    }
+  }, [cartItem?.ringPurchaseCustomization]);
+
+  useEffect(() => {
+    if (!config || !productId) return;
+    const timeout = window.setTimeout(() => {
+      void previewPrice();
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [
+    config,
+    productId,
+    useSize,
+    size,
+    useShank,
+    shankState,
+    shankArtisanId,
+    shankPatternId,
+    useStone,
+    stoneState,
+    stoneArtisanId,
+    stoneTextId,
+    scriptStyleId,
+  ]);
+
+  const previewPrice = async () => {
+    if (!productId) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/ring-customization/price-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId,
+          size: useSize && size != null ? { selected: size } : undefined,
+          shank: useShank
+            ? {
+                state: shankState,
+                artisanId: shankArtisanId || undefined,
+                patternId: shankPatternId || undefined,
+              }
+            : undefined,
+          stone: useStone
+            ? {
+                state: stoneState,
+                artisanId: stoneArtisanId || undefined,
+                textId: stoneTextId || undefined,
+                scriptStyleId: scriptStyleId || undefined,
+              }
+            : undefined,
+        }),
+      });
+      const data = await parseJsonResponse<{
+        customization?: RingPurchaseCustomization;
+        message?: string;
+      }>(response);
+      if (!response.ok || !data?.customization) {
+        toast.error(data?.message ?? "محاسبه قیمت انجام نشد.");
+        return;
+      }
+      setPreview(data.customization);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const openQuoteModal = () => {
-    if (!auth.isLoggedIn) {
-      router.push("/auth?redirect=/customize");
+  const applyToCart = () => {
+    if (!preview || !product) return;
+    if (cartItem) {
+      const previousDelta = cartItem.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
+      const basePrice = cartItem.price - previousDelta;
+      const baseList = (cartItem.listPrice ?? cartItem.price) - previousDelta;
+      const nextPrice = Math.max(0, basePrice + preview.totalCustomizationDelta);
+      const nextList = Math.max(nextPrice, baseList + preview.totalCustomizationDelta);
+      cart.updateRingCustomization(cartItem.id, {
+        price: nextPrice,
+        listPrice: nextList,
+        ringPurchaseCustomization: preview,
+      });
+      toast.success("شخصی‌سازی روی قلم سبد اعمال شد.");
+      router.push("/cart");
       return;
     }
-    setQuoteNote("");
-    setQuoteModalOpen(true);
-  };
 
-  const handleSubmitQuote = async () => {
-    const title = buildQuoteRequestTitle(state);
-    const quote = await quoteRequests.submitQuoteRequest({
-      configuration: state,
-      title,
-      customerNote: quoteNote.trim() || undefined,
-      estimateTotal: price,
+    cart.addItem({
+      productId: product.id,
+      name: product.namePersian || product.name,
+      image: product.image,
+      availability: product.availability,
+      price: Math.max(0, product.price + preview.totalCustomizationDelta),
+      listPrice: Math.max(
+        product.price + preview.totalCustomizationDelta,
+        (product.listPrice ?? product.price) + preview.totalCustomizationDelta
+      ),
+      ringPurchaseCustomization: preview,
     });
-    if (!quote) return;
-    setQuoteModalOpen(false);
-    setQuoteSuccessId(quote.id);
+    toast.success("محصول شخصی‌سازی‌شده به سبد اضافه شد.");
+    router.push("/cart");
   };
 
-  const handleShare = async () => {
-    const data = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-    const url = `${window.location.origin}/customize?design=${data}`;
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      /* ignore */
-    }
-    setShareToast(true);
-    setTimeout(() => setShareToast(false), 3000);
-  };
+  if (!productId) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen bg-matte pb-14 pt-24">
+          <div className="site-container max-w-3xl">
+            <div className="rounded-heritage-lg border border-gold/15 bg-matte-elevated p-6">
+              <h1 className="text-xl font-semibold text-ivory">شخصی‌سازی خرید</h1>
+              <p className="mt-2 text-sm text-silver">
+                ابتدا یک محصول انگشتر را انتخاب کنید و سپس روی دکمه «شخصی‌سازی خرید» بزنید.
+              </p>
+              <Link href="/shop" className="mt-4 inline-block">
+                <Button>رفتن به فروشگاه</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </PageTransition>
+    );
+  }
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-matte pb-14 pt-24">
-        <motion.div
-          className="site-container space-y-6"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          <header className="overflow-hidden rounded-heritage-lg border border-gold/20 bg-matte-elevated p-5 shadow-heritage md:p-7">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="rounded-full border border-gold/20 bg-gold/10 px-3 py-1 text-xs font-semibold text-gold-dark">
-                {fa.customize.eyebrow}
-              </p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={reset} className="h-9 px-3 text-xs">
-                  بازنشانی کامل
-                </Button>
-                <Button variant="ghost" onClick={() => setSaveModalOpen(true)} className="h-9 px-3 text-xs">
-                  ذخیره طرح
-                </Button>
-              </div>
-            </div>
-            <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-ivory-light md:text-3xl">
-                  استودیو حرفه‌ای سفارشی‌سازی انگشتر
-                </h1>
-                <p className="mt-2 max-w-3xl text-sm leading-7 text-silver">{fa.customize.studioSubtitle}</p>
-              </div>
-              <motion.div
-                className="rounded-heritage border border-turquoise/30 bg-turquoise/10 px-4 py-3 text-end shadow-glass"
-                layout
-              >
-                <span className="block text-xs text-silver">{fa.customize.wizard.estimatedPrice}</span>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={price}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    className="mt-1 block text-xl font-bold text-price-sale"
-                  >
-                    <TomanPrice amount={price} size="md" />
-                  </motion.span>
-                </AnimatePresence>
-              </motion.div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {selectedHighlights.map((item) => (
-                <span
-                  key={item.label}
-                  className="rounded-full border border-gold/15 bg-parchment/60 px-3 py-1 text-xs text-silver"
-                >
-                  <span className="text-ivory-light">{item.label}:</span> {item.value}
-                </span>
-              ))}
-            </div>
-          </header>
-
-          <CompatibilityNotice items={recentChanges} onDismiss={dismissChanges} />
-
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-            <section
-              className="rounded-heritage-lg border border-gold/15 bg-matte-elevated p-4 shadow-heritage md:p-6"
-              aria-label={fa.customize.title}
-            >
-              <CustomizerWizard
-                state={state}
-                onUpdate={update}
-                onBatchUpdate={batchUpdate}
-                onStepChange={setWizardStep}
-                estimateTotal={price}
-                onRequestWorkshopQuote={openQuoteModal}
-                isSubmittingQuote={quoteRequests.isSubmitting}
-              />
-            </section>
-
-            <aside className="space-y-4 xl:sticky xl:top-24 xl:h-fit" aria-label={fa.customize.preview3dTitle}>
-              <div className="rounded-heritage-lg border border-gold/15 bg-matte-elevated p-4 shadow-heritage">
-                <p className="mb-3 text-xs text-silver">{fa.customize.preview3dTitle}</p>
-                <Ring3DPreview state={state} mode={getPreviewModeForStep(wizardStep)} />
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <Button onClick={() => setSaveModalOpen(true)} variant="outline" className="flex-1">
-                    {fa.customize.saveDesign}
-                  </Button>
-                  <Button onClick={handleShare} variant="ghost" className="flex-1 gap-2">
-                    <Share size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-                    {fa.customize.shareDesign}
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      cart.addCustomDesign(designName || fa.customize.customRing, price, state)
-                    }
-                    variant="turquoise"
-                    className="col-span-2 w-full"
-                  >
-                    {fa.customize.addToCart}
-                  </Button>
+      <div className="min-h-screen bg-matte pb-14 pt-10">
+        <div className="site-container">
+          <section className="mb-4 rounded-heritage border border-gold/15 bg-matte-elevated px-4 py-3 md:px-5">
+            <h1 className="text-lg font-semibold text-ivory-light md:text-xl">شخصی‌سازی خرید انگشتر</h1>
+            <p className="mt-1 text-xs leading-6 text-silver md:text-sm">
+              انتخاب‌های خود را مرحله‌به‌مرحله انجام دهید؛ قیمت نهایی و زمان آماده‌سازی به‌صورت لحظه‌ای نمایش داده می‌شود.
+            </p>
+          </section>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <header className="rounded-heritage-lg border border-gold/20 bg-matte-elevated p-5 lg:order-2 lg:h-fit lg:sticky lg:top-24">
+              {loading || !product ? (
+                <div className="grid gap-3" aria-busy="true" aria-live="polite">
+                  <div className="sk aspect-square w-full rounded-heritage" />
+                  <div className="grid gap-2">
+                    <div className="sk h-6 w-4/5 rounded-heritage" />
+                    <div className="mt-1 grid gap-2">
+                      <div className="sk h-4 w-2/3 rounded-heritage" />
+                      <div className="sk h-4 w-3/5 rounded-heritage" />
+                      <div className="sk h-4 w-3/4 rounded-heritage" />
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 rounded-heritage border border-gold/15 bg-gold/5 p-3 text-xs leading-6 text-silver">
-                  قیمت بالا برآورد لحظه‌ای کارگاه است. قیمت نهایی پس از بازبینی فنی نگین، سایز و جزئیات حکاکی
-                  تایید می‌شود.
+              ) : (
+                <div className="grid gap-3">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-heritage border border-gold/15 bg-parchment">
+                    <Image
+                      src={product.image || "/Picsart_26-04-26_15-15-33-128.jpg"}
+                      alt={product.namePersian || product.name || ""}
+                      fill
+                      className="object-cover"
+                      sizes="300px"
+                    />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-semibold text-ivory-light">
+                      {product.namePersian || product.name}
+                    </h1>
+                    <div className="mt-2 grid gap-1 text-sm text-silver">
+                      <span>
+                        قیمت پایه: <TomanPrice amount={unitBasePrice} size="xs" />
+                      </span>
+                      <span>
+                        دلتا انتخاب‌ها: <TomanPrice amount={preview?.totalCustomizationDelta ?? 0} size="xs" />
+                      </span>
+                      <span className="font-semibold text-price-sale">
+                        قیمت نهایی: <TomanPrice amount={estimatedUnitPrice} size="xs" />
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <AnimatePresence>
-                  {shareToast ? (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="customize-studio-share-toast"
+              )}
+            </header>
+
+            <div className="rounded-heritage border border-gold/15 bg-parchment/20 p-3 lg:order-1 flex flex-col">
+            {loading ? (
+              <div className="mt-4 grid gap-3 lg:flex-1" aria-busy="true" aria-live="polite">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="sk h-7 w-20 rounded-full" />
+                  <span className="sk h-7 w-16 rounded-full" />
+                  <span className="sk h-7 w-20 rounded-full" />
+                  <span className="sk h-7 w-20 rounded-full" />
+                  <span className="sk h-7 w-20 rounded-full" />
+                </div>
+                <div className="grid gap-3 rounded-heritage border border-gold/10 p-3">
+                  <div className="sk h-4 w-36" />
+                  <div className="sk h-10 w-full rounded-heritage" />
+                  <div className="sk h-10 w-full rounded-heritage" />
+                  <div className="sk h-10 w-2/3 rounded-heritage" />
+                </div>
+                <div className="grid gap-3 rounded-heritage border border-gold/10 p-3">
+                  <div className="sk h-4 w-28" />
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <div className="sk aspect-square w-full rounded-heritage" />
+                    <div className="sk aspect-square w-full rounded-heritage" />
+                    <div className="sk aspect-square w-full rounded-heritage" />
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-gold/10 bg-parchment/95 py-2 lg:mt-auto">
+                  <span className="sk h-11 w-28 rounded-heritage" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="sk h-11 w-24 rounded-heritage" />
+                    <span className="sk h-11 w-24 rounded-heritage" />
+                  </div>
+                </div>
+              </div>
+            ) : config ? (
+              <div className="mt-4 flex flex-1 flex-col gap-3">
+                <Stepper
+                  steps={stepperSteps}
+                  currentStepId={step}
+                  completedStepIds={stepOrder.slice(0, stepIndex)}
+                  orientation="horizontal"
+                  onStepClick={(stepId) => setStep(stepId as CustomizeStep)}
+                />
+
+                {step === "size" ? (
+                  <div className="grid gap-2">
+                    <TextBox
+                      label={`سایز تحویل (${config.config.sizeMin} تا ${config.config.sizeMax})`}
+                      value={String(size ?? config.config.sizeBase ?? "")}
+                      onChange={(e) => {
+                        setUseSize(true);
+                        setSize(Number(e.target.value) || config.config.sizeBase);
+                      }}
+                      inputClassName="auth-input-ltr"
+                    />
+                    <StatusAlert
+                      tone="info"
+                      title="راهنمای انتخاب سایز"
+                      action={
+                        <Link
+                          href="/ring-size"
+                          className="inline-flex items-center text-sm font-semibold text-gold-dark underline decoration-gold/60 underline-offset-4 transition-colors hover:text-gold"
+                        >
+                          باز کردن راهنمای سایز
+                        </Link>
+                      }
                     >
-                      {fa.customize.shareCopied}
-                    </motion.p>
-                  ) : null}
-                </AnimatePresence>
+                      برای انتخاب دقیق سایز، از ابزار راهنمای سایز استفاده کنید و سپس مقدار مناسب را
+                      در این مرحله وارد کنید.
+                    </StatusAlert>
+                  </div>
+                ) : null}
+
+                {step === "shank" ? (
+                  <div className="grid gap-3 rounded-heritage border border-gold/10 p-3">
+                    <div className="grid gap-1 text-xs text-silver">
+                      <p>حالت قلم‌کاری</p>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        {([
+                          { id: "unchanged", label: "بدون تغییر" },
+                          { id: "customized", label: "شخصی‌سازی" },
+                          { id: "opted_out", label: "قلم‌کاری نمی‌خواهم" },
+                        ] as const).map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => {
+                              setUseShank(true);
+                              setShankState(option.id);
+                              if (option.id === "customized") {
+                                if (!shankArtisanId && shankDesignerOptions.length) {
+                                  setShankArtisanId(shankDesignerOptions[0].id);
+                                }
+                                if (!shankPatternId && config.catalog.shankPatterns.length) {
+                                  setShankPatternId(config.catalog.shankPatterns[0].id);
+                                }
+                              }
+                            }}
+                            className={`rounded-heritage border px-3 py-2 text-xs transition-colors ${
+                              shankState === option.id
+                                ? "border-gold bg-gold/10 text-gold-dark"
+                                : "border-gold/20 bg-parchment text-silver hover:border-gold/40"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {shankState === "customized" ? (
+                      <>
+                        <p className="text-xs text-silver">طراحان قلم کاری رکاب</p>
+                        <TextBox
+                          label="جستجوی طراح قلم کاری رکاب"
+                          value={shankDesignerQuery}
+                          onChange={(event) => setShankDesignerQuery(event.target.value)}
+                        />
+                        <ImageChoiceGrid
+                          options={filteredShankDesigners}
+                          value={shankArtisanId || null}
+                          onChange={(value) => {
+                            setUseShank(true);
+                            setShankArtisanId(value);
+                          }}
+                          compact
+                          columns={3}
+                        />
+                        {filteredShankDesigners.length === 0 ? (
+                          <p className="text-xs text-silver">طراحی با این عبارت پیدا نشد.</p>
+                        ) : null}
+                        <p className="text-xs text-silver">طراحی قلم‌کاری رکاب</p>
+                        <ImageChoiceGrid
+                          options={config.catalog.shankPatterns.map((item) => ({
+                            id: item.id,
+                            name: item.name,
+                            image: item.imageUrl || "/Picsart_26-04-26_15-17-47-470.jpg",
+                            meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
+                          }))}
+                          value={shankPatternId || null}
+                          onChange={(value) => {
+                            setUseShank(true);
+                            setShankPatternId(value);
+                          }}
+                          compact
+                          columns={3}
+                        />
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {step === "stone" ? (
+                  <div className="grid gap-3 rounded-heritage border border-gold/10 p-3">
+                    <div className="grid gap-1 text-xs text-silver">
+                      <p>حالت حکاکی</p>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        {([
+                          { id: "unchanged", label: "بدون تغییر" },
+                          { id: "customized", label: "شخصی‌سازی" },
+                          { id: "opted_out", label: "حکاکی نمی‌خواهم" },
+                        ] as const).map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => {
+                              setUseStone(true);
+                              setStoneState(option.id);
+                            }}
+                            className={`rounded-heritage border px-3 py-2 text-xs transition-colors ${
+                              stoneState === option.id
+                                ? "border-gold bg-gold/10 text-gold-dark"
+                                : "border-gold/20 bg-parchment text-silver hover:border-gold/40"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {stoneState === "customized" ? (
+                      <>
+                        <p className="text-xs text-silver">استادکار حکاکی</p>
+                        <ImageChoiceGrid
+                          options={config.catalog.stoneArtisans.map((item) => ({
+                            id: item.id,
+                            name: item.name,
+                            image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+                            meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
+                          }))}
+                          value={stoneArtisanId || null}
+                          onChange={(value) => {
+                            setUseStone(true);
+                            setStoneArtisanId(value);
+                          }}
+                          columns={3}
+                        />
+                        <TextBox label="جستجوی متن حک" value={textQuery} onChange={(e) => setTextQuery(e.target.value)} />
+                        <p className="text-xs text-silver">متن حک</p>
+                        <ImageChoiceGrid
+                          options={filteredStoneTexts.map((item) => ({
+                            id: item.id,
+                            name: item.name,
+                            description: item.description || undefined,
+                            image: item.imageUrl || "/Picsart_26-04-26_15-17-47-470.jpg",
+                            meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
+                          }))}
+                          value={stoneTextId || null}
+                          onChange={(value) => {
+                            setUseStone(true);
+                            setStoneTextId(value);
+                          }}
+                          columns={2}
+                        />
+                        <p className="text-xs text-silver">سبک خط</p>
+                        <ImageChoiceGrid
+                          options={config.catalog.scriptStyles.map((item) => ({
+                            id: item.id,
+                            name: item.name,
+                            image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+                            meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
+                          }))}
+                          value={scriptStyleId || null}
+                          onChange={(value) => {
+                            setUseStone(true);
+                            setScriptStyleId(value);
+                          }}
+                          columns={3}
+                        />
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {step === "review" ? (
+                  <div className="rounded-heritage border border-gold/10 bg-parchment/40 p-3 text-sm">
+                    <p className="text-ivory">جمع‌بندی انتخاب‌ها</p>
+                    <p className="mt-2 text-silver">
+                      دلتا قیمت: <TomanPrice amount={preview?.totalCustomizationDelta ?? 0} size="xs" />
+                    </p>
+                    <p className="mt-1 text-silver">
+                      قیمت نهایی هر عدد: <TomanPrice amount={estimatedUnitPrice} size="xs" />
+                    </p>
+                    {preview?.leadTimeDaysDelta ? (
+                      <p className="mt-1 text-silver">
+                        زمان آماده‌سازی: {preview.leadTimeDaysDelta.toLocaleString("fa-IR")} روز
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                <div className="mt-10 flex flex-wrap items-center justify-between gap-2 lg:sticky lg:bottom-0 lg:z-10">
+                  <Button variant="outline" disabled={stepIndex === 0} onClick={() => setStep(prevStep)}>
+                    مرحله قبل
+                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {step !== "review" ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          if (step === "size") setUseSize(false);
+                          if (step === "shank") setUseShank(false);
+                          if (step === "stone") setUseStone(false);
+                          setStep(nextStep);
+                        }}
+                      >
+                        رد کردن
+                      </Button>
+                    ) : null}
+                    {step !== "review" ? (
+                      <Button onClick={() => setStep(nextStep)}>مرحله بعد</Button>
+                    ) : (
+                      <Button disabled={!preview || saving} onClick={applyToCart}>
+                        اعمال در سبد
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="rounded-heritage-lg border border-gold/15 bg-matte-elevated p-4 text-sm text-silver shadow-heritage">
-                <p className="mb-2 text-sm font-semibold text-ivory-light">استاندارد استودیو</p>
-                <ul className="space-y-2 leading-6">
-                  <li>• همه مرحله‌ها با قواعد سازگاری فنی کارگاه کنترل می‌شود.</li>
-                  <li>• ترکیب‌های ناسازگار خودکار اصلاح می‌شوند و به شما اطلاع داده می‌شود.</li>
-                  <li>• خروجی نهایی مستقیم برای افزودن به سبد و ثبت سفارش آماده است.</li>
-                </ul>
-              </div>
-            </aside>
+            ) : (
+              <p className="text-sm text-silver">تنظیمات این محصول در دسترس نیست.</p>
+            )}
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
-
-      <Modal
-        isOpen={quoteModalOpen}
-        onClose={() => setQuoteModalOpen(false)}
-        title={fa.customize.wizard.quoteModalTitle}
-        size="sm"
-      >
-        <div className="space-y-4 p-6">
-          <p className="text-sm leading-7 text-silver">{fa.customize.wizard.quoteHint}</p>
-          <p className="text-sm text-ivory">
-            {fa.customize.wizard.estimatedPrice}: <strong><TomanPrice amount={price} size="xs" /></strong>
-          </p>
-          <TextBox
-            label={fa.customize.wizard.quoteModalNoteLabel}
-            placeholder={fa.customize.wizard.quoteModalNotePlaceholder}
-            value={quoteNote}
-            onChange={(e) => setQuoteNote(e.target.value)}
-          />
-          <Button
-            className="w-full"
-            variant="turquoise"
-            onClick={() => void handleSubmitQuote()}
-            disabled={quoteRequests.isSubmitting}
-            isLoading={quoteRequests.isSubmitting}
-          >
-            {fa.customize.wizard.quoteModalSubmit}
-          </Button>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={Boolean(quoteSuccessId)}
-        onClose={() => setQuoteSuccessId(null)}
-        title={fa.customize.wizard.quoteSuccessTitle}
-        size="sm"
-      >
-        <div className="space-y-4 p-6">
-          <p className="text-sm leading-7 text-silver">
-            {quoteSuccessId ? fa.customize.wizard.quoteSuccessBody(quoteSuccessId) : ""}
-          </p>
-          <Link href="/account#quotes" onClick={() => setQuoteSuccessId(null)}>
-            <Button className="w-full" variant="outline">
-              {fa.dashboard.workshopQuotes}
-            </Button>
-          </Link>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={saveModalOpen}
-        onClose={() => setSaveModalOpen(false)}
-        title={fa.customize.saveModalTitle}
-        size="sm"
-      >
-        <div className="space-y-4 p-6">
-          <TextBox
-            label={fa.customize.designName}
-            placeholder={fa.customize.designNamePlaceholder}
-            value={designName}
-            onChange={(e) => setDesignName(e.target.value)}
-          />
-          <Button className="w-full" onClick={handleSave} disabled={!designName.trim()}>
-            {fa.customize.saveToAccount}
-          </Button>
-        </div>
-      </Modal>
     </PageTransition>
   );
 }

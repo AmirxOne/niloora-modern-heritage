@@ -83,6 +83,33 @@ export async function repriceOrderItems(
       })
     : [];
 
+  const hasRingCustomizationLines = positiveItems.some(
+    (item) => Boolean(item.productId && item.ringPurchaseCustomization && !item.customizerState)
+  );
+
+  const [ringConfigs, ringArtisans, ringPatterns, ringTexts, ringScriptStyles] =
+    hasRingCustomizationLines
+      ? await Promise.all([
+          prisma.productRingCustomizationConfig.findMany({
+            where: {
+              productId: { in: productIds },
+              enabled: true,
+            },
+            include: {
+              allowedShankArtisans: true,
+              allowedShankPatterns: true,
+              allowedStoneArtisans: true,
+              allowedStoneTexts: true,
+              allowedScriptStyles: true,
+            },
+          }),
+          prisma.ringCustomizationArtisan.findMany(),
+          prisma.ringCustomizationShankPattern.findMany(),
+          prisma.ringCustomizationStoneText.findMany(),
+          prisma.ringCustomizationScriptStyle.findMany(),
+        ])
+      : [[], [], [], [], []];
+
   const byId = new Map(
     products.map((product) => [
       product.id,
@@ -92,7 +119,58 @@ export async function repriceOrderItems(
       },
     ])
   );
-  const items = positiveItems.map((item) => resolveCartLine(item, byId));
+  const ringConfigByProductId = new Map(
+    ringConfigs.map((item) => [
+      item.productId,
+      {
+        productId: item.productId,
+        enabled: item.enabled,
+        sizeBase: item.sizeBase,
+        sizeMin: item.sizeMin,
+        sizeMax: item.sizeMax,
+        sizePricingMode: item.sizePricingMode,
+        sizeFixedDelta: item.sizeFixedDelta,
+        sizeStepAmount: item.sizeStepAmount,
+        shankEnabled: item.shankEnabled,
+        shankDefaultIncluded: item.shankDefaultIncluded,
+        shankDefaultRemovalCredit: item.shankDefaultRemovalCredit,
+        stoneEnabled: item.stoneEnabled,
+        stoneDefaultIncluded: item.stoneDefaultIncluded,
+        stoneDefaultRemovalCredit: item.stoneDefaultRemovalCredit,
+        baseLeadTimeDays: item.baseLeadTimeDays,
+        sizeLeadTimeDays: item.sizeLeadTimeDays,
+        shankLeadTimeDays: item.shankLeadTimeDays,
+        stoneLeadTimeDays: item.stoneLeadTimeDays,
+        allowedShankArtisanIds: item.allowedShankArtisans.map((r) => r.artisanId),
+        allowedShankPatternIds: item.allowedShankPatterns.map((r) => r.patternId),
+        allowedStoneArtisanIds: item.allowedStoneArtisans.map((r) => r.artisanId),
+        allowedStoneTextIds: item.allowedStoneTexts.map((r) => r.textId),
+        allowedScriptStyleIds: item.allowedScriptStyles.map((r) => r.styleId),
+      },
+    ])
+  );
+  const items = positiveItems.map((item) =>
+    resolveCartLine(item, byId, {
+      ringConfigByProductId,
+      catalog: {
+        artisansById: new Map(
+          ringArtisans.map((a) => [
+            a.id,
+            { id: a.id, active: a.active, scope: a.scope, priceAdd: a.priceAdd },
+          ])
+        ),
+        shankPatternsById: new Map(
+          ringPatterns.map((a) => [a.id, { id: a.id, active: a.active, priceAdd: a.priceAdd }])
+        ),
+        stoneTextsById: new Map(
+          ringTexts.map((a) => [a.id, { id: a.id, active: a.active, priceAdd: a.priceAdd }])
+        ),
+        scriptStylesById: new Map(
+          ringScriptStyles.map((a) => [a.id, { id: a.id, active: a.active, priceAdd: a.priceAdd }])
+        ),
+      },
+    })
+  );
 
   const subtotalList = items.reduce(
     (sum, item) => sum + (item.listPrice ?? item.price) * item.quantity,

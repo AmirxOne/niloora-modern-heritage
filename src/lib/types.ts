@@ -1,3 +1,5 @@
+import type { RingPurchaseCustomization } from "@/lib/types/ring-customization";
+
 export type MetalType = "sterling" | "oxidized" | "rhodium" | "matte-silver";
 
 export type StoneType =
@@ -286,6 +288,7 @@ export interface CartItem {
   image: string;
   availability?: ProductAvailability;
   customizerState?: CustomizerState;
+  ringPurchaseCustomization?: RingPurchaseCustomization;
 }
 
 export interface OrderPaymentSummary {
@@ -341,6 +344,7 @@ export interface Order {
   campaignTitle?: string;
   shipping?: OrderShipping;
   trackingCode?: string;
+  estimatedReadyDays?: number;
   payment?: OrderPaymentSummary;
   items: CartItem[];
 }

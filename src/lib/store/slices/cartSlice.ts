@@ -38,7 +38,8 @@ const cartSlice = createSlice({
       const existing = state.items.find(
         (i) =>
           i.productId === item.productId &&
-          JSON.stringify(i.customizerState) === JSON.stringify(item.customizerState)
+          JSON.stringify(i.customizerState) === JSON.stringify(item.customizerState) &&
+          JSON.stringify(i.ringPurchaseCustomization) === JSON.stringify(item.ringPurchaseCustomization)
       );
       if (existing) {
         existing.quantity += item.quantity ?? 1;
@@ -114,6 +115,22 @@ const cartSlice = createSlice({
       const item = state.items.find((i) => i.id === id);
       if (item) item.quantity = quantity;
     },
+    updateCartItemRingCustomization(
+      state,
+      action: PayloadAction<{
+        id: string;
+        price: number;
+        listPrice?: number;
+        ringPurchaseCustomization?: CartItem["ringPurchaseCustomization"];
+      }>
+    ) {
+      const { id, price, listPrice, ringPurchaseCustomization } = action.payload;
+      const item = state.items.find((i) => i.id === id);
+      if (!item) return;
+      item.price = Math.max(0, Math.round(price));
+      if (listPrice != null) item.listPrice = Math.max(0, Math.round(listPrice));
+      item.ringPurchaseCustomization = ringPurchaseCustomization;
+    },
     clearCart(state) {
       state.items = [];
     },
@@ -129,6 +146,7 @@ export const {
   addCustomDesignToCart,
   removeCartItem,
   updateCartItemQuantity,
+  updateCartItemRingCustomization,
   clearCart,
 } = cartSlice.actions;
 

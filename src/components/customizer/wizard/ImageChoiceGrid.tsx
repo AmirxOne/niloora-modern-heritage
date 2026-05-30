@@ -16,6 +16,7 @@ interface ImageChoiceGridProps {
   value: string | null;
   onChange: (id: string) => void;
   columns?: 2 | 3;
+  compact?: boolean;
 }
 
 export function ImageChoiceGrid({
@@ -23,6 +24,7 @@ export function ImageChoiceGrid({
   value,
   onChange,
   columns = 2,
+  compact = false,
 }: ImageChoiceGridProps) {
   return (
     <ul
@@ -40,6 +42,7 @@ export function ImageChoiceGrid({
               onClick={() => onChange(opt.id)}
               className={cn(
                 "customizer-choice-card",
+                compact && "customizer-choice-card--compact",
                 selected && "customizer-choice-card--selected"
               )}
               aria-pressed={selected}

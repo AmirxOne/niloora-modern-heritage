@@ -9,6 +9,7 @@ import { useCartPricing } from "@/lib/hooks/useCartPricing";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { CartFuroohSummary } from "@/components/cart/CartFuroohSummary";
 import { CartLineItem } from "@/components/cart/CartLineItem";
+import { RingCustomizationEditor } from "@/components/cart/RingCustomizationEditor";
 import { PromoCodeInput } from "@/components/cart/PromoCodeInput";
 import { fa } from "@/lib/i18n/fa";
 import { Check } from "@/components/icons";
@@ -280,6 +281,32 @@ export function CartPageContent() {
                       onDecrease={() => cart.updateQuantity(item.id, item.quantity - 1)}
                       onIncrease={() => cart.updateQuantity(item.id, item.quantity + 1)}
                       onRemove={() => cart.removeItem(item.id)}
+                      customizationControl={
+                        item.productId && !item.customizerState ? (
+                          <RingCustomizationEditor
+                            item={item}
+                            onClear={() => {
+                              const previousDelta =
+                                item.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
+                              if (!previousDelta) {
+                                cart.updateRingCustomization(item.id, {
+                                  price: item.price,
+                                  listPrice: item.listPrice,
+                                  ringPurchaseCustomization: undefined,
+                                });
+                                return;
+                              }
+                              const basePrice = item.price - previousDelta;
+                              const baseList = (item.listPrice ?? item.price) - previousDelta;
+                              cart.updateRingCustomization(item.id, {
+                                price: basePrice,
+                                listPrice: baseList,
+                                ringPurchaseCustomization: undefined,
+                              });
+                            }}
+                          />
+                        ) : null
+                      }
                     />
                   ))}
                 </AnimatePresence>

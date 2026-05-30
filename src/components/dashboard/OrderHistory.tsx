@@ -16,6 +16,7 @@ import { usePagination } from "@/lib/hooks/usePagination";
 import { ORDERS_PAGE_SIZE } from "@/lib/pagination";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
+import { summarizeRingCustomization } from "@/lib/orders/ring-customization-view";
 
 const statusLabels: Record<Order["status"], string> = {
   pending_payment: fa.dashboard.orderStatus.pending_payment,
@@ -126,6 +127,11 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
               <p className="order-history-item-meta">
                 {fa.dashboard.orderItems(item.quantity)} · <TomanPrice amount={item.price} size="xs" />
               </p>
+              {summarizeRingCustomization(item).map((line) => (
+                <p key={line} className="text-[11px] text-silver">
+                  {line}
+                </p>
+              ))}
             </div>
             <p className="order-history-line-total">
               <TomanPrice amount={item.price * item.quantity} size="xs" />
@@ -152,6 +158,11 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
             <p className="mt-1 text-xs text-silver">
               خرید اقساطی: {order.installmentMonths.toLocaleString("fa-IR")} قسط ×{" "}
               <TomanPrice amount={order.installmentAmount} size="xs" />
+            </p>
+          ) : null}
+          {order.estimatedReadyDays ? (
+            <p className="mt-1 text-xs text-silver">
+              زمان آماده‌سازی تقریبی: {order.estimatedReadyDays.toLocaleString("fa-IR")} روز
             </p>
           ) : null}
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">

@@ -5,6 +5,7 @@ import { buildOrderReceipt, type OrderReceiptBreakdown } from "@/lib/orders/orde
 import type { Order } from "@/lib/types";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
 import { fa } from "@/lib/i18n/fa";
+import { summarizeRingCustomization } from "@/lib/orders/ring-customization-view";
 
 interface OrderReceiptViewProps {
   order: Order;
@@ -129,14 +130,16 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
             </tr>
           </thead>
           <tbody>
-            {receipt.lines.map((line) => (
+            {receipt.lines.map((line) => {
+              const item = order.items.find((i) => i.id === line.id);
+              return (
               <tr key={line.id}>
                 <td>
                   <div className="order-receipt-line-item">
-                    {order.items.find((i) => i.id === line.id)?.image ? (
+                    {item?.image ? (
                       <div className="order-receipt-line-thumb">
                         <Image
-                          src={order.items.find((i) => i.id === line.id)!.image}
+                          src={item.image}
                           alt={line.name}
                           fill
                           className="object-cover"
@@ -145,6 +148,13 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
                       </div>
                     ) : null}
                     <span>{line.name}</span>
+                    <div className="text-[11px] text-silver">
+                      {(item ? summarizeRingCustomization(item) : []).map(
+                        (detail) => (
+                          <p key={detail}>{detail}</p>
+                        )
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td>{line.quantity.toLocaleString("fa-IR")}</td>
@@ -162,7 +172,8 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
                   <TomanPrice amount={line.lineTotal} size="xs" />
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </section>
@@ -182,6 +193,11 @@ export function OrderReceiptView({ order }: OrderReceiptViewProps) {
 
       <section className="order-receipt-section">
         <ReceiptTotals receipt={receipt} order={order} />
+        {order.estimatedReadyDays ? (
+          <p className="mt-3 text-xs text-silver">
+            زمان آماده‌سازی تقریبی: {order.estimatedReadyDays.toLocaleString("fa-IR")} روز
+          </p>
+        ) : null}
       </section>
 
       <footer className="order-receipt-footer">
