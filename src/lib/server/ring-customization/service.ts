@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/server/prisma";
-import { pickSiteImageByKey } from "@/lib/images";
+import { pickSiteImageByKey, pickTestArtisanImageByKey, pickTestCarvingPatternImage } from "@/lib/images";
 import type {
   RingCustomizationAdminCatalogDto,
   RingCustomizationAdminConfigDto,
@@ -152,14 +152,14 @@ export async function getOrCreateRingCustomizationConfig(
           name: item.name,
           active: item.active,
           priceAdd: item.priceAdd,
-          imageUrl: pickSiteImageByKey(`ring-custom-shank-artisan-${item.id}`),
+          imageUrl: pickTestArtisanImageByKey(`ring-custom-shank-artisan-${item.id}`),
         })),
-      shankPatterns: catalog.shankPatterns.map((item) => ({
+      shankPatterns: catalog.shankPatterns.map((item, index) => ({
         id: item.id,
         name: item.name,
         active: item.active,
         priceAdd: item.priceAdd,
-        imageUrl: item.imageUrl ?? pickSiteImageByKey(`ring-custom-pattern-${item.id}`),
+        imageUrl: pickTestCarvingPatternImage(index),
       })),
       stoneArtisans: catalog.artisans
         .filter((item) => item.scope === "stone" || item.scope === "both")
@@ -168,7 +168,7 @@ export async function getOrCreateRingCustomizationConfig(
           name: item.name,
           active: item.active,
           priceAdd: item.priceAdd,
-          imageUrl: pickSiteImageByKey(`ring-custom-stone-artisan-${item.id}`),
+          imageUrl: pickTestArtisanImageByKey(`ring-custom-stone-artisan-${item.id}`),
         })),
       stoneTexts: catalog.stoneTexts.map((item) => ({
         id: item.id,

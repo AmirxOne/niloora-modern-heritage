@@ -406,7 +406,7 @@ export default function CustomizePage() {
                         قیمت پایه: <TomanPrice amount={unitBasePrice} size="xs" />
                       </span>
                       <span>
-                        دلتا انتخاب‌ها: <TomanPrice amount={preview?.totalCustomizationDelta ?? 0} size="xs" />
+                        تغییر قیمت: <TomanPrice amount={preview?.totalCustomizationDelta ?? 0} size="xs" />
                       </span>
                       <span className="font-semibold text-price-sale">
                         قیمت نهایی: <TomanPrice amount={estimatedUnitPrice} size="xs" />
@@ -550,7 +550,7 @@ export default function CustomizePage() {
                           options={config.catalog.shankPatterns.map((item) => ({
                             id: item.id,
                             name: item.name,
-                            image: item.imageUrl || "/Picsart_26-04-26_15-17-47-470.jpg",
+                            image: item.imageUrl || "/Gemini_Generated_Image_iay12tiay12tiay1.png",
                             meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
                           }))}
                           value={shankPatternId || null}
@@ -558,8 +558,7 @@ export default function CustomizePage() {
                             setUseShank(true);
                             setShankPatternId(value);
                           }}
-                          compact
-                          columns={3}
+                          columns={4}
                         />
                       </>
                     ) : null}

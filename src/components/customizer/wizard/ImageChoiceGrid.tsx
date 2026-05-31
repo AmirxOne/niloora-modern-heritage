@@ -15,7 +15,7 @@ interface ImageChoiceGridProps {
   options: ImageChoiceOption[];
   value: string | null;
   onChange: (id: string) => void;
-  columns?: 2 | 3;
+  columns?: 2 | 3 | 4;
   compact?: boolean;
 }
 
@@ -30,7 +30,8 @@ export function ImageChoiceGrid({
     <ul
       className={cn(
         "customizer-choice-grid",
-        columns === 3 && "customizer-choice-grid--cols-3"
+        columns === 3 && "customizer-choice-grid--cols-3",
+        columns === 4 && "customizer-choice-grid--cols-4"
       )}
     >
       {options.map((opt) => {

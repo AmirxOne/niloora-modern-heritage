@@ -10,7 +10,7 @@ import type {
   StoneType,
   TextureStyle,
 } from "@/lib/types";
-import { pickSiteImageByKey } from "@/lib/images";
+import { pickSiteImageByKey, pickTestArtisanImageByKey } from "@/lib/images";
 import { fa } from "@/lib/i18n/fa";
 
 export interface ShankMaster {
@@ -73,7 +73,7 @@ export const SHANK_MASTERS: ShankMaster[] = [
     name: fa.customize.wizard.masters.ebrahim.name,
     title: fa.customize.wizard.masters.ebrahim.title,
     description: fa.customize.wizard.masters.ebrahim.description,
-    image: pickSiteImageByKey("master-ebrahim"),
+    image: pickTestArtisanImageByKey("master-ebrahim"),
     defaultMetal: "sterling",
   },
   {
@@ -81,7 +81,7 @@ export const SHANK_MASTERS: ShankMaster[] = [
     name: fa.customize.wizard.masters.tehrani.name,
     title: fa.customize.wizard.masters.tehrani.title,
     description: fa.customize.wizard.masters.tehrani.description,
-    image: pickSiteImageByKey("master-tehrani", 1),
+    image: pickTestArtisanImageByKey("master-tehrani", 1),
     defaultMetal: "oxidized",
   },
   {
@@ -89,7 +89,7 @@ export const SHANK_MASTERS: ShankMaster[] = [
     name: fa.customize.wizard.masters.heritage.name,
     title: fa.customize.wizard.masters.heritage.title,
     description: fa.customize.wizard.masters.heritage.description,
-    image: pickSiteImageByKey("master-heritage"),
+    image: pickTestArtisanImageByKey("master-heritage"),
     defaultMetal: "rhodium",
   },
 ];
@@ -285,7 +285,7 @@ export const ENGRAVING_MASTERS: EngravingMaster[] = [
     name: fa.customize.wizard.engravingMasters.kourosh.name,
     specialty: fa.customize.wizard.engravingMasters.kourosh.specialty,
     description: fa.customize.wizard.engravingMasters.kourosh.description,
-    image: pickSiteImageByKey("engraver-kourosh"),
+    image: pickTestArtisanImageByKey("engraver-kourosh"),
     scope: "band",
     engravingStyle: "nastaliq",
     priceAdd: 9_000_000,
@@ -295,7 +295,7 @@ export const ENGRAVING_MASTERS: EngravingMaster[] = [
     name: fa.customize.wizard.engravingMasters.naderi.name,
     specialty: fa.customize.wizard.engravingMasters.naderi.specialty,
     description: fa.customize.wizard.engravingMasters.naderi.description,
-    image: pickSiteImageByKey("engraver-naderi", 1),
+    image: pickTestArtisanImageByKey("engraver-naderi", 1),
     scope: "band",
     engravingStyle: "thuluth",
     priceAdd: 8_000_000,
@@ -305,7 +305,7 @@ export const ENGRAVING_MASTERS: EngravingMaster[] = [
     name: fa.customize.wizard.engravingMasters.rahimi.name,
     specialty: fa.customize.wizard.engravingMasters.rahimi.specialty,
     description: fa.customize.wizard.engravingMasters.rahimi.description,
-    image: pickSiteImageByKey("engraver-rahimi"),
+    image: pickTestArtisanImageByKey("engraver-rahimi"),
     scope: "band",
     engravingStyle: "kufic",
     priceAdd: 7_500_000,
@@ -315,7 +315,7 @@ export const ENGRAVING_MASTERS: EngravingMaster[] = [
     name: fa.customize.wizard.engravingMasters.lotif.name,
     specialty: fa.customize.wizard.engravingMasters.lotif.specialty,
     description: fa.customize.wizard.engravingMasters.lotif.description,
-    image: pickSiteImageByKey("engraver-lotif", 1),
+    image: pickTestArtisanImageByKey("engraver-lotif", 1),
     scope: "stone",
     engravingStyle: "nastaliq",
     priceAdd: 12_000_000,
@@ -325,7 +325,7 @@ export const ENGRAVING_MASTERS: EngravingMaster[] = [
     name: fa.customize.wizard.engravingMasters.sadeghi.name,
     specialty: fa.customize.wizard.engravingMasters.sadeghi.specialty,
     description: fa.customize.wizard.engravingMasters.sadeghi.description,
-    image: pickSiteImageByKey("engraver-sadeghi"),
+    image: pickTestArtisanImageByKey("engraver-sadeghi"),
     scope: "band",
     engravingStyle: "naskh",
     priceAdd: 8_500_000,
@@ -335,7 +335,7 @@ export const ENGRAVING_MASTERS: EngravingMaster[] = [
     name: fa.customize.wizard.engravingMasters.hakhamaneshi.name,
     specialty: fa.customize.wizard.engravingMasters.hakhamaneshi.specialty,
     description: fa.customize.wizard.engravingMasters.hakhamaneshi.description,
-    image: pickSiteImageByKey("engraver-hakhamaneshi", 1),
+    image: pickTestArtisanImageByKey("engraver-hakhamaneshi", 1),
     scope: "stone",
     engravingStyle: "kufic",
     priceAdd: 11_000_000,
