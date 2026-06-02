@@ -36,6 +36,7 @@ export function BrandMark({
         alt=""
         width={size}
         height={size}
+        quality={100}
         priority={priority}
         className="h-full w-full origin-center object-contain object-center"
         style={zoom !== 1 ? { transform: `scale(${zoom})` } : undefined}

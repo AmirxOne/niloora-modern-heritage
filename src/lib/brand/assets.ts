@@ -1,8 +1,8 @@
-/** مسیر پیش‌فرض نماد برند (فایل در public/brand-mark.png) */
-export const BRAND_MARK_PATH = "/brand-mark.png";
+/** مسیر پیش‌فرض نماد برند (cache-busted برای رفرش فوری لوگو) */
+export const BRAND_MARK_PATH = "/brand-mark.png?v=20260603";
 
 /** بزرگ‌نمایی داخل قاب — فایل PNG حاشیه/پس‌زمینه زیاد دارد */
-export const BRAND_MARK_VISUAL_ZOOM = 1.35;
+export const BRAND_MARK_VISUAL_ZOOM = 1.25;
 
 export const brandMarkSizes = {
   headerMobile: 39,
@@ -13,5 +13,7 @@ export const brandMarkSizes = {
 
 export function resolveBrandLogoUrl(logoUrl: string | null | undefined): string {
   const trimmed = logoUrl?.trim();
-  return trimmed || BRAND_MARK_PATH;
+  if (!trimmed) return BRAND_MARK_PATH;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  return BRAND_MARK_PATH;
 }

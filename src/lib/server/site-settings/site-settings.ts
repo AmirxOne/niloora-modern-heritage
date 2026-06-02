@@ -218,7 +218,8 @@ export async function updateSiteSettings(input: UpdateSiteSettingsInput) {
   const data: UpdateSiteSettingsInput = { ...input };
 
   if (data.logoUrl !== undefined) {
-    data.logoUrl = normalizeOptionalUrl(data.logoUrl) ?? null;
+    const normalizedLogoUrl = normalizeOptionalUrl(data.logoUrl);
+    data.logoUrl = normalizedLogoUrl ? resolveBrandLogoUrl(normalizedLogoUrl) : null;
   }
   if (data.seoOgImageUrl !== undefined) {
     data.seoOgImageUrl = normalizeOptionalUrl(data.seoOgImageUrl) ?? null;
