@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { forwardRef, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Minus, Plus } from "@/components/icons";
+import { Minus, Plus, Trash2 } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { TomanPrice, TomanPriceWithSuffix } from "@/components/commerce/TomanPrice";
@@ -26,6 +26,9 @@ export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(functio
   { item, onDecrease, onIncrease, onRemove, customizationControl },
   ref
 ) {
+  const pieceCode = item.productId ? resolvePieceCode({ id: item.productId }) : null;
+  const looksLikeTechnicalName = /^[a-z0-9-]+$/i.test(item.name.trim());
+  const displayTitle = looksLikeTechnicalName && pieceCode ? `اثر ${pieceCode}` : item.name;
   const lineList = (item.listPrice ?? item.price) * item.quantity;
   const lineTotal = item.price * item.quantity;
   const lineFurooh = Math.max(0, lineList - lineTotal);
@@ -44,10 +47,10 @@ export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(functio
       <div className="cart-line-image">
         {item.productId && !isCustom ? (
           <Link href={`/product/${item.productId}`} className="relative block h-full w-full">
-            <Image src={item.image} alt={item.name} fill className="object-cover" sizes="120px" />
+            <Image src={item.image} alt={displayTitle} fill className="object-cover" sizes="120px" />
           </Link>
         ) : (
-          <Image src={item.image} alt={item.name} fill className="object-cover" sizes="120px" />
+          <Image src={item.image} alt={displayTitle} fill className="object-cover" sizes="120px" />
         )}
       </div>
 
@@ -57,17 +60,14 @@ export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(functio
             {isCustom ? <span className="cart-line-badge">{fa.cart.customDesign}</span> : null}
             {item.productId && !isCustom ? (
               <Link href={`/product/${item.productId}`}>
-                <h3 className="cart-line-title">{item.name}</h3>
+                <h3 className="cart-line-title">{displayTitle}</h3>
               </Link>
             ) : (
-              <h3 className="cart-line-title">{item.name}</h3>
+              <h3 className="cart-line-title">{displayTitle}</h3>
             )}
-            {item.productId && !isCustom ? (
+            {item.productId && pieceCode ? (
               <div className="mt-1">
-                <PieceNumber
-                  code={resolvePieceCode({ id: item.productId })}
-                  variant="inline"
-                />
+                <PieceNumber code={pieceCode} variant="inline" />
               </div>
             ) : null}
             <p className="cart-line-unit">
@@ -109,8 +109,14 @@ export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(functio
               <Plus size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
             </button>
           </div>
-          <button type="button" onClick={onRemove} className="cart-line-remove">
-            {fa.common.remove}
+          <button
+            type="button"
+            onClick={onRemove}
+            className="cart-line-remove"
+            aria-label={fa.common.remove}
+            title={fa.common.remove}
+          >
+            <Trash2 size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
           </button>
         </div>
         {customizationControl}

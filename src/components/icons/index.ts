@@ -51,6 +51,7 @@ export {
   SliderHorizontal,
   Star,
   TickCircle as BadgeCheck,
+  Trash as Trash2,
   Truck,
   User,
   Verify,

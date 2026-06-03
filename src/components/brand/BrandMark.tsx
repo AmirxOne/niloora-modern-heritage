@@ -21,6 +21,7 @@ export function BrandMark({
 }) {
   const site = useSiteSettings();
   const src = resolveBrandLogoUrl(site.logoUrl);
+  const intrinsicSize = Math.max(128, Math.round(size * 3));
 
   return (
     <span
@@ -34,9 +35,10 @@ export function BrandMark({
       <Image
         src={src}
         alt=""
-        width={size}
-        height={size}
+        width={intrinsicSize}
+        height={intrinsicSize}
         quality={100}
+        unoptimized
         priority={priority}
         className="h-full w-full origin-center object-contain object-center"
         style={zoom !== 1 ? { transform: `scale(${zoom})` } : undefined}

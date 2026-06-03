@@ -6431,6 +6431,34 @@
     @apply grid grid-cols-2 gap-2.5 sm:gap-3;
   }
 
+  .customizer-shank-panel {
+    @apply grid gap-5 rounded-heritage border border-gold/10 bg-matte-surface/35 p-4 sm:p-5;
+  }
+
+  .customizer-shank-block {
+    @apply grid gap-3.5;
+  }
+
+  .customizer-shank-block--divider {
+    @apply border-t border-gold/10 pt-4;
+  }
+
+  .customizer-shank-label {
+    @apply text-xs font-semibold tracking-wide text-silver/90;
+  }
+
+  .customizer-shank-state-grid {
+    @apply grid gap-2 sm:grid-cols-3;
+  }
+
+  .customizer-shank-state-btn {
+    @apply inline-flex min-h-[2.75rem] items-center justify-center rounded-heritage border border-gold/20 bg-parchment/50 px-3 py-2.5 text-xs font-medium text-silver transition-[border-color,background-color,color,box-shadow,transform] duration-200 hover:-translate-y-[1px] hover:border-gold/40 hover:bg-parchment hover:text-ivory focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35;
+  }
+
+  .customizer-shank-state-btn--active {
+    @apply border-gold bg-gold/10 text-gold shadow-[0_0_0_1px_rgba(184,134,11,0.5),0_8px_18px_rgba(15,12,9,0.26)];
+  }
+
   .customizer-choice-grid--cols-3 {
     @apply sm:grid-cols-3;
   }
@@ -6440,11 +6468,11 @@
   }
 
   .customizer-choice-card {
-    @apply flex w-full flex-col overflow-hidden rounded-heritage border border-gold/10 bg-matte-surface text-start transition-[border-color,box-shadow] duration-300 hover:border-gold/25;
+    @apply relative flex w-full flex-col overflow-hidden rounded-heritage border border-gold/15 bg-matte-surface text-start transition-[border-color,box-shadow,transform,background-color] duration-200 hover:-translate-y-[1px] hover:border-gold/35 hover:shadow-[0_10px_24px_rgba(20,18,16,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35;
   }
 
   .customizer-choice-card--selected {
-    @apply border-gold/45 shadow-hojreh ring-1 ring-gold/20;
+    @apply border-gold bg-gold/10 shadow-[0_0_0_1px_rgba(184,134,11,0.45),0_12px_28px_rgba(20,18,16,0.25)];
   }
 
   .customizer-choice-card-media {
@@ -6476,7 +6504,7 @@
   }
 
   .customizer-choice-card-meta {
-    @apply mt-1 text-[10px] leading-relaxed text-silver/70;
+    @apply mt-1 text-[10px] leading-relaxed text-silver/80;
   }
 
   .customizer-toggle-choice {

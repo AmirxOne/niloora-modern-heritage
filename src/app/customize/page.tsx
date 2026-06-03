@@ -14,6 +14,7 @@ import { StatusAlert } from "@/components/ui/StatusAlert";
 import { listAllArtisans } from "@/lib/artisans";
 import { useApp } from "@/lib/context/AppContext";
 import { ImageChoiceGrid } from "@/components/customizer/wizard/ImageChoiceGrid";
+import { resolvePieceCode } from "@/lib/products/piece-code";
 import type { ProductAvailability } from "@/lib/types";
 import type {
   RingCustomizationPublicConfigDto,
@@ -43,6 +44,19 @@ function normalizeFaText(value: string): string {
     .toLocaleLowerCase("fa-IR");
 }
 
+function relatedBySelection<T extends { id: string }>(
+  items: T[],
+  selectedId: string,
+  sourceIds: string[]
+): T[] {
+  if (!selectedId || items.length <= 1 || sourceIds.length <= 1) return items;
+  const selectedIndex = sourceIds.indexOf(selectedId);
+  if (selectedIndex < 0) return items;
+  const related = items.filter((_, index) => index % sourceIds.length === selectedIndex % sourceIds.length);
+  if (related.length > 0) return related;
+  return [items[selectedIndex % items.length]];
+}
+
 export default function CustomizePage() {
   const { cart } = useApp();
   const router = useRouter();
@@ -67,23 +81,24 @@ export default function CustomizePage() {
   const [stoneTextId, setStoneTextId] = useState("");
   const [scriptStyleId, setScriptStyleId] = useState("");
   const [shankDesignerQuery, setShankDesignerQuery] = useState("");
+  const [shankPatternQuery, setShankPatternQuery] = useState("");
+  const [stoneArtisanQuery, setStoneArtisanQuery] = useState("");
   const [textQuery, setTextQuery] = useState("");
+  const [scriptStyleQuery, setScriptStyleQuery] = useState("");
   const [preview, setPreview] = useState<RingPurchaseCustomization | null>(null);
   const [step, setStep] = useState<CustomizeStep>("size");
 
-  const cartItem = useMemo(
-    () => cart.items.find((item) => item.id === cartItemId),
-    [cart.items, cartItemId]
-  );
-
-  const filteredStoneTexts = useMemo(() => {
-    const texts = config?.catalog.stoneTexts ?? [];
-    const query = textQuery.trim();
-    if (!query) return texts;
-    return texts.filter(
-      (item) => item.name.includes(query) || (item.meaning ?? "").includes(query)
+  const cartItem = useMemo(() => {
+    if (cartItemId) {
+      const byId = cart.items.find((item) => item.id === cartItemId);
+      if (byId) return byId;
+    }
+    const sameProduct = cart.items.filter(
+      (item) => item.productId === productId && !item.customizerState
     );
-  }, [config?.catalog.stoneTexts, textQuery]);
+    if (sameProduct.length === 0) return undefined;
+    return sameProduct.find((item) => Boolean(item.ringPurchaseCustomization)) ?? sameProduct[0];
+  }, [cart.items, cartItemId, productId]);
 
   const carvingArtisansFromDirectory = useMemo(
     () => {
@@ -161,8 +176,95 @@ export default function CustomizePage() {
     return shankDesignerOptions.filter((item) => normalizeFaText(item.name).includes(query));
   }, [shankDesignerOptions, shankDesignerQuery]);
 
+  const relatedShankPatterns = useMemo(() => {
+    const patterns = config?.catalog.shankPatterns ?? [];
+    return relatedBySelection(
+      patterns,
+      shankArtisanId,
+      shankDesignerOptions.map((item) => item.id)
+    );
+  }, [config?.catalog.shankPatterns, shankArtisanId, shankDesignerOptions]);
+
+  const filteredShankPatterns = useMemo(() => {
+    const query = normalizeFaText(shankPatternQuery);
+    if (!query) return relatedShankPatterns;
+    return relatedShankPatterns.filter((item) => normalizeFaText(item.name).includes(query));
+  }, [relatedShankPatterns, shankPatternQuery]);
+
+  const filteredStoneArtisans = useMemo(() => {
+    const artisans = config?.catalog.stoneArtisans ?? [];
+    const query = normalizeFaText(stoneArtisanQuery);
+    if (!query) return artisans;
+    return artisans.filter((item) => normalizeFaText(item.name).includes(query));
+  }, [config?.catalog.stoneArtisans, stoneArtisanQuery]);
+
+  const relatedStoneTextsByArtisan = useMemo(() => {
+    const texts = config?.catalog.stoneTexts ?? [];
+    return relatedBySelection(
+      texts,
+      stoneArtisanId,
+      (config?.catalog.stoneArtisans ?? []).map((item) => item.id)
+    );
+  }, [config?.catalog.stoneTexts, config?.catalog.stoneArtisans, stoneArtisanId]);
+
+  const relatedScriptStylesByArtisan = useMemo(() => {
+    const styles = config?.catalog.scriptStyles ?? [];
+    return relatedBySelection(
+      styles,
+      stoneArtisanId,
+      (config?.catalog.stoneArtisans ?? []).map((item) => item.id)
+    );
+  }, [config?.catalog.scriptStyles, config?.catalog.stoneArtisans, stoneArtisanId]);
+
+  const relatedStoneTexts = useMemo(
+    () =>
+      relatedBySelection(
+        relatedStoneTextsByArtisan,
+        scriptStyleId,
+        relatedScriptStylesByArtisan.map((item) => item.id)
+      ),
+    [relatedStoneTextsByArtisan, scriptStyleId, relatedScriptStylesByArtisan]
+  );
+
+  const relatedScriptStyles = useMemo(
+    () =>
+      relatedBySelection(
+        relatedScriptStylesByArtisan,
+        stoneTextId,
+        relatedStoneTextsByArtisan.map((item) => item.id)
+      ),
+    [relatedScriptStylesByArtisan, stoneTextId, relatedStoneTextsByArtisan]
+  );
+
+  const filteredStoneTexts = useMemo(() => {
+    const query = normalizeFaText(textQuery);
+    if (!query) return relatedStoneTexts;
+    return relatedStoneTexts.filter(
+      (item) =>
+        normalizeFaText(item.name).includes(query) ||
+        normalizeFaText(item.meaning ?? "").includes(query)
+    );
+  }, [relatedStoneTexts, textQuery]);
+
+  const filteredScriptStyles = useMemo(() => {
+    const query = normalizeFaText(scriptStyleQuery);
+    if (!query) return relatedScriptStyles;
+    return relatedScriptStyles.filter((item) => normalizeFaText(item.name).includes(query));
+  }, [relatedScriptStyles, scriptStyleQuery]);
+
   const unitBasePrice = product?.price ?? 0;
   const estimatedUnitPrice = unitBasePrice + (preview?.totalCustomizationDelta ?? 0);
+  const productPieceCode = product ? resolvePieceCode(product) : "";
+  const productDisplayName = product
+    ? /^[a-z0-9-]+$/i.test((product.namePersian || product.name || "").trim())
+      ? `اثر ${productPieceCode}`
+      : product.namePersian || product.name
+    : "";
+  const selectedShankDesigner = shankDesignerOptions.find((item) => item.id === shankArtisanId);
+  const selectedShankPattern = config?.catalog.shankPatterns.find((item) => item.id === shankPatternId);
+  const selectedStoneArtisan = config?.catalog.stoneArtisans.find((item) => item.id === stoneArtisanId);
+  const selectedScriptStyle = config?.catalog.scriptStyles.find((item) => item.id === scriptStyleId);
+  const selectedStoneText = config?.catalog.stoneTexts.find((item) => item.id === stoneTextId);
   const stepOrder: CustomizeStep[] = ["size", "shank", "stone", "review"];
   const stepIndex = Math.max(0, stepOrder.indexOf(step));
   const nextStep = stepOrder[Math.min(stepOrder.length - 1, stepIndex + 1)];
@@ -225,7 +327,11 @@ export default function CustomizePage() {
   useEffect(() => {
     if (!cartItem?.ringPurchaseCustomization) return;
     const ring = cartItem.ringPurchaseCustomization;
-    setPreview(ring);
+    const normalizedRing =
+      product && ring.productId !== resolvePieceCode(product)
+        ? { ...ring, productId: resolvePieceCode(product) }
+        : ring;
+    setPreview(normalizedRing);
     if (ring.size) {
       setUseSize(true);
       setSize(ring.size.selected);
@@ -243,7 +349,40 @@ export default function CustomizePage() {
       setStoneTextId(ring.stone.textId ?? "");
       setScriptStyleId(ring.stone.scriptStyleId ?? "");
     }
-  }, [cartItem?.ringPurchaseCustomization]);
+  }, [cartItem?.ringPurchaseCustomization, product]);
+
+  useEffect(() => {
+    if (shankState !== "customized") return;
+    if (filteredShankPatterns.length === 0) {
+      if (shankPatternId) setShankPatternId("");
+      return;
+    }
+    if (!shankPatternId || !filteredShankPatterns.some((item) => item.id === shankPatternId)) {
+      setShankPatternId(filteredShankPatterns[0].id);
+    }
+  }, [shankState, filteredShankPatterns, shankPatternId]);
+
+  useEffect(() => {
+    if (stoneState !== "customized") return;
+    if (filteredStoneTexts.length === 0) {
+      if (stoneTextId) setStoneTextId("");
+      return;
+    }
+    if (!stoneTextId || !filteredStoneTexts.some((item) => item.id === stoneTextId)) {
+      setStoneTextId(filteredStoneTexts[0].id);
+    }
+  }, [stoneState, filteredStoneTexts, stoneTextId]);
+
+  useEffect(() => {
+    if (stoneState !== "customized") return;
+    if (filteredScriptStyles.length === 0) {
+      if (scriptStyleId) setScriptStyleId("");
+      return;
+    }
+    if (!scriptStyleId || !filteredScriptStyles.some((item) => item.id === scriptStyleId)) {
+      setScriptStyleId(filteredScriptStyles[0].id);
+    }
+  }, [stoneState, filteredScriptStyles, scriptStyleId]);
 
   useEffect(() => {
     if (!config || !productId) return;
@@ -399,7 +538,7 @@ export default function CustomizePage() {
                   </div>
                   <div>
                     <h1 className="text-xl font-semibold text-ivory-light">
-                      {product.namePersian || product.name}
+                      {productDisplayName}
                     </h1>
                     <div className="mt-2 grid gap-1 text-sm text-silver">
                       <span>
@@ -489,10 +628,10 @@ export default function CustomizePage() {
                 ) : null}
 
                 {step === "shank" ? (
-                  <div className="grid gap-3 rounded-heritage border border-gold/10 p-3">
-                    <div className="grid gap-1 text-xs text-silver">
-                      <p>حالت قلم‌کاری</p>
-                      <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="customizer-shank-panel">
+                    <div className="customizer-shank-block">
+                      <p className="customizer-shank-label">حالت قلم‌کاری</p>
+                      <div className="customizer-shank-state-grid">
                         {([
                           { id: "unchanged", label: "بدون تغییر" },
                           { id: "customized", label: "شخصی‌سازی" },
@@ -513,11 +652,12 @@ export default function CustomizePage() {
                                 }
                               }
                             }}
-                            className={`rounded-heritage border px-3 py-2 text-xs transition-colors ${
+                            className={`customizer-shank-state-btn ${
                               shankState === option.id
-                                ? "border-gold bg-gold/10 text-gold-dark"
-                                : "border-gold/20 bg-parchment text-silver hover:border-gold/40"
+                                ? "customizer-shank-state-btn--active"
+                                : ""
                             }`}
+                            aria-current={shankState === option.id ? "true" : undefined}
                           >
                             {option.label}
                           </button>
@@ -526,7 +666,8 @@ export default function CustomizePage() {
                     </div>
                     {shankState === "customized" ? (
                       <>
-                        <p className="text-xs text-silver">طراحان قلم کاری رکاب</p>
+                        <section className="customizer-shank-block mt-2">
+                          <p className="customizer-shank-label mb-3">طراحان قلم کاری رکاب</p>
                         <TextBox
                           label="جستجوی طراح قلم کاری رکاب"
                           value={shankDesignerQuery}
@@ -543,11 +684,18 @@ export default function CustomizePage() {
                           columns={3}
                         />
                         {filteredShankDesigners.length === 0 ? (
-                          <p className="text-xs text-silver">طراحی با این عبارت پیدا نشد.</p>
+                          <p className="text-xs text-silver/90">طراحی با این عبارت پیدا نشد.</p>
                         ) : null}
-                        <p className="text-xs text-silver">طراحی قلم‌کاری رکاب</p>
+                        </section>
+                        <section className="customizer-shank-block customizer-shank-block--divider">
+                        <p className="customizer-shank-label mb-3">طراحی قلم‌کاری رکاب</p>
+                        <TextBox
+                          label="جستجوی طراحی قلم‌کاری رکاب"
+                          value={shankPatternQuery}
+                          onChange={(event) => setShankPatternQuery(event.target.value)}
+                        />
                         <ImageChoiceGrid
-                          options={config.catalog.shankPatterns.map((item) => ({
+                          options={filteredShankPatterns.map((item) => ({
                             id: item.id,
                             name: item.name,
                             image: item.imageUrl || "/Gemini_Generated_Image_iay12tiay12tiay1.png",
@@ -560,16 +708,20 @@ export default function CustomizePage() {
                           }}
                           columns={4}
                         />
+                        {filteredShankPatterns.length === 0 ? (
+                          <p className="text-xs text-silver/90">طرحی با این عبارت پیدا نشد.</p>
+                        ) : null}
+                        </section>
                       </>
                     ) : null}
                   </div>
                 ) : null}
 
                 {step === "stone" ? (
-                  <div className="grid gap-3 rounded-heritage border border-gold/10 p-3">
-                    <div className="grid gap-1 text-xs text-silver">
-                      <p>حالت حکاکی</p>
-                      <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="customizer-shank-panel">
+                    <div className="customizer-shank-block">
+                      <p className="customizer-shank-label">حالت حکاکی</p>
+                      <div className="customizer-shank-state-grid">
                         {([
                           { id: "unchanged", label: "بدون تغییر" },
                           { id: "customized", label: "شخصی‌سازی" },
@@ -582,11 +734,12 @@ export default function CustomizePage() {
                               setUseStone(true);
                               setStoneState(option.id);
                             }}
-                            className={`rounded-heritage border px-3 py-2 text-xs transition-colors ${
+                            className={`customizer-shank-state-btn ${
                               stoneState === option.id
-                                ? "border-gold bg-gold/10 text-gold-dark"
-                                : "border-gold/20 bg-parchment text-silver hover:border-gold/40"
+                                ? "customizer-shank-state-btn--active"
+                                : ""
                             }`}
+                            aria-current={stoneState === option.id ? "true" : undefined}
                           >
                             {option.label}
                           </button>
@@ -595,9 +748,15 @@ export default function CustomizePage() {
                     </div>
                     {stoneState === "customized" ? (
                       <>
-                        <p className="text-xs text-silver">استادکار حکاکی</p>
+                        <section className="customizer-shank-block mt-2">
+                        <p className="customizer-shank-label mb-3">طراح حکاکی</p>
+                        <TextBox
+                          label="جستجوی طراح حکاکی"
+                          value={stoneArtisanQuery}
+                          onChange={(event) => setStoneArtisanQuery(event.target.value)}
+                        />
                         <ImageChoiceGrid
-                          options={config.catalog.stoneArtisans.map((item) => ({
+                          options={filteredStoneArtisans.map((item) => ({
                             id: item.id,
                             name: item.name,
                             image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
@@ -608,10 +767,41 @@ export default function CustomizePage() {
                             setUseStone(true);
                             setStoneArtisanId(value);
                           }}
+                          compact
                           columns={3}
                         />
+                        {filteredStoneArtisans.length === 0 ? (
+                          <p className="text-xs text-silver/90">طراحی با این عبارت پیدا نشد.</p>
+                        ) : null}
+                        </section>
+                        <section className="customizer-shank-block customizer-shank-block--divider">
+                        <p className="customizer-shank-label mb-3">سبک خط</p>
+                        <TextBox
+                          label="جستجوی سبک خط"
+                          value={scriptStyleQuery}
+                          onChange={(event) => setScriptStyleQuery(event.target.value)}
+                        />
+                        <ImageChoiceGrid
+                          options={filteredScriptStyles.map((item) => ({
+                            id: item.id,
+                            name: item.name,
+                            image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+                            meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
+                          }))}
+                          value={scriptStyleId || null}
+                          onChange={(value) => {
+                            setUseStone(true);
+                            setScriptStyleId(value);
+                          }}
+                          columns={4}
+                        />
+                        {filteredScriptStyles.length === 0 ? (
+                          <p className="text-xs text-silver/90">سبک خطی با این عبارت پیدا نشد.</p>
+                        ) : null}
+                        </section>
+                        <section className="customizer-shank-block customizer-shank-block--divider">
+                        <p className="customizer-shank-label mb-3">متن حک</p>
                         <TextBox label="جستجوی متن حک" value={textQuery} onChange={(e) => setTextQuery(e.target.value)} />
-                        <p className="text-xs text-silver">متن حک</p>
                         <ImageChoiceGrid
                           options={filteredStoneTexts.map((item) => ({
                             id: item.id,
@@ -625,42 +815,128 @@ export default function CustomizePage() {
                             setUseStone(true);
                             setStoneTextId(value);
                           }}
-                          columns={2}
+                          columns={4}
                         />
-                        <p className="text-xs text-silver">سبک خط</p>
-                        <ImageChoiceGrid
-                          options={config.catalog.scriptStyles.map((item) => ({
-                            id: item.id,
-                            name: item.name,
-                            image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
-                            meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
-                          }))}
-                          value={scriptStyleId || null}
-                          onChange={(value) => {
-                            setUseStone(true);
-                            setScriptStyleId(value);
-                          }}
-                          columns={3}
-                        />
+                        {filteredStoneTexts.length === 0 ? (
+                          <p className="text-xs text-silver/90">متنی با این عبارت پیدا نشد.</p>
+                        ) : null}
+                        </section>
                       </>
                     ) : null}
                   </div>
                 ) : null}
 
                 {step === "review" ? (
-                  <div className="rounded-heritage border border-gold/10 bg-parchment/40 p-3 text-sm">
-                    <p className="text-ivory">جمع‌بندی انتخاب‌ها</p>
-                    <p className="mt-2 text-silver">
-                      دلتا قیمت: <TomanPrice amount={preview?.totalCustomizationDelta ?? 0} size="xs" />
-                    </p>
-                    <p className="mt-1 text-silver">
-                      قیمت نهایی هر عدد: <TomanPrice amount={estimatedUnitPrice} size="xs" />
-                    </p>
-                    {preview?.leadTimeDaysDelta ? (
-                      <p className="mt-1 text-silver">
-                        زمان آماده‌سازی: {preview.leadTimeDaysDelta.toLocaleString("fa-IR")} روز
+                  <div className="grid gap-3 text-sm">
+                    <div className="rounded-heritage border border-gold/10 bg-matte-surface/40 p-3">
+                      <p className="text-sm font-semibold text-ivory">بازبینی نهایی انتخاب‌ها</p>
+                      <p className="mt-1 text-xs text-silver">
+                        قبل از اعمال در سبد، جزئیات هر مرحله را بررسی کنید.
                       </p>
-                    ) : null}
+                    </div>
+
+                    <div className="grid gap-2 rounded-heritage border border-gold/10 bg-parchment/40 p-3">
+                      <p className="text-xs font-semibold text-gold">مرحله سایز</p>
+                      {!useSize ? (
+                        <p className="text-xs text-silver">این مرحله رد شده است.</p>
+                      ) : (
+                        <>
+                          <p className="text-xs text-silver">
+                            سایز انتخابی:{" "}
+                            <span className="font-semibold text-ivory">
+                              {(size ?? config?.config.sizeBase ?? 0).toLocaleString("fa-IR")}
+                            </span>
+                          </p>
+                          <p className="text-xs text-silver">
+                            تغییر قیمت مرحله: <TomanPrice amount={preview?.size?.priceDelta ?? 0} size="xs" />
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="grid gap-2 rounded-heritage border border-gold/10 bg-parchment/40 p-3">
+                      <p className="text-xs font-semibold text-gold">مرحله قلم‌کاری</p>
+                      {!useShank ? (
+                        <p className="text-xs text-silver">این مرحله رد شده است.</p>
+                      ) : shankState === "opted_out" ? (
+                        <p className="text-xs text-silver">قلم‌کاری برای این سفارش غیرفعال شد.</p>
+                      ) : shankState === "unchanged" ? (
+                        <p className="text-xs text-silver">قلم‌کاری رکاب بدون تغییر می‌ماند.</p>
+                      ) : (
+                        <>
+                          <p className="text-xs text-silver">
+                            طراح انتخابی:{" "}
+                            <span className="font-semibold text-ivory">
+                              {selectedShankDesigner?.name ?? "—"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-silver">
+                            طرح انتخابی:{" "}
+                            <span className="font-semibold text-ivory">
+                              {selectedShankPattern?.name ?? "—"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-silver">
+                            تغییر قیمت مرحله: <TomanPrice amount={preview?.shank?.priceDelta ?? 0} size="xs" />
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="grid gap-2 rounded-heritage border border-gold/10 bg-parchment/40 p-3">
+                      <p className="text-xs font-semibold text-gold">مرحله حکاکی</p>
+                      {!useStone ? (
+                        <p className="text-xs text-silver">این مرحله رد شده است.</p>
+                      ) : stoneState === "opted_out" ? (
+                        <p className="text-xs text-silver">حکاکی برای این سفارش غیرفعال شد.</p>
+                      ) : stoneState === "unchanged" ? (
+                        <p className="text-xs text-silver">حکاکی سنگ بدون تغییر می‌ماند.</p>
+                      ) : (
+                        <>
+                          <p className="text-xs text-silver">
+                            طراح حکاکی:{" "}
+                            <span className="font-semibold text-ivory">
+                              {selectedStoneArtisan?.name ?? "—"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-silver">
+                            سبک خط:{" "}
+                            <span className="font-semibold text-ivory">
+                              {selectedScriptStyle?.name ?? "—"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-silver">
+                            متن حک:{" "}
+                            <span className="font-semibold text-ivory">
+                              {selectedStoneText?.name ?? "—"}
+                            </span>
+                          </p>
+                          <p className="text-xs text-silver">
+                            تغییر قیمت مرحله: <TomanPrice amount={preview?.stone?.priceDelta ?? 0} size="xs" />
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="rounded-heritage border border-gold/20 bg-matte-elevated/45 p-3">
+                      <p className="text-sm font-semibold text-ivory">جمع کل سفارش</p>
+                      <div className="mt-2 grid gap-1 text-xs text-silver">
+                        <p>
+                          قیمت پایه: <TomanPrice amount={unitBasePrice} size="xs" />
+                        </p>
+                        <p>
+                          تغییر قیمت شخصی‌سازی: <TomanPrice amount={preview?.totalCustomizationDelta ?? 0} size="xs" />
+                        </p>
+                        <p className="font-semibold text-price-sale">
+                          قیمت نهایی هر عدد: <TomanPrice amount={estimatedUnitPrice} size="xs" />
+                        </p>
+                        {preview?.leadTimeDaysDelta ? (
+                          <p>
+                            زمان آماده‌سازی اضافه: {preview.leadTimeDaysDelta.toLocaleString("fa-IR")} روز
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                 ) : null}
 

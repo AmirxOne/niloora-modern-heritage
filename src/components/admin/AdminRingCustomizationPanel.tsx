@@ -195,7 +195,7 @@ export function AdminRingCustomizationPanel() {
               {catalogDraft.artisans.map((item, index) => (
                 <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_100px_120px] items-center gap-2">
                   <TextBox
-                    label={index === 0 ? "استادکار" : ""}
+                    label={index === 0 ? "طراح" : ""}
                     value={item.name}
                     onChange={(e) =>
                       setCatalogDraft((prev) =>

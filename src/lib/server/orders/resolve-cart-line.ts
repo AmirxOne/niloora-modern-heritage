@@ -1,6 +1,7 @@
 import { calculateCustomizerPrice } from "@/lib/customizer-pricing";
 import { DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 import { getProductPricing } from "@/lib/pricing";
+import { normalizePieceCode, resolvePieceCode } from "@/lib/products/piece-code";
 import { calculateRingPurchaseCustomization } from "@/lib/ring-purchase-customization/pricing";
 import { sanitizeCustomizer } from "@/lib/store/customizer-utils";
 import { CartPurchaseError } from "@/lib/server/products/validate-cart-purchase";
@@ -12,6 +13,9 @@ export type ResolvedCartLine = CartItem & { quantity: number };
 export type DbProduct = {
   id: string;
   name: string;
+  productType?: Product["productType"];
+  pieceCode?: string | null;
+  sku?: string | null;
   price: number;
   listPrice?: number | null;
   discountPercent?: number | null;
@@ -77,7 +81,15 @@ function applyRingCustomizationOnCatalogLine(
       productId: product.id,
     });
   }
-  if (incoming.productId !== product.id) {
+  const expectedPieceCode = resolvePieceCode({
+    id: product.id,
+    productType: product.productType ?? "ring-men",
+    pieceCode: product.pieceCode ?? null,
+    sku: product.sku ?? null,
+  });
+  const incomingProductRef = normalizePieceCode(incoming.productId);
+  const normalizedProductId = normalizePieceCode(product.id);
+  if (incomingProductRef !== normalizePieceCode(expectedPieceCode) && incomingProductRef !== normalizedProductId) {
     throw new CartPurchaseError("پیکربندی شخصی‌سازی متعلق به این محصول نیست.", {
       code: "ring_customization_product_mismatch",
       productId: product.id,
@@ -88,13 +100,13 @@ function applyRingCustomizationOnCatalogLine(
     if (!id) return 0;
     const artisan = lookup.catalog.artisansById.get(id);
     if (!artisan || !artisan.active) {
-      throw new CartPurchaseError("استادکار انتخاب‌شده معتبر نیست.", {
+      throw new CartPurchaseError("طراح انتخاب‌شده معتبر نیست.", {
         code: "ring_customization_invalid_artisan",
         productId: product.id,
       });
     }
     if (scope && artisan.scope !== "both" && artisan.scope !== scope) {
-      throw new CartPurchaseError("استادکار برای این شاخه مجاز نیست.", {
+      throw new CartPurchaseError("طراح برای این شاخه مجاز نیست.", {
         code: "ring_customization_invalid_artisan_scope",
         productId: product.id,
       });
@@ -180,7 +192,7 @@ function applyRingCustomizationOnCatalogLine(
       stoneLeadTimeDays: config.stoneLeadTimeDays,
     },
     {
-      productId: incoming.productId,
+      productId: expectedPieceCode,
       size: incoming.size ? { selected: incoming.size.selected } : undefined,
       shank: incoming.shank
         ? {

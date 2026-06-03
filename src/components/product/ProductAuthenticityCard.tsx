@@ -27,10 +27,6 @@ export function ProductAuthenticityCard({ product }: { product: Product }) {
       </h2>
       <p className="product-authenticity-subtitle">{fa.product.authenticity.subtitle}</p>
 
-      <div className="product-authenticity-piece" dir="ltr">
-        {pieceCode}
-      </div>
-
       <div className="product-authenticity-qr-wrap">
         {/* QR تصویر آماده برای اسکن موبایل؛ داده فقط لینک verify عمومی است. */}
         <Image

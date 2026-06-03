@@ -47,6 +47,7 @@ import { ProductStoryCard } from "@/components/product/ProductStoryCard";
 import { ProductUgcGallery } from "@/components/product/ProductUgcGallery";
 import { toast } from "sonner";
 import { trackFunnelEvent } from "@/lib/analytics/client";
+import { RingCustomizationEditor } from "@/components/cart/RingCustomizationEditor";
 
 type Props = {
   productId: string;
@@ -172,7 +173,9 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
     );
   }
 
-  const displayName = product.namePersian?.trim() || product.name;
+  const pieceCode = resolvePieceCode(product);
+  const rawDisplayName = product.namePersian?.trim() || product.name;
+  const displayName = /^[a-z0-9-]+$/i.test(rawDisplayName) ? `اثر ${pieceCode}` : rawDisplayName;
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
   const status = getProductStatusConfig(product.availability);
   const canBuyByStockRules = isProductPurchasable(
@@ -186,6 +189,12 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   // وضعیت‌های غیر فوری (پیش‌فروش/فاخر/ساخت اختصاصی) وابسته به موجودی لحظه‌ای نیستند.
   const canAddToCart = status.isImmediate ? canBuyByStockRules : status.canAddToCart;
   const isRemakeRequest = product.availability === "sold";
+  const productCartItem =
+    cart.items.length > 0
+      ? [...cart.items]
+          .reverse()
+          .find((item) => item.productId === product.id && !item.customizerState)
+      : undefined;
 
   const handlePrimaryAction = () => {
     if (isRemakeRequest) {
@@ -243,7 +252,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   <ProductSalesCount productId={product.id} />
                 </div>
                 <PieceNumber
-                  code={resolvePieceCode(product)}
+                  code={pieceCode}
                   variant="card"
                   showTypeLabel
                   className="product-detail-piece-number"
@@ -293,6 +302,49 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                     <ProductCompareButton productId={product.id} variant="detail" />
                   </div>
                 </div>
+
+                {productCartItem ? (
+                  <RingCustomizationEditor
+                    item={productCartItem}
+                    className="mt-0"
+                    onClear={() => {
+                      const previousDelta =
+                        productCartItem.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
+                      if (!previousDelta) {
+                        cart.updateRingCustomization(productCartItem.id, {
+                          price: productCartItem.price,
+                          listPrice: productCartItem.listPrice,
+                          ringPurchaseCustomization: undefined,
+                        });
+                        return;
+                      }
+                      const basePrice = productCartItem.price - previousDelta;
+                      const baseList =
+                        (productCartItem.listPrice ?? productCartItem.price) - previousDelta;
+                      cart.updateRingCustomization(productCartItem.id, {
+                        price: basePrice,
+                        listPrice: baseList,
+                        ringPurchaseCustomization: undefined,
+                      });
+                    }}
+                  />
+                ) : (
+                  <div className="mt-3 rounded-heritage border border-gold/15 bg-gradient-to-br from-parchment/35 to-parchment/15 p-3">
+                    <div className="grid gap-0.5">
+                      <p className="text-xs font-semibold text-ivory">شخصی‌سازی انگشتر</p>
+                      <p className="text-[11px] text-silver">
+                        برای حکاکی و قلم‌کاری اختصاصی، وارد مرحله شخصی‌سازی شوید.
+                      </p>
+                    </div>
+                    <div className="mt-2.5">
+                      <Link href={`/customize?productId=${encodeURIComponent(product.id)}`}>
+                        <Button size="sm" variant="outline">
+                          شخصی‌سازی خرید
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
 
                 <p className="product-detail-checkout-hint">{fa.commerce.productCheckoutHint}</p>
 

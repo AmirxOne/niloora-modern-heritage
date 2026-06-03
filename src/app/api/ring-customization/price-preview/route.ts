@@ -1,6 +1,8 @@
 import { badRequest, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
+import { resolvePieceCode } from "@/lib/products/piece-code";
 import { calculateRingPurchaseCustomization } from "@/lib/ring-purchase-customization/pricing";
+import { prisma } from "@/lib/server/prisma";
 import { getOrCreateRingCustomizationConfig, listRingCustomizationCatalog } from "@/lib/server/ring-customization/service";
 
 type Body = {
@@ -20,12 +22,18 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as Body;
     if (!payload.productId) return badRequest("شناسه محصول الزامی است.");
 
-    const [configResult, catalog] = await Promise.all([
+    const [configResult, catalog, product] = await Promise.all([
       getOrCreateRingCustomizationConfig(payload.productId),
       listRingCustomizationCatalog(),
+      prisma.product.findUnique({
+        where: { id: payload.productId },
+        select: { id: true, productType: true, pieceCode: true, sku: true },
+      }),
     ]);
+    if (!product) return badRequest("محصول پیدا نشد.");
     const config = configResult.config;
     if (!config.enabled) return badRequest("شخصی‌سازی خرید برای این محصول فعال نیست.");
+    const productPieceCode = resolvePieceCode(product);
 
     const artisanPrice = (id?: string) => catalog.artisans.find((item) => item.id === id)?.priceAdd ?? 0;
     const patternPrice = (id?: string) => catalog.shankPatterns.find((item) => item.id === id)?.priceAdd ?? 0;
@@ -33,7 +41,7 @@ export async function POST(request: Request) {
     const scriptPrice = (id?: string) => catalog.scriptStyles.find((item) => item.id === id)?.priceAdd ?? 0;
 
     const customization = calculateRingPurchaseCustomization(config, {
-      productId: payload.productId,
+      productId: productPieceCode,
       size: payload.size?.selected != null ? { selected: Number(payload.size.selected) } : undefined,
       shank: payload.shank
         ? {
