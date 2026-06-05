@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { NextResponse } from "next/server";
 import { createSession, setSessionCookie } from "@/lib/server/auth/session";
 import { getAppBaseUrl } from "@/lib/server/payment/app-url";
@@ -11,9 +13,23 @@ import { consumeGiftCardForOrder, createGiftCard } from "@/lib/server/gift-card/
 import { rewardLoyaltyOnPaidOrder } from "@/lib/server/loyalty/loyalty";
 import { scheduleOrderMaintenanceReminders } from "@/lib/server/notifications/maintenance-reminders";
 import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
+import { commitInventoryForPaidOrder } from "@/lib/server/inventory/commit-order-inventory";
 
 function redirect(path: string) {
   return NextResponse.redirect(`${getAppBaseUrl()}${path}`);
+}
+
+function paymentReturnPath(
+  order: { id: string; orderType: string },
+  status: "success" | "failed",
+  reason?: string
+): string {
+  const basePath = order.orderType === "gift-card" ? "/gift-cards" : "/cart";
+  let path = `${basePath}?payment=${status}&orderId=${encodeURIComponent(order.id)}`;
+  if (status === "failed" && reason) {
+    path += `&reason=${encodeURIComponent(reason)}`;
+  }
+  return path;
 }
 
 export async function GET(request: Request) {
@@ -69,9 +85,7 @@ export async function GET(request: Request) {
       meta: { authority, statusParam, ...extra },
     });
 
-    return redirect(
-      `/cart?payment=failed&orderId=${encodeURIComponent(payment.orderId)}&reason=${encodeURIComponent(reason)}`
-    );
+    return redirect(paymentReturnPath(payment.order, "failed", reason));
   };
 
   if (statusParam !== "OK") {
@@ -81,7 +95,7 @@ export async function GET(request: Request) {
   if (payment.status === "paid") {
     const sessionToken = await createSession(payment.order.userId);
     await setSessionCookie(sessionToken);
-    return redirect(`/cart?payment=success&orderId=${encodeURIComponent(payment.orderId)}`);
+    return redirect(paymentReturnPath(payment.order, "success"));
   }
 
   try {
@@ -110,6 +124,9 @@ export async function GET(request: Request) {
           errorMessage: null,
         },
       });
+      if (payment.order.orderType === "product") {
+        await commitInventoryForPaidOrder(tx, payment.order.items);
+      }
       await tx.order.update({
         where: { id: payment.orderId },
         data: {
@@ -179,7 +196,7 @@ export async function GET(request: Request) {
     const sessionToken = await createSession(payment.order.userId);
     await setSessionCookie(sessionToken);
 
-    return redirect(`/cart?payment=success&orderId=${encodeURIComponent(payment.orderId)}`);
+    return redirect(paymentReturnPath(payment.order, "success"));
   } catch (error) {
     logRouteError(error, {
       route: "/api/payments/zarinpal/callback",
