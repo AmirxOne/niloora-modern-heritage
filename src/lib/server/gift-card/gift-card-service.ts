@@ -337,8 +337,6 @@ export async function consumeGiftCardForOrder(input: {
     }
 
     const nextRemaining = card.remainingAmount - applyAmount;
-
-    const nextRemaining = card.remainingAmount - applyAmount;
     await tx.giftCardTransaction.create({
       data: {
         giftCardId: card.id,

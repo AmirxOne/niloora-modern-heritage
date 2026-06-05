@@ -10,11 +10,18 @@ vi.mock("@/lib/server/campaigns/discount-campaign-service", () => ({
   recordCampaignUsage: vi.fn(),
 }));
 
+const { orderCreate } = vi.hoisted(() => ({
+  orderCreate: vi.fn(),
+}));
+
 vi.mock("@/lib/server/prisma", () => ({
   prisma: {
     order: {
-      create: vi.fn(),
+      create: orderCreate,
     },
+    $transaction: vi.fn(async (callback: (tx: { order: { create: typeof orderCreate } }) => unknown) =>
+      callback({ order: { create: orderCreate } })
+    ),
   },
 }));
 
@@ -71,7 +78,7 @@ describe("createOrderFromCart", () => {
       campaignDiscountAmount: 0,
     });
 
-    vi.mocked(prisma.order.create).mockResolvedValue({
+    vi.mocked(orderCreate).mockResolvedValue({
       id: "HS-TEST123",
       userId: "user-1",
       status: "pending_payment",
@@ -81,7 +88,7 @@ describe("createOrderFromCart", () => {
       promoCode: "GOLD10",
       shippingCost: 50_000,
       items: [{ ...cartItem, orderId: "HS-TEST123" }],
-    } as Awaited<ReturnType<typeof prisma.order.create>>);
+    } as Awaited<ReturnType<typeof orderCreate>>);
   });
 
   it("persists order with shipping and priced lines", async () => {
@@ -103,9 +110,9 @@ describe("createOrderFromCart", () => {
     expect(repriceOrderItems).toHaveBeenCalledWith([cartItem], "gold10", {
       loyaltyTier: undefined,
     });
-    expect(prisma.order.create).toHaveBeenCalledOnce();
+    expect(orderCreate).toHaveBeenCalledOnce();
 
-    const createArg = vi.mocked(prisma.order.create).mock.calls[0][0];
+    const createArg = vi.mocked(orderCreate).mock.calls[0][0];
     expect(createArg.data.userId).toBe("user-1");
     expect(createArg.data.status).toBe("pending_payment");
     expect(createArg.data.total).toBe(expectedTotal);
