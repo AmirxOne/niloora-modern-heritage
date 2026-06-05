@@ -1,9 +1,43 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getEdgeSessionFromRequest } from "@/lib/server/auth/session-edge";
+import { getEdgeSessionFromRequest, type EdgeSession } from "@/lib/server/auth/session-edge";
+import type { SessionRole } from "@/lib/server/auth/session-constants";
 import { applySecurityHeaders } from "@/lib/server/security-headers";
 import { stripLocalePrefix } from "@/lib/i18n/locales";
 import { canAccessContentWorkflow } from "@/lib/auth/content-workflow";
+
+async function resolvePrivilegedSession(
+  request: NextRequest,
+  jwtSession: EdgeSession | null
+): Promise<EdgeSession | null> {
+  if (!jwtSession) return null;
+
+  try {
+    const roleUrl = new URL("/api/auth/session-role", request.url);
+    const response = await fetch(roleUrl, {
+      headers: { cookie: request.headers.get("cookie") ?? "" },
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as { role?: SessionRole; blocked?: boolean };
+    if (data.blocked) return null;
+
+    const role = data.role;
+    if (
+      role !== "admin" &&
+      role !== "editor" &&
+      role !== "reviewer" &&
+      role !== "user"
+    ) {
+      return null;
+    }
+
+    return { ...jwtSession, role };
+  } catch {
+    return null;
+  }
+}
 
 function redirectToAuth(request: NextRequest, prefix: string): NextResponse {
   const login = new URL(`${prefix}/auth`, request.url);
@@ -88,7 +122,13 @@ export async function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.next(), request);
   }
 
-  const session = await getEdgeSessionFromRequest(request);
+  const jwtSession = await getEdgeSessionFromRequest(request);
+  const needsDbRoleCheck =
+    needsAdminApi || needsAdminPage || needsPostsWorkflowPage || needsPostsWorkflowApi;
+  const session =
+    jwtSession && needsDbRoleCheck
+      ? await resolvePrivilegedSession(request, jwtSession)
+      : jwtSession;
 
   if (needsAdminApi) {
     if (!session) {
