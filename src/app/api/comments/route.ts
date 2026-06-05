@@ -1,4 +1,7 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
+import { ensureAdmin } from "@/lib/server/auth/guards";
 import { prisma } from "@/lib/server/prisma";
 import { badRequest, created, ok, serverError, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
@@ -27,13 +30,14 @@ export async function GET(request: Request) {
 
     const where: {
       productId: string;
-      status?: string;
-    } = { productId };
+      status: string;
+    } = { productId, status: "approved" };
 
-    if (status) {
+    if (status && status !== "approved") {
+      const user = await readSessionUser();
+      const denied = ensureAdmin(user);
+      if (denied) return denied;
       where.status = status;
-    } else {
-      where.status = "approved";
     }
 
     const comments = await prisma.productComment.findMany({

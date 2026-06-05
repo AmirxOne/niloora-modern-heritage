@@ -1,4 +1,7 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
+import { ensureAdmin } from "@/lib/server/auth/guards";
 import { prisma } from "@/lib/server/prisma";
 import { badRequest, created, ok, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
@@ -67,8 +70,13 @@ export async function GET(request: Request) {
 
     if (!productId) return badRequest("Missing productId");
 
-    const where: { productId: string; status?: string } = { productId };
-    where.status = status ?? "approved";
+    const where: { productId: string; status: string } = { productId, status: "approved" };
+    if (status && status !== "approved") {
+      const user = await readSessionUser();
+      const denied = ensureAdmin(user);
+      if (denied) return denied;
+      where.status = status;
+    }
 
     const questions = await prisma.productQuestion.findMany({
       where,
