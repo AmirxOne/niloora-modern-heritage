@@ -1,9 +1,12 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { hash } from "bcryptjs";
 import { normalizeIranPhone } from "@/lib/auth/phone";
 import { prisma } from "@/lib/server/prisma";
-import { badRequest, ok, notFound, unauthorized, serverError } from "@/lib/server/http";
+import { badRequest, ok, notFound, tooManyRequests, unauthorized, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { consumeResetToken } from "@/lib/server/auth/password-reset";
+import { assertPasswordResetRateLimit } from "@/lib/server/auth/login-rate-limit";
 
 type Body = {
   phone?: string;
@@ -20,6 +23,11 @@ export async function POST(request: Request) {
 
     if (!phone || !token || newPassword.length < 6) {
       return badRequest("Invalid reset payload");
+    }
+
+    const rate = assertPasswordResetRateLimit(request, phone);
+    if (!rate.allowed) {
+      return tooManyRequests("reset_rate_limited", rate.retryAfterSec);
     }
 
     const user = await prisma.user.findUnique({ where: { phone } });

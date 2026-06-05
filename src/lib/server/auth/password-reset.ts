@@ -11,7 +11,7 @@ function tokenTtlMs() {
 }
 
 export async function createResetToken(userId: string): Promise<string> {
-  const rawToken = randomBytes(4).toString("hex").toUpperCase();
+  const rawToken = randomBytes(32).toString("hex").toUpperCase();
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + tokenTtlMs());
 
