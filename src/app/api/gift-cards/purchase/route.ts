@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { badRequest, created } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
@@ -51,31 +53,56 @@ export async function POST(request: Request) {
       },
     });
 
-    const zarinpal = await zarinpalRequestPayment({
-      amountRial,
-      description: `خرید کارت هدیه — سفارش ${order.id}`,
-      orderId: order.id,
-      mobile: user.phone,
-    });
+    try {
+      const zarinpal = await zarinpalRequestPayment({
+        amountRial,
+        description: `خرید کارت هدیه — سفارش ${order.id}`,
+        orderId: order.id,
+        mobile: user.phone,
+      });
 
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: { authority: zarinpal.authority, fee: zarinpal.fee },
-    });
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: { authority: zarinpal.authority, fee: zarinpal.fee },
+      });
 
-    await logPaymentEvent({
-      paymentId: payment.id,
-      orderId: order.id,
-      level: "info",
-      event: "gift_card.payment.initiated",
-      meta: { amountToman: amount, authority: zarinpal.authority },
-    });
+      await logPaymentEvent({
+        paymentId: payment.id,
+        orderId: order.id,
+        level: "info",
+        event: "gift_card.payment.initiated",
+        meta: { amountToman: amount, authority: zarinpal.authority },
+      });
 
-    return created({
-      redirectUrl: zarinpal.redirectUrl,
-      orderId: order.id,
-      authority: zarinpal.authority,
-    });
+      return created({
+        redirectUrl: zarinpal.redirectUrl,
+        orderId: order.id,
+        authority: zarinpal.authority,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Zarinpal request failed";
+
+      await prisma.$transaction([
+        prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: "failed", errorMessage: message },
+        }),
+        prisma.order.update({
+          where: { id: order.id },
+          data: { status: "payment_failed" },
+        }),
+      ]);
+
+      await logPaymentEvent({
+        paymentId: payment.id,
+        orderId: order.id,
+        level: "error",
+        event: "gift_card.zarinpal.request.failed",
+        message,
+      });
+
+      throw error;
+    }
   } catch (error) {
     return handleRouteError(error, { route: "/api/gift-cards/purchase" });
   }
