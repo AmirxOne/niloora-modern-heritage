@@ -13,6 +13,7 @@ import { AuthOtpInput } from "@/components/auth/AuthOtpInput";
 import { FormikTextField } from "@/components/forms/FormikTextField";
 import { Button } from "@/components/ui/Button";
 import { forgotRequestValidationSchema } from "@/lib/auth/authSchemas";
+import { safeRedirectPath } from "@/lib/auth/safe-redirect";
 
 type OtpRequestState = { phone: string; otpPreview?: string };
 
@@ -27,7 +28,7 @@ export default function UnifiedAuthPage() {
 function UnifiedAuthPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/account";
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
   const referralFromUrl = searchParams.get("ref") ?? "";
   const { auth } = useAuthPage(redirectTo);
 

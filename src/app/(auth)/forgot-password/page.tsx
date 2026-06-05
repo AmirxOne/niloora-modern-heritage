@@ -14,6 +14,7 @@ import {
   forgotRequestValidationSchema,
   forgotResetValidationSchema,
 } from "@/lib/auth/authSchemas";
+import { safeRedirectPath } from "@/lib/auth/safe-redirect";
 
 function ForgotRequestForm({
   onRequested,
@@ -135,7 +136,7 @@ export default function ForgotPasswordPage() {
 function ForgotPasswordPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/account";
+  const redirectTo = safeRedirectPath(searchParams.get("redirect"));
   const { auth } = useApp();
 
   const [requestPhone, setRequestPhone] = useState("");
