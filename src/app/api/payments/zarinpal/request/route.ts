@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { resolveCheckoutUser } from "@/lib/server/auth/checkout-user";
 import { readSessionUser } from "@/lib/server/auth/session";
 import { badRequest, created, serverError } from "@/lib/server/http";
@@ -12,6 +14,7 @@ import {
   tomanToRial,
   zarinpalRequestPayment,
 } from "@/lib/server/payment/zarinpal";
+import { releaseGiftCardReservation } from "@/lib/server/gift-card/gift-card-service";
 import { prisma } from "@/lib/server/prisma";
 import type { CartItem, CheckoutPaymentMethod } from "@/lib/types";
 import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
@@ -98,9 +101,12 @@ export async function POST(request: Request) {
         addressLine: checkoutUser.addressLine,
       });
       if (!eligibility.ok) {
-        await prisma.order.update({
-          where: { id: order.id },
-          data: { status: "payment_failed" },
+        await prisma.$transaction(async (tx) => {
+          await releaseGiftCardReservation({ orderId: order.id, tx });
+          await tx.order.update({
+            where: { id: order.id },
+            data: { status: "payment_failed" },
+          });
         });
         return badRequest(eligibility.message);
       }
@@ -235,16 +241,17 @@ export async function POST(request: Request) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Zarinpal request failed";
 
-      await prisma.$transaction([
-        prisma.payment.update({
+      await prisma.$transaction(async (tx) => {
+        await releaseGiftCardReservation({ orderId: order.id, tx });
+        await tx.payment.update({
           where: { id: payment.id },
           data: { status: "failed", errorMessage: message },
-        }),
-        prisma.order.update({
+        });
+        await tx.order.update({
           where: { id: order.id },
           data: { status: "payment_failed" },
-        }),
-      ]);
+        });
+      });
 
       await logPaymentEvent({
         paymentId: payment.id,

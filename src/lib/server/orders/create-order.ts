@@ -7,7 +7,11 @@ import { CartPurchaseError } from "@/lib/server/products/validate-cart-purchase"
 import { prisma } from "@/lib/server/prisma";
 import { recordCampaignUsage } from "@/lib/server/campaigns/discount-campaign-service";
 import { repriceOrderItems } from "@/lib/server/order-pricing";
-import { validateGiftCardForCheckout } from "@/lib/server/gift-card/gift-card-service";
+import {
+  GiftCardReservationError,
+  reserveGiftCardForOrder,
+  validateGiftCardForCheckout,
+} from "@/lib/server/gift-card/gift-card-service";
 import type { CartItem } from "@/lib/types";
 import { normalizeLoyaltyTier } from "@/lib/loyalty/program";
 
@@ -64,53 +68,74 @@ export async function createOrderFromCart(input: {
       ? calculateInstallmentAmount(orderTotal, installmentMonths as 3 | 4 | 6)
       : null;
 
-  const order = await prisma.order.create({
-    data: {
-      id: createOrderId(),
-      userId: input.userId,
-      status: input.status,
-      total: orderTotal,
-      subtotalList: priced.subtotalList,
-      totalFurooh: priced.totalFurooh,
-      bundleDiscount: priced.bundleDiscount,
-      appliedBundles: priced.appliedBundles as unknown as Prisma.InputJsonValue,
-      promoCode: priced.promoCode,
-      giftCardCode: normalizedGiftCardCode,
-      giftCardAppliedAmount: giftCardApplied || null,
-      loyaltyTier: normalizeLoyaltyTier(input.loyaltyTier),
-      loyaltyDiscountAmount: priced.loyaltyDiscountAmount || null,
-      loyaltyPointsEarned: priced.loyaltyPointsEarned || null,
-      campaignId: priced.campaignId,
-      campaignDiscountAmount: priced.campaignDiscountAmount || null,
-      shippingName: input.shipping.fullName,
-      shippingPhone: input.shipping.mobile,
-      shippingProvince: input.shipping.province,
-      shippingCity: input.shipping.city,
-      shippingAddress: input.shipping.address,
-      shippingPostalCode: input.shipping.postalCode,
-      orderNote: input.shipping.orderNote || null,
-      shippingMethod: input.shipping.shippingMethod,
-      shippingCost,
-      paymentMethod,
-      installmentMonths,
-      installmentAmount,
-      items: {
-        create: priced.items.map((item) => ({
-          productId: item.productId ?? null,
-          name: item.name,
-          price: item.price,
-          listPrice: item.listPrice ?? null,
-          quantity: item.quantity,
-          image: item.image,
-          availability: item.availability ?? null,
-          customizerState: item.customizerState as Prisma.InputJsonValue | undefined,
-          ringPurchaseCustomization:
-            item.ringPurchaseCustomization as Prisma.InputJsonValue | undefined,
-        })),
-      },
-    },
-    include: { items: true },
-  });
+  let order;
+  try {
+    order = await prisma.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: {
+          id: createOrderId(),
+          userId: input.userId,
+          status: input.status,
+          total: orderTotal,
+          subtotalList: priced.subtotalList,
+          totalFurooh: priced.totalFurooh,
+          bundleDiscount: priced.bundleDiscount,
+          appliedBundles: priced.appliedBundles as unknown as Prisma.InputJsonValue,
+          promoCode: priced.promoCode,
+          giftCardCode: normalizedGiftCardCode,
+          giftCardAppliedAmount: giftCardApplied || null,
+          loyaltyTier: normalizeLoyaltyTier(input.loyaltyTier),
+          loyaltyDiscountAmount: priced.loyaltyDiscountAmount || null,
+          loyaltyPointsEarned: priced.loyaltyPointsEarned || null,
+          campaignId: priced.campaignId,
+          campaignDiscountAmount: priced.campaignDiscountAmount || null,
+          shippingName: input.shipping.fullName,
+          shippingPhone: input.shipping.mobile,
+          shippingProvince: input.shipping.province,
+          shippingCity: input.shipping.city,
+          shippingAddress: input.shipping.address,
+          shippingPostalCode: input.shipping.postalCode,
+          orderNote: input.shipping.orderNote || null,
+          shippingMethod: input.shipping.shippingMethod,
+          shippingCost,
+          paymentMethod,
+          installmentMonths,
+          installmentAmount,
+          items: {
+            create: priced.items.map((item) => ({
+              productId: item.productId ?? null,
+              name: item.name,
+              price: item.price,
+              listPrice: item.listPrice ?? null,
+              quantity: item.quantity,
+              image: item.image,
+              availability: item.availability ?? null,
+              customizerState: item.customizerState as Prisma.InputJsonValue | undefined,
+              ringPurchaseCustomization:
+                item.ringPurchaseCustomization as Prisma.InputJsonValue | undefined,
+            })),
+          },
+        },
+        include: { items: true },
+      });
+
+      if (giftCardApplied > 0 && normalizedGiftCardCode) {
+        await reserveGiftCardForOrder({
+          code: normalizedGiftCardCode,
+          orderId: created.id,
+          amount: giftCardApplied,
+          tx,
+        });
+      }
+
+      return created;
+    });
+  } catch (error) {
+    if (error instanceof GiftCardReservationError) {
+      throw new CartPurchaseError(error.message);
+    }
+    throw error;
+  }
 
   if (priced.campaignId && priced.campaignDiscountAmount > 0) {
     await recordCampaignUsage({

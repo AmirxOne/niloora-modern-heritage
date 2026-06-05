@@ -1,4 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
+import {
+  adminGiftCardListInclude,
+  toAdminGiftCardDto,
+} from "@/lib/server/gift-card/admin-gift-card-dto";
 import { prisma } from "@/lib/server/prisma";
 import {
   giftCardIsExpired,
@@ -117,6 +121,124 @@ export async function validateGiftCardForCheckout(codeInput: string, payableBefo
   };
 }
 
+export class GiftCardReservationError extends Error {
+  code: string;
+
+  constructor(message: string, code = "gift_card_reservation_failed") {
+    super(message);
+    this.name = "GiftCardReservationError";
+    this.code = code;
+  }
+}
+
+export class GiftCardConsumeError extends Error {
+  code: string;
+
+  constructor(message: string, code = "gift_card_consume_failed") {
+    super(message);
+    this.name = "GiftCardConsumeError";
+    this.code = code;
+  }
+}
+
+export async function reserveGiftCardForOrder(input: {
+  code: string;
+  orderId: string;
+  amount: number;
+  tx?: PrismaTx;
+}) {
+  if (input.amount <= 0) return null;
+  const code = normalizeGiftCardCode(input.code);
+  const run = async (tx: PrismaTx) => {
+    const card = await tx.giftCard.findUnique({
+      where: { code },
+      select: {
+        id: true,
+        code: true,
+        remainingAmount: true,
+        active: true,
+        expiresAt: true,
+      },
+    });
+    if (!card || !card.active || giftCardIsExpired(card.expiresAt)) {
+      throw new GiftCardReservationError("کارت هدیه معتبر نیست یا موجودی کافی ندارد.");
+    }
+
+    const updated = await tx.giftCard.updateMany({
+      where: {
+        id: card.id,
+        active: true,
+        remainingAmount: { gte: input.amount },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+      data: {
+        remainingAmount: { decrement: input.amount },
+      },
+    });
+    if (updated.count !== 1) {
+      throw new GiftCardReservationError("موجودی کارت هدیه برای این سفارش کافی نیست.");
+    }
+
+    await tx.giftCardTransaction.create({
+      data: {
+        giftCardId: card.id,
+        orderId: input.orderId,
+        type: "reserve",
+        amount: input.amount,
+        description: `Reserved for order ${input.orderId}`,
+      },
+    });
+
+    return {
+      code: card.code,
+      reservedAmount: input.amount,
+      remainingAmount: card.remainingAmount - input.amount,
+    };
+  };
+  if (input.tx) return run(input.tx);
+  return prisma.$transaction(async (tx) => run(tx));
+}
+
+export async function releaseGiftCardReservation(input: { orderId: string; tx?: PrismaTx }) {
+  const run = async (tx: PrismaTx) => {
+    const reserve = await tx.giftCardTransaction.findFirst({
+      where: { orderId: input.orderId, type: "reserve" },
+      include: {
+        giftCard: {
+          select: { id: true, remainingAmount: true },
+        },
+      },
+    });
+    if (!reserve) return null;
+
+    const alreadyReleased = await tx.giftCardTransaction.findFirst({
+      where: { orderId: input.orderId, type: "release" },
+    });
+    if (alreadyReleased) return null;
+
+    const nextRemaining = reserve.giftCard.remainingAmount + reserve.amount;
+    await tx.giftCard.update({
+      where: { id: reserve.giftCardId },
+      data: {
+        remainingAmount: nextRemaining,
+        active: true,
+      },
+    });
+    await tx.giftCardTransaction.create({
+      data: {
+        giftCardId: reserve.giftCardId,
+        orderId: input.orderId,
+        type: "release",
+        amount: reserve.amount,
+        description: `Released reservation for order ${input.orderId}`,
+      },
+    });
+    return { amount: reserve.amount };
+  };
+  if (input.tx) return run(input.tx);
+  return prisma.$transaction(async (tx) => run(tx));
+}
+
 export async function consumeGiftCardForOrder(input: {
   code: string;
   orderId: string;
@@ -126,6 +248,59 @@ export async function consumeGiftCardForOrder(input: {
   if (input.amount <= 0) return null;
   const code = normalizeGiftCardCode(input.code);
   const run = async (tx: PrismaTx) => {
+    const reserve = await tx.giftCardTransaction.findFirst({
+      where: { orderId: input.orderId, type: "reserve" },
+      include: {
+        giftCard: {
+          select: {
+            id: true,
+            code: true,
+            remainingAmount: true,
+            active: true,
+          },
+        },
+      },
+    });
+
+    if (reserve) {
+      if (reserve.amount !== input.amount || reserve.giftCard.code !== code) {
+        throw new GiftCardConsumeError("رزرو کارت هدیه با مبلغ سفارش همخوانی ندارد.");
+      }
+
+      const existingRedeem = await tx.giftCardTransaction.findFirst({
+        where: { orderId: input.orderId, type: "redeem" },
+      });
+      if (existingRedeem) {
+        return {
+          code: reserve.giftCard.code,
+          appliedAmount: reserve.amount,
+          remainingAmount: reserve.giftCard.remainingAmount,
+        };
+      }
+
+      await tx.giftCardTransaction.create({
+        data: {
+          giftCardId: reserve.giftCardId,
+          orderId: input.orderId,
+          type: "redeem",
+          amount: input.amount,
+          description: `Redeemed on order ${input.orderId}`,
+        },
+      });
+      await tx.order.update({
+        where: { id: input.orderId },
+        data: {
+          giftCardCode: reserve.giftCard.code,
+          giftCardAppliedAmount: input.amount,
+        },
+      });
+      return {
+        code: reserve.giftCard.code,
+        appliedAmount: input.amount,
+        remainingAmount: reserve.giftCard.remainingAmount,
+      };
+    }
+
     const card = await tx.giftCard.findUnique({
       where: { code },
       select: {
@@ -150,6 +325,8 @@ export async function consumeGiftCardForOrder(input: {
         active: nextRemaining > 0,
       },
     });
+
+    const nextRemaining = card.remainingAmount - applyAmount;
     await tx.giftCardTransaction.create({
       data: {
         giftCardId: card.id,
@@ -174,38 +351,8 @@ export async function consumeGiftCardForOrder(input: {
 
 export async function listAdminGiftCards() {
   const rows = await prisma.giftCard.findMany({
-    include: {
-      purchaser: { select: { id: true, phone: true } },
-      order: { select: { id: true } },
-      transactions: {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      },
-    },
+    include: adminGiftCardListInclude,
     orderBy: { createdAt: "desc" },
   });
-  return rows.map((row) => ({
-    id: row.id,
-    code: row.code,
-    initialAmount: row.initialAmount,
-    remainingAmount: row.remainingAmount,
-    active: row.active,
-    expiresAt: row.expiresAt?.toISOString() ?? null,
-    note: row.note ?? "",
-    recipientName: row.recipientName ?? "",
-    recipientContact: row.recipientContact ?? "",
-    purchaserUserId: row.purchaserUserId ?? "",
-    purchaserPhone: row.purchaser?.phone ?? "",
-    orderId: row.orderId ?? "",
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-    transactions: row.transactions.map((t) => ({
-      id: t.id,
-      type: t.type,
-      amount: t.amount,
-      description: t.description ?? "",
-      orderId: t.orderId ?? "",
-      createdAt: t.createdAt.toISOString(),
-    })),
-  }));
+  return rows.map(toAdminGiftCardDto);
 }

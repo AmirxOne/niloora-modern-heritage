@@ -9,7 +9,11 @@ import { logRouteError } from "@/lib/server/route-errors";
 import { notifyOrderPlaced } from "@/lib/server/notifications/order-notify";
 import { prisma } from "@/lib/server/prisma";
 import { rewardReferralOnPaidOrder } from "@/lib/server/referral/referral";
-import { consumeGiftCardForOrder, createGiftCard } from "@/lib/server/gift-card/gift-card-service";
+import {
+  consumeGiftCardForOrder,
+  createGiftCard,
+  releaseGiftCardReservation,
+} from "@/lib/server/gift-card/gift-card-service";
 import { rewardLoyaltyOnPaidOrder } from "@/lib/server/loyalty/loyalty";
 import { scheduleOrderMaintenanceReminders } from "@/lib/server/notifications/maintenance-reminders";
 import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
@@ -61,20 +65,21 @@ export async function GET(request: Request) {
   }
 
   const fail = async (reason: string, extra?: { code?: string; message?: string }) => {
-    await prisma.$transaction([
-      prisma.payment.update({
+    await prisma.$transaction(async (tx) => {
+      await releaseGiftCardReservation({ orderId: payment.orderId, tx });
+      await tx.payment.update({
         where: { id: payment.id },
         data: {
           status: "failed",
           errorCode: extra?.code ?? reason,
           errorMessage: extra?.message ?? reason,
         },
-      }),
-      prisma.order.update({
+      });
+      await tx.order.update({
         where: { id: payment.orderId },
         data: { status: "payment_failed" },
-      }),
-    ]);
+      });
+    });
 
     await logPaymentEvent({
       paymentId: payment.id,
