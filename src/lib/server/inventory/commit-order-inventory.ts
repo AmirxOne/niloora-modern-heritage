@@ -38,7 +38,20 @@ export async function commitInventoryForPaidOrder(
       });
     }
 
-    if (product.availability === "sold" || product.stock < quantity) {
+    const nextStock = product.stock - quantity;
+    const updated = await tx.product.updateMany({
+      where: {
+        id: productId,
+        stock: { gte: quantity },
+        availability: { not: "sold" },
+      },
+      data: {
+        stock: { decrement: quantity },
+        ...(nextStock <= 0 ? { availability: "sold" as const } : {}),
+      },
+    });
+
+    if (updated.count !== 1) {
       throw new InventoryCommitError(
         product.name
           ? `موجودی «${product.name}» برای تکمیل سفارش کافی نیست.`
@@ -46,14 +59,5 @@ export async function commitInventoryForPaidOrder(
         { code: "insufficient_stock", productId }
       );
     }
-
-    const nextStock = product.stock - quantity;
-    await tx.product.update({
-      where: { id: productId },
-      data: {
-        stock: nextStock,
-        availability: nextStock <= 0 ? "sold" : product.availability,
-      },
-    });
   }
 }
