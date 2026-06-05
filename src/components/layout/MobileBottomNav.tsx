@@ -45,6 +45,12 @@ function isActiveRoute(pathname: string, href: string, exact?: boolean): boolean
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const tabLinkClassName =
+  "relative flex min-h-11 w-full flex-col items-center justify-center gap-0.5 text-[#78716c] no-underline transition-colors duration-[180ms] [-webkit-tap-highlight-color:transparent] active:scale-[0.96] active:transition-transform active:duration-100";
+
+const tabLinkActiveClassName =
+  "text-[var(--color-accent)] before:absolute before:inset-x-[22%] before:top-0 before:h-0.5 before:rounded-b before:bg-[var(--color-accent)] before:content-['']";
+
 export function MobileBottomNav() {
   const pathname = usePathname() ?? "/";
   const normalizedPath = stripLocalePrefix(pathname).path;
@@ -78,11 +84,11 @@ export function MobileBottomNav() {
 
   return (
     <nav
-      className="mobile-bottom-nav lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-[45] border-t border-[rgba(184,134,11,0.12)] bg-[rgba(255,252,247,0.92)] pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-[20px] backdrop-saturate-[160%] [-webkit-backdrop-filter:blur(20px)_saturate(160%)] select-none print:hidden lg:hidden"
       aria-label="ناوبری اصلی موبایل"
       dir="rtl"
     >
-      <ul className="mobile-bottom-nav__list">
+      <ul className="m-0 grid h-[var(--mobile-nav-height)] list-none grid-cols-5 items-stretch p-0">
         {items.map((item) => {
           // برای تب علاقه‌مندی که با هش هست، فعال‌بودن را با hash بسنجیم.
           const cleanHref = item.href.split("#")[0];
@@ -91,30 +97,28 @@ export function MobileBottomNav() {
           const hasBadge = (item.badge ?? 0) > 0;
 
           return (
-            <li key={item.href} className="mobile-bottom-nav__item">
+            <li key={item.href} className="flex">
               <Link
                 href={item.href}
-                className={cn(
-                  "mobile-bottom-nav__link",
-                  isActive && "mobile-bottom-nav__link--active"
-                )}
+                className={cn(tabLinkClassName, isActive && tabLinkActiveClassName)}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={item.label}
               >
-                <span className="mobile-bottom-nav__icon-wrap" aria-hidden>
+                <span className="relative inline-flex h-7 w-7 items-center justify-center" aria-hidden>
                   <Icon size={22} variant={ICON_VARIANT} />
                   {hasBadge ? (
                     <span
                       className={cn(
-                        "mobile-bottom-nav__badge",
-                        item.badgeGold && "mobile-bottom-nav__badge--gold"
+                        "absolute -top-1 end-[-6px] inline-flex h-4 min-w-4 items-center justify-center rounded-full border-[1.5px] border-[rgba(255,252,247,0.95)] bg-[var(--color-accent)] px-1 text-[9px] font-bold leading-none text-white"
                       )}
                     >
                       {(item.badge ?? 0).toLocaleString("fa-IR")}
                     </span>
                   ) : null}
                 </span>
-                <span className="mobile-bottom-nav__label">{item.label}</span>
+                <span className="whitespace-nowrap text-[10px] font-medium leading-none">
+                  {item.label}
+                </span>
               </Link>
             </li>
           );

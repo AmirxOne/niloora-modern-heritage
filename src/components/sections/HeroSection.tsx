@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -31,6 +31,21 @@ const FALLBACK_SLIDES: HeroSlide[] = [
   { id: "hero-fallback-4", name: fa.brand.name, image: SITE_IMAGE_2 },
   { id: "hero-fallback-5", name: fa.brand.name, image: SITE_IMAGE_2 },
 ];
+
+const HERO_RAIL_VARS = {
+  "--hero-rail-thumb": "5.25rem",
+  "--hero-rail-card-inner-gap": "0.5rem",
+  "--hero-rail-card-pad": "0.625rem",
+  "--hero-rail-label-h": "1.125rem",
+  "--hero-rail-card-gap": "0.875rem",
+  "--hero-rail-card-h": "calc(0.625rem * 2 + 5.25rem + 0.5rem + 1.125rem)",
+} as CSSProperties;
+
+const heroRailNavClassName =
+  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/20 bg-white text-ivory-light transition-[color,border-color,opacity,transform] duration-200 hover:border-gold/45 hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35 disabled:cursor-not-allowed disabled:border-gold/15 disabled:text-silver/70 disabled:opacity-75 disabled:hover:border-gold/15 disabled:hover:text-silver/70";
+
+const heroRailNavDimmedClassName =
+  "cursor-not-allowed border-gold/15 text-silver/70 opacity-75 hover:border-gold/15 hover:text-silver/70";
 
 function toHeroSlides(products: Product[]): HeroSlide[] {
   return products.map((product) => ({
@@ -86,21 +101,27 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section className="home-hero" aria-label={fa.home.heroGlamourTitle1}>
-      <div className="home-hero-layout">
-        <div className="home-hero-inner" dir="rtl">
-          <div className="home-hero-copy">
-            <h1 className="home-hero-heading">
-              <span className="home-hero-heading-line">{fa.home.heroGlamourTitle1}</span>
-              <span className="home-hero-heading-line home-hero-heading-line--accent">
-                {fa.home.heroGlamourTitle2}
-              </span>
+    <section
+      className="relative isolate w-full max-w-none overflow-hidden border-b border-[#ece8e2] bg-[#faf8f5]"
+      aria-label={fa.home.heroGlamourTitle1}
+    >
+      <div className="relative z-10 mx-auto flex min-h-[clamp(520px,62vh,680px)] w-full max-w-site items-center px-5 py-10 md:px-8 md:py-12 lg:px-12 lg:py-14 xl:px-16">
+        <div
+          className="flex w-full flex-col items-center gap-8 lg:min-h-[clamp(420px,52vh,560px)] lg:flex-row lg:items-center lg:justify-center lg:gap-[clamp(2rem,3vw,3.5rem)]"
+          dir="rtl"
+        >
+          <div className="flex w-full max-w-none flex-col text-start max-lg:max-w-none lg:w-[min(30rem,28vw)] lg:max-w-[30rem] lg:shrink-0">
+            <h1 className="font-display text-[clamp(2.25rem,4.5vw,3.5rem)] font-semibold leading-[1.08] text-ivory">
+              <span className="block">{fa.home.heroGlamourTitle1}</span>
+              <span className="block text-ivory">{fa.home.heroGlamourTitle2}</span>
             </h1>
 
-            <p className="home-hero-lead">{fa.home.heroShowcaseLead}</p>
+            <p className="mt-4 max-w-md text-sm leading-[1.85] text-silver md:mt-5 md:text-[0.9375rem]">
+              {fa.home.heroShowcaseLead}
+            </p>
 
-            <div className="home-hero-cta-row">
-              <Link href={ctaPrimaryHref} className="home-hero-cta-link">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:mt-8">
+              <Link href={ctaPrimaryHref} className="inline-flex w-full sm:w-auto">
                 <Button
                   size="md"
                   className="w-full min-w-[8.5rem] shadow-luxury-gold sm:w-auto"
@@ -109,40 +130,51 @@ export function HeroSection() {
                   {ctaPrimaryLabel}
                 </Button>
               </Link>
-              <Link href="/about" className="home-hero-cta-link">
+              <Link href="/about" className="inline-flex w-full sm:w-auto">
                 <Button
                   variant="secondary"
                   size="md"
-                  className="home-hero-cta-video w-full sm:w-auto"
+                  className="w-full gap-2.5 border-[#ebe6df] bg-[#f5f2ec] text-gold-dark hover:border-gold/35 hover:bg-[#f0ebe3] hover:text-gold-dark sm:w-auto"
                   onClick={() => trackCtaConversion("secondary")}
                 >
-                  <span className="home-hero-play-icon" aria-hidden />
+                  <span
+                    className="inline-block h-0 w-0 shrink-0 border-y-[5px] border-y-transparent border-s-[8px] border-s-current"
+                    aria-hidden
+                  />
                   {fa.home.heroWatchVideo}
                 </Button>
               </Link>
             </div>
 
-            <div className="home-hero-trust">
-              <span className="home-hero-trust-icon" aria-hidden>
+            <div className="mt-8 flex items-start gap-3 border-t border-gold/10 pt-6 md:mt-10">
+              <span className="inline-flex shrink-0 text-gold" aria-hidden>
                 <BadgeCheck size={iconSizes.lg} variant={ICON_VARIANT} />
               </span>
-              <div className="home-hero-trust-text">
-                <p className="home-hero-trust-title">{fa.home.heroTrustCertTitle}</p>
-                <p className="home-hero-trust-desc">{fa.home.heroTrustCertDesc}</p>
+              <div>
+                <p className="text-sm font-semibold text-ivory">{fa.home.heroTrustCertTitle}</p>
+                <p className="mt-1 max-w-xs text-xs leading-relaxed text-silver">
+                  {fa.home.heroTrustCertDesc}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="home-hero-visual">
-            <div className="home-hero-feature" aria-hidden={!activeSlide}>
+          <div className="flex w-full flex-col items-center gap-6 lg:w-auto lg:shrink-0 lg:flex-row lg:items-center lg:gap-[clamp(1.5rem,3vw,3rem)]">
+            <div
+              className="relative flex shrink-0 items-center justify-center lg:z-[2]"
+              aria-hidden={!activeSlide}
+            >
               {activeSlide ? (
-                <Link href={slideHref(activeSlide.id)} className="home-hero-feature-link">
+                <Link
+                  href={slideHref(activeSlide.id)}
+                  className="relative block aspect-square w-[min(72vw,22rem)] overflow-hidden rounded-[1.25rem] bg-white shadow-[0_20px_44px_-28px_rgba(44,42,41,0.18)]"
+                >
                   <Image
                     key={activeSlide.id}
                     src={activeSlide.image}
                     alt={activeSlide.name}
                     fill
-                    className="home-hero-feature-image"
+                    className="object-cover"
                     priority
                     sizes="(max-width: 1024px) 55vw, 420px"
                   />
@@ -151,79 +183,84 @@ export function HeroSection() {
             </div>
 
             <div
-              className="home-hero-rail"
+              className="flex w-[min(100%,8.75rem)] flex-col items-center gap-3"
+              style={HERO_RAIL_VARS}
               aria-roledescription="carousel"
               aria-label={fa.home.heroShowcaseTitle}
             >
-            {slideCount > 1 ? (
-              <button
-                type="button"
-                className={cn("home-hero-rail-nav", navState.isBeginning && "home-hero-rail-nav--dimmed")}
-                aria-label={fa.home.heroGalleryUp}
-                disabled={navState.isBeginning}
-                onClick={() => go(-1)}
-              >
-                <ChevronDown className="home-hero-rail-nav-icon rotate-180" variant={ICON_VARIANT} aria-hidden />
-              </button>
-            ) : null}
+              {slideCount > 1 ? (
+                <button
+                  type="button"
+                  className={cn(
+                    heroRailNavClassName,
+                    navState.isBeginning && heroRailNavDimmedClassName
+                  )}
+                  aria-label={fa.home.heroGalleryUp}
+                  disabled={navState.isBeginning}
+                  onClick={() => go(-1)}
+                >
+                  <ChevronDown
+                    className="h-4 w-4 rotate-180"
+                    variant={ICON_VARIANT}
+                    aria-hidden
+                  />
+                </button>
+              ) : null}
 
-            <div className="home-hero-rail-viewport">
-              <Swiper
-                modules={[A11y]}
-                direction="vertical"
-                slidesPerView={3}
-                spaceBetween={14}
-                slideToClickedSlide
-                watchSlidesProgress
-                className="home-hero-rail-swiper"
-                onSwiper={(swiper) => {
-                  swiperRef.current = swiper;
-                  syncNavState(swiper);
-                }}
-                onSlideChange={syncNavState}
-                onReachBeginning={syncNavState}
-                onReachEnd={syncNavState}
-                onFromEdge={syncNavState}
-                onResize={syncNavState}
-              >
-                {slides.map((item, index) => (
-                  <SwiperSlide key={item.id} className="home-hero-rail-slide">
-                    <Link
-                      href={slideHref(item.id)}
-                      className={cn(
-                        "home-hero-rail-card",
-                        index === activeIndex && "home-hero-rail-card--active"
-                      )}
-                      aria-label={item.name}
-                      aria-current={index === activeIndex ? "true" : undefined}
-                    >
-                      <span className="home-hero-rail-card-media">
-                        <Image
-                          src={item.image}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="120px"
-                        />
-                      </span>
-                      <span className="home-hero-rail-card-label">{item.name}</span>
-                    </Link>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            </div>
+              <div className="relative w-full overflow-hidden h-[calc(var(--hero-rail-card-h)*3+var(--hero-rail-card-gap)*2)]">
+                <Swiper
+                  modules={[A11y]}
+                  direction="vertical"
+                  slidesPerView={3}
+                  spaceBetween={14}
+                  slideToClickedSlide
+                  watchSlidesProgress
+                  className="h-full w-full !overflow-hidden [&_.swiper-wrapper]:items-stretch"
+                  onSwiper={(swiper) => {
+                    swiperRef.current = swiper;
+                    syncNavState(swiper);
+                  }}
+                  onSlideChange={syncNavState}
+                  onReachBeginning={syncNavState}
+                  onReachEnd={syncNavState}
+                  onFromEdge={syncNavState}
+                  onResize={syncNavState}
+                >
+                  {slides.map((item, index) => (
+                    <SwiperSlide key={item.id} className="!h-[var(--hero-rail-card-h)]">
+                      <Link
+                        href={slideHref(item.id)}
+                        className={cn(
+                          "flex h-full w-full flex-col items-center gap-2 rounded-[1.1rem] border border-transparent bg-[#f5f2ec] p-2.5 transition-[border-color,box-shadow,transform] duration-200 hover:border-gold/25 hover:shadow-[0_8px_24px_-16px_rgba(184,134,11,0.35)]",
+                          index === activeIndex &&
+                            "border-gold/55 shadow-[0_10px_28px_-14px_rgba(184,134,11,0.4)]"
+                        )}
+                        aria-label={item.name}
+                        aria-current={index === activeIndex ? "true" : undefined}
+                      >
+                        <span className="relative block aspect-square w-full max-w-[var(--hero-rail-thumb)] shrink-0 overflow-hidden rounded-[0.85rem] bg-white">
+                          <Image src={item.image} alt="" fill className="object-cover" sizes="120px" />
+                        </span>
+                        <span className="line-clamp-1 w-full text-center text-[11px] font-medium text-ivory-light">
+                          {item.name}
+                        </span>
+                      </Link>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
 
-            {slideCount > 1 ? (
-              <button
-                type="button"
-                className={cn("home-hero-rail-nav", navState.isEnd && "home-hero-rail-nav--dimmed")}
-                aria-label={fa.home.heroGalleryDown}
-                disabled={navState.isEnd}
-                onClick={() => go(1)}
-              >
-                <ChevronDown className="home-hero-rail-nav-icon" variant={ICON_VARIANT} aria-hidden />
-              </button>
-            ) : null}
+              {slideCount > 1 ? (
+                <button
+                  type="button"
+                  className={cn(heroRailNavClassName, navState.isEnd && heroRailNavDimmedClassName)}
+                  aria-label={fa.home.heroGalleryDown}
+                  disabled={navState.isEnd}
+                  onClick={() => go(1)}
+                >
+                  <ChevronDown className="h-4 w-4" variant={ICON_VARIANT} aria-hidden />
+                </button>
+              ) : null}
             </div>
           </div>
         </div>

@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
-import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
-import type { AdminHomeKpiDto } from "@/lib/types/home-content";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "@/lib/hooks/fetch-utils";
+import type { AdminHomeKpiDto } from "@/lib/types";
 
 export function useAdminHomeKpi() {
   const auth = useAuth();
@@ -18,7 +19,12 @@ export function useAdminHomeKpi() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/home/kpi");
+      const response = await apiFetch("/api/admin/home/kpi");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
+        setKpi(null);
+        return;
+      }
       const data = await parseJsonResponse<{ kpi?: AdminHomeKpiDto; message?: string }>(response);
       if (!response.ok || !data?.kpi) {
         toast.error(data?.message ?? "دریافت KPI انجام نشد.");

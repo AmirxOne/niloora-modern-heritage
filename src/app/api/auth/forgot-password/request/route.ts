@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { normalizeIranPhone } from "@/lib/auth/phone";
 import { prisma } from "@/lib/server/prisma";
 import { badRequest, ok, notFound, serverError, tooManyRequests } from "@/lib/server/http";

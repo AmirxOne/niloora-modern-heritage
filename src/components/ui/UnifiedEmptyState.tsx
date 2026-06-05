@@ -2,19 +2,10 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { EMPTY_STATE_IMAGES, type EmptyStateVisual } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
-export type EmptyStateVisual = "compare" | "cart" | "blog" | "reviews" | "questions" | "orders" | "shop";
-
-const IMAGE_BY_VISUAL: Record<EmptyStateVisual, string> = {
-  compare: "/empty-compare-jewel.svg",
-  cart: "/empty-cart-jewel.svg",
-  blog: "/empty-blog-jewel.svg",
-  reviews: "/empty-reviews-jewel.svg",
-  questions: "/empty-questions-jewel.svg",
-  orders: "/empty-orders-jewel.svg",
-  shop: "/empty-shop-jewel.svg",
-};
+export type { EmptyStateVisual };
 
 interface UnifiedEmptyStateProps {
   title: string;
@@ -31,7 +22,7 @@ export function UnifiedEmptyState({
   visual = "shop",
   className,
 }: UnifiedEmptyStateProps) {
-  const image = IMAGE_BY_VISUAL[visual];
+  const image = EMPTY_STATE_IMAGES[visual];
   return (
     <div className={cn("unified-empty-state", className)}>
       <div className="unified-empty-state__visual" aria-hidden>

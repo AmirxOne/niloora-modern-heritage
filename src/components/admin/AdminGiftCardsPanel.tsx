@@ -9,14 +9,15 @@ import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminGiftCardsPanel() {
   const admin = useAdminGiftCards();
+  const { isAdmin, loadGiftCards } = admin;
   const [amount, setAmount] = useState("500000");
   const [note, setNote] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [recipientContact, setRecipientContact] = useState("");
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadGiftCards();
-  }, [admin.isAdmin, admin.loadGiftCards]);
+    if (isAdmin) void loadGiftCards();
+  }, [isAdmin, loadGiftCards]);
 
   if (!admin.allowed) return null;
 

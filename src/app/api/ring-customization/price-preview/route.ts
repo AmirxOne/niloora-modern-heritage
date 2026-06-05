@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { badRequest, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { resolvePieceCode } from "@/lib/products/piece-code";
@@ -27,13 +29,13 @@ export async function POST(request: Request) {
       listRingCustomizationCatalog(),
       prisma.product.findUnique({
         where: { id: payload.productId },
-        select: { id: true, productType: true, pieceCode: true, sku: true },
+        select: { id: true },
       }),
     ]);
     if (!product) return badRequest("محصول پیدا نشد.");
     const config = configResult.config;
     if (!config.enabled) return badRequest("شخصی‌سازی خرید برای این محصول فعال نیست.");
-    const productPieceCode = resolvePieceCode(product);
+    const productPieceCode = resolvePieceCode({ id: product.id });
 
     const artisanPrice = (id?: string) => catalog.artisans.find((item) => item.id === id)?.priceAdd ?? 0;
     const patternPrice = (id?: string) => catalog.shankPatterns.find((item) => item.id === id)?.priceAdd ?? 0;

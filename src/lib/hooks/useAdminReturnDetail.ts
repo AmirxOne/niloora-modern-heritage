@@ -1,12 +1,13 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminOrderReturnDetail, OrderReturnStatus } from "@/lib/types";
 import type { OrderReturnItemInput } from "@/lib/types";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminReturnDetail(returnId: string) {
   const auth = useAuth();
@@ -21,7 +22,12 @@ export function useAdminReturnDetail(returnId: string) {
     if (!isAdmin || !returnId) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/returns/${encodeURIComponent(returnId)}`);
+      const response = await apiFetch(`/api/admin/returns/${encodeURIComponent(returnId)}`);
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
+        setReturnRequest(null);
+        return;
+      }
       const data = await parseJsonResponse<{ return?: AdminOrderReturnDetail; message?: string }>(
         response
       );
@@ -49,7 +55,7 @@ export function useAdminReturnDetail(returnId: string) {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/returns/${encodeURIComponent(returnId)}`, {
+        const response = await apiFetch(`/api/admin/returns/${encodeURIComponent(returnId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

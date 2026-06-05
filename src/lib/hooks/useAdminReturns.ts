@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -11,7 +12,7 @@ import type {
 import type { OrderReturnItemInput } from "@/lib/types";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminReturns() {
   const auth = useAuth();
@@ -51,9 +52,9 @@ export function useAdminReturns() {
         params.set("page", String(page));
         params.set("pageSize", String(pageSize));
 
-        const response = await fetch(`/api/admin/returns?${params.toString()}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/returns?${params.toString()}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setReturns([]);
           return;
         }
@@ -91,7 +92,7 @@ export function useAdminReturns() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/returns/${encodeURIComponent(returnId)}`, {
+        const response = await apiFetch(`/api/admin/returns/${encodeURIComponent(returnId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

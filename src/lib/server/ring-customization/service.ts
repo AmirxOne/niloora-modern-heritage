@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/server/prisma";
-import { pickSiteImageByKey, pickTestArtisanImageByKey, pickTestCarvingPatternImage } from "@/lib/images";
+import {
+  pickSiteImageByKey,
+  pickArtisanPortraitImageByKey,
+  pickCarvingPatternImage,
+  resolvePublicImagePath,
+} from "@/lib/images";
 import type {
   RingCustomizationAdminCatalogDto,
   RingCustomizationAdminConfigDto,
@@ -76,7 +81,7 @@ export async function listRingCustomizationCatalog(): Promise<RingCustomizationA
       active: item.active,
       priceAdd: item.priceAdd,
       complexityLevel: item.complexityLevel,
-      imageUrl: item.imageUrl,
+      imageUrl: resolvePublicImagePath(item.imageUrl, ""),
     })),
     stoneTexts: stoneTexts.map((item) => ({
       id: item.id,
@@ -152,14 +157,14 @@ export async function getOrCreateRingCustomizationConfig(
           name: item.name,
           active: item.active,
           priceAdd: item.priceAdd,
-          imageUrl: pickTestArtisanImageByKey(`ring-custom-shank-artisan-${item.id}`),
+          imageUrl: pickArtisanPortraitImageByKey(`ring-custom-shank-artisan-${item.id}`),
         })),
       shankPatterns: catalog.shankPatterns.map((item, index) => ({
         id: item.id,
         name: item.name,
         active: item.active,
         priceAdd: item.priceAdd,
-        imageUrl: pickTestCarvingPatternImage(index),
+        imageUrl: pickCarvingPatternImage(index),
       })),
       stoneArtisans: catalog.artisans
         .filter((item) => item.scope === "stone" || item.scope === "both")
@@ -168,7 +173,7 @@ export async function getOrCreateRingCustomizationConfig(
           name: item.name,
           active: item.active,
           priceAdd: item.priceAdd,
-          imageUrl: pickTestArtisanImageByKey(`ring-custom-stone-artisan-${item.id}`),
+          imageUrl: pickArtisanPortraitImageByKey(`ring-custom-stone-artisan-${item.id}`),
         })),
       stoneTexts: catalog.stoneTexts.map((item) => ({
         id: item.id,
@@ -176,7 +181,9 @@ export async function getOrCreateRingCustomizationConfig(
         active: item.active,
         priceAdd: item.priceAdd,
         meaning: item.meaning,
-        imageUrl: item.previewImageUrl ?? pickSiteImageByKey(`ring-custom-stone-text-${item.id}`),
+        imageUrl:
+          resolvePublicImagePath(item.previewImageUrl, "") ||
+          pickSiteImageByKey(`ring-custom-stone-text-${item.id}`),
         description: item.meaning ?? null,
       })),
       scriptStyles: catalog.scriptStyles.map((item) => ({
@@ -184,7 +191,9 @@ export async function getOrCreateRingCustomizationConfig(
         name: item.name,
         active: item.active,
         priceAdd: item.priceAdd,
-        imageUrl: item.previewImageUrl ?? pickSiteImageByKey(`ring-custom-script-${item.id}`),
+        imageUrl:
+          resolvePublicImagePath(item.previewImageUrl, "") ||
+          pickSiteImageByKey(`ring-custom-script-${item.id}`),
       })),
     },
     adminCatalog: catalog,

@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { badRequest, created, ok, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { readSessionUser } from "@/lib/server/auth/session";

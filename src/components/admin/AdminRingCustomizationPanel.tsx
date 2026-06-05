@@ -14,6 +14,7 @@ function csvToIds(value: string): string[] {
 
 export function AdminRingCustomizationPanel() {
   const admin = useAdminRingCustomization();
+  const { isAdmin, loadCatalog } = admin;
   const [productId, setProductId] = useState("");
   const [whitelists, setWhitelists] = useState({
     shankArtisanIds: "",
@@ -36,10 +37,10 @@ export function AdminRingCustomizationPanel() {
   const [catalogDraft, setCatalogDraft] = useState(editableCatalog);
 
   useEffect(() => {
-    if (admin.isAdmin) {
-      void admin.loadCatalog();
+    if (isAdmin) {
+      void loadCatalog();
     }
-  }, [admin.isAdmin, admin.loadCatalog]);
+  }, [isAdmin, loadCatalog]);
 
   useEffect(() => {
     if (!admin.config) return;

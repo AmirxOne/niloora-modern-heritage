@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { getArtisanBySlugForCatalog, listArtisansForCatalog } from "@/lib/artisans";
+import { getArtisanBySlugForCatalog } from "@/lib/artisans";
 import { fa } from "@/lib/i18n/fa";
 import { buildPageMetadata } from "@/lib/seo/site";
 import { getCatalogProducts } from "@/lib/server/products";
@@ -12,10 +12,7 @@ type PageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateStaticParams() {
-  const catalog = await getCatalogProducts();
-  return listArtisansForCatalog(catalog).map((a) => ({ slug: a.slug }));
-}
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -8,7 +9,7 @@ import type {
 } from "@/lib/types/ring-customization";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
-import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "@/lib/hooks/fetch-utils";
 
 export function useAdminRingCustomization() {
   const auth = useAuth();
@@ -23,7 +24,12 @@ export function useAdminRingCustomization() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/ring-customization/catalog");
+      const response = await apiFetch("/api/admin/ring-customization/catalog");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
+        setCatalog(null);
+        return;
+      }
       const data = await parseJsonResponse<{ catalog?: RingCustomizationAdminCatalogDto; message?: string }>(
         response
       );
@@ -42,7 +48,7 @@ export function useAdminRingCustomization() {
       if (!isAdmin || !productId.trim()) return;
       setIsLoading(true);
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           `/api/admin/products/${encodeURIComponent(productId)}/ring-customization`
         );
         const data = await parseJsonResponse<{ ringCustomization?: RingCustomizationAdminConfigDto; message?: string }>(
@@ -71,7 +77,7 @@ export function useAdminRingCustomization() {
       if (!isAdmin || !productId.trim()) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           `/api/admin/products/${encodeURIComponent(productId)}/ring-customization`,
           {
             method: "PATCH",
@@ -101,7 +107,7 @@ export function useAdminRingCustomization() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/ring-customization/catalog", {
+        const response = await apiFetch("/api/admin/ring-customization/catalog", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

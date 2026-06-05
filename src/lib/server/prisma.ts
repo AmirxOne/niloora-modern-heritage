@@ -18,7 +18,5 @@ export const prisma =
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  // BOUNDARY: cache client only in dev to avoid hot-reload connection storms.
-  globalForPrisma.prisma = prisma;
-}
+// BOUNDARY: reuse one client in dev/build/production to avoid connection storms.
+globalForPrisma.prisma = prisma;

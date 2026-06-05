@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useEffect } from "react";
 import { useAppSelector } from "@/lib/store/hooks";
 import { selectCartItems } from "@/lib/store/slices/cartSlice";
@@ -26,7 +27,7 @@ export function usePersistUserPreferences(isLoggedIn: boolean) {
     const controller = new AbortController();
 
     const timeout = setTimeout(() => {
-      fetch("/api/user/preferences", {
+      apiFetch("/api/user/preferences", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

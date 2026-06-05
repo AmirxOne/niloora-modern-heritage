@@ -73,9 +73,6 @@ export async function repriceOrderItems(
         select: {
           id: true,
           name: true,
-          productType: true,
-          pieceCode: true,
-          sku: true,
           price: true,
           listPrice: true,
           discountPercent: true,

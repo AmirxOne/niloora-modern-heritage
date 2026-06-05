@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminCampaignDetailRecord, AdminCampaignRecord } from "@/lib/server/campaigns/discount-campaign";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminCampaigns() {
   const auth = useAuth();
@@ -20,9 +21,9 @@ export function useAdminCampaigns() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/campaigns");
-      if (response.status === 401) {
-        toast.error("دسترسی مدیریت ندارید.");
+      const response = await apiFetch("/api/admin/campaigns");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
         setCampaigns([]);
         return;
       }
@@ -40,7 +41,7 @@ export function useAdminCampaigns() {
   const loadCampaignDetail = useCallback(
     async (id: string) => {
       if (!isAdmin) return null;
-      const response = await fetch(`/api/admin/campaigns/${encodeURIComponent(id)}`);
+      const response = await apiFetch(`/api/admin/campaigns/${encodeURIComponent(id)}`);
       if (!response.ok) {
         toast.error("دریافت جزئیات کمپین انجام نشد.");
         return null;
@@ -56,7 +57,7 @@ export function useAdminCampaigns() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/campaigns", {
+        const response = await apiFetch("/api/admin/campaigns", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -83,21 +84,22 @@ export function useAdminCampaigns() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/campaigns/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/campaigns/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-        const data = await parseJsonResponse<{ campaign?: AdminCampaignRecord; message?: string }>(
+        const data = await parseJsonResponse<{ campaign?: AdminCampaignDetailRecord; message?: string }>(
           response
         );
         if (!response.ok || !data?.campaign) {
           toast.error(data?.message ?? "ذخیره انجام نشد.");
           return null;
         }
-        setCampaigns((prev) => prev.map((c) => (c.id === id ? data.campaign! : c)));
+        const { recentUsages: _recentUsages, ...record } = data.campaign;
+        setCampaigns((prev) => prev.map((c) => (c.id === id ? record : c)));
         toast.success("کمپین به‌روزرسانی شد.");
-        return data.campaign;
+        return record;
       } finally {
         setIsSaving(false);
       }
@@ -110,7 +112,7 @@ export function useAdminCampaigns() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/campaigns/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/campaigns/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
         if (!response.ok) {

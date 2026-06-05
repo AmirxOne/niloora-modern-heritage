@@ -152,12 +152,13 @@ function AdminTradeInCard({
 
 export function AdminTradeInPanel() {
   const admin = useAdminTradeIn();
+  const { isAdmin, loadSubmissions, statusFilter } = admin;
 
   useEffect(() => {
-    if (admin.isAdmin) {
-      void admin.loadSubmissions(admin.statusFilter);
+    if (isAdmin) {
+      void loadSubmissions(statusFilter);
     }
-  }, [admin.isAdmin, admin.statusFilter, admin.loadSubmissions]);
+  }, [isAdmin, loadSubmissions, statusFilter]);
 
   const sorted = useMemo(
     () =>

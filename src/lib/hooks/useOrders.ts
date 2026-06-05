@@ -55,7 +55,7 @@ export function useOrders() {
         shipping: CheckoutShippingInput;
       }
     ): Promise<{ ok: boolean; redirectUrl?: string; bnpl?: { months?: number; amount?: number; total?: number } }> => {
-      const response = await fetch("/api/payments/zarinpal/request", {
+      const response = await apiFetch("/api/payments/zarinpal/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

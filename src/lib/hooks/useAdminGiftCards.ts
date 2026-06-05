@@ -1,26 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
-import type { GiftCard } from "@/lib/types";
-
-export type AdminGiftCardRecord = GiftCard & {
-  purchaserPhone?: string;
-  orderId?: string;
-  createdAt: string;
-  updatedAt: string;
-  transactions: Array<{
-    id: string;
-    type: string;
-    amount: number;
-    description: string;
-    orderId?: string;
-    createdAt: string;
-  }>;
-};
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
+import type { AdminGiftCardRecord, GiftCard } from "@/lib/types";
 
 export function useAdminGiftCards() {
   const auth = useAuth();
@@ -34,7 +20,12 @@ export function useAdminGiftCards() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/gift-cards");
+      const response = await apiFetch("/api/admin/gift-cards");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
+        setGiftCards([]);
+        return;
+      }
       if (!response.ok) {
         toast.error("دریافت کارت‌های هدیه انجام نشد.");
         return;
@@ -51,7 +42,7 @@ export function useAdminGiftCards() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/gift-cards", {
+        const response = await apiFetch("/api/admin/gift-cards", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -76,7 +67,7 @@ export function useAdminGiftCards() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/gift-cards/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/gift-cards/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

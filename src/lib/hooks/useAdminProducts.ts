@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminProductDto } from "@/lib/server/products/admin-product-dto";
@@ -7,7 +8,7 @@ import type { CollectionDto } from "@/lib/server/products";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
 import { downloadExcelFromResponse, postExcelFile } from "@/lib/admin/excel-io";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminProducts() {
   const auth = useAuth();
@@ -20,7 +21,7 @@ export function useAdminProducts() {
   const allowed = useAdminAccess(isAdmin);
 
   const loadCollections = useCallback(async () => {
-    const response = await fetch("/api/admin/collections");
+    const response = await apiFetch("/api/admin/collections");
     if (!response.ok) return;
     const data = await parseJsonResponse<{ collections: CollectionDto[] }>(response);
     setCollections(data?.collections ?? []);
@@ -30,9 +31,9 @@ export function useAdminProducts() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/products");
-      if (response.status === 401) {
-        toast.error("دسترسی مدیریت ندارید.");
+      const response = await apiFetch("/api/admin/products");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
         setProducts([]);
         return;
       }
@@ -56,7 +57,7 @@ export function useAdminProducts() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/products", {
+        const response = await apiFetch("/api/admin/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -81,7 +82,7 @@ export function useAdminProducts() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/products/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -106,7 +107,7 @@ export function useAdminProducts() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/products/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
         const data = await parseJsonResponse<{ message?: string }>(response);
@@ -129,7 +130,7 @@ export function useAdminProducts() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/products/bulk", {
+        const response = await apiFetch("/api/admin/products/bulk", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -162,7 +163,7 @@ export function useAdminProducts() {
 
   const exportExcel = useCallback(async () => {
     if (!isAdmin) return;
-    const response = await fetch("/api/admin/products/csv");
+    const response = await apiFetch("/api/admin/products/csv");
     const ok = await downloadExcelFromResponse(response, "products.xlsx");
     if (!ok) toast.error("خروجی Excel محصولات انجام نشد.");
   }, [isAdmin]);

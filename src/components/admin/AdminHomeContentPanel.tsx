@@ -15,7 +15,9 @@ import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminHomeContentPanel() {
   const admin = useAdminHomeContent();
+  const { isAdmin, loadAll } = admin;
   const products = useAdminProducts();
+  const { loadProducts } = products;
 
   const [bannerForm, setBannerForm] = useState<HomeBannerDto | null>(null);
   const [sliderProductId, setSliderProductId] = useState("");
@@ -38,11 +40,11 @@ export function AdminHomeContentPanel() {
   });
 
   useEffect(() => {
-    if (admin.isAdmin) {
-      void admin.loadAll();
-      void products.loadProducts();
+    if (isAdmin) {
+      void loadAll();
+      void loadProducts();
     }
-  }, [admin.isAdmin, admin.loadAll, products.loadProducts]);
+  }, [isAdmin, loadAll, loadProducts]);
 
   useEffect(() => {
     if (admin.banner) setBannerForm(admin.banner);

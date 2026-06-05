@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { randomUUID } from "crypto";
 import { Prisma } from "@prisma/client";
 import { readSessionUser } from "@/lib/server/auth/session";

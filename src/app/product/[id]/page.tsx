@@ -4,20 +4,15 @@ import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 import { fa } from "@/lib/i18n/fa";
 import { buildProductMetadata } from "@/lib/seo/product";
 import { buildPageMetadata } from "@/lib/seo/site";
-import {
-  getProductPagePayload,
-  listProductIdsForSitemap,
-} from "@/lib/server/products/product-page";
+import { getProductPagePayload } from "@/lib/server/products/product-page";
 import { ProductPageClient } from "./ProductPageClient";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-export async function generateStaticParams() {
-  const products = await listProductIdsForSitemap();
-  return products.map((product) => ({ id: product.id }));
-}
+/** On-demand ISR — no product pages pre-rendered at build (avoids DB connection storms). */
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;

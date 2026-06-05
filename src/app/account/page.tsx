@@ -2,14 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   accountSectionHref,
-  isAccountAdminSectionId,
   parseAccountSection,
   type AccountNavSectionId,
 } from "@/lib/account/sections";
-import { AccountAdminSectionContent } from "@/components/account/AccountAdminSectionContent";
+import { canAccessAdminArea, resolveLegacyAdminRedirect } from "@/lib/admin/navigation";
 import { Compare, Heart, History, PenTool } from "@/components/icons";
 import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -17,8 +16,8 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { useApp } from "@/lib/context/AppContext";
 import { fa } from "@/lib/i18n/fa";
 import { Button } from "@/components/ui/Button";
-import { OrderHistory } from "@/components/dashboard/OrderHistory";
-import { QuoteRequestHistory } from "@/components/dashboard/QuoteRequestHistory";
+import { OrderHistory } from "@/components/account/OrderHistory";
+import { QuoteRequestHistory } from "@/components/account/QuoteRequestHistory";
 import { useCatalogProducts } from "@/lib/hooks/useCatalogProducts";
 import { useAccount } from "@/lib/hooks/useAccount";
 import { AccountShell } from "@/components/account/AccountShell";
@@ -33,25 +32,31 @@ import { AccountReferralPanel } from "@/components/account/AccountReferralPanel"
 import { AccountUgcPanel } from "@/components/account/AccountUgcPanel";
 
 export default function AccountPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, orders, quoteRequests, wishlist, compareList, recentlyViewed, designs, comments } =
-    useApp();
+  const { auth, orders, quoteRequests, wishlist, compareList, recentlyViewed, designs } = useApp();
   const account = useAccount();
   const { products, isLoading: catalogLoading } = useCatalogProducts();
   const [activeSection, setActiveSection] = useState<AccountNavSectionId>("overview");
 
   const applySectionFromUrl = useCallback(() => {
-    const section = parseAccountSection(
+    const legacyRedirect = resolveLegacyAdminRedirect(
       window.location.hash,
       searchParams.get("section")
     );
+    if (legacyRedirect) {
+      router.replace(legacyRedirect);
+      return;
+    }
+
+    const section = parseAccountSection(window.location.hash, searchParams.get("section"));
     if (!section) return;
     setActiveSection(section);
     const href = accountSectionHref(section);
     if (`${window.location.pathname}${window.location.hash}` !== href) {
       window.history.replaceState(null, "", href);
     }
-  }, [searchParams]);
+  }, [router, searchParams]);
 
   useEffect(() => {
     applySectionFromUrl();
@@ -101,50 +106,8 @@ export default function AccountPage() {
       { id: "designs", label: fa.dashboard.savedDesigns, badge: designs.designs.length },
     ];
 
-    const adminItems: AccountNavItem[] = [];
-
-    if (comments.canModerate) {
-      adminItems.push({
-        id: "admin-moderation",
-        label: fa.admin.moderation.navLabel,
-        badge: comments.pendingCount,
-      });
-    }
-
-    if (auth.user?.role === "admin") {
-      adminItems.push(
-        { id: "admin-orders", label: fa.admin.orders.navLabel },
-        { id: "admin-products", label: fa.admin.products.navLabel },
-        { id: "admin-trade-in", label: fa.admin.tradeIn.navLabel },
-        { id: "admin-promo-codes", label: fa.admin.promoCodes.navLabel },
-        { id: "admin-home", label: fa.admin.home.navLabel },
-        { id: "admin-posts", label: fa.admin.posts.navLabel },
-        { id: "admin-gift-cards", label: fa.admin.giftCards.navLabel },
-        {
-          id: "admin-customizer-quotes",
-          label: fa.customize.liveTimeline.admin.navLabel,
-        }
-      );
-    } else if (auth.user?.role === "editor" || auth.user?.role === "reviewer") {
-      adminItems.push({
-        id: "admin-posts",
-        label: fa.admin.posts.navLabel,
-      });
-    }
-
-    const groups: AccountNavGroup[] = [
-      { label: fa.dashboard.navSectionsLabel, items: accountItems },
-    ];
-
-    if (adminItems.length > 0) {
-      groups.push({ label: fa.dashboard.navAdminLabel, items: adminItems });
-    }
-
-    return groups;
+    return [{ label: fa.dashboard.navSectionsLabel, items: accountItems }];
   }, [
-    auth.user?.role,
-    comments.canModerate,
-    comments.pendingCount,
     designs.designs.length,
     orders.orders.length,
     quoteRequests.quotes.length,
@@ -154,10 +117,6 @@ export default function AccountPage() {
   ]);
 
   const sectionContent = () => {
-    if (isAccountAdminSectionId(activeSection)) {
-      return <AccountAdminSectionContent section={activeSection} />;
-    }
-
     if (activeSection === "profile" && account.user) {
       const profileUser = account.user;
       return (
@@ -453,6 +412,11 @@ export default function AccountPage() {
                     activeId={activeSection}
                     onChange={navigate}
                   />
+                  {canAccessAdminArea(auth.user?.role) ? (
+                    <Link href="/admin" className="account-admin-portal-link">
+                      {fa.admin.panelNavLabel}
+                    </Link>
+                  ) : null}
                 </div>
               }
             >

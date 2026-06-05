@@ -7,6 +7,9 @@ import { SelectBox } from "@/components/inputs";
 import { ADMIN_MEDIA_CATEGORIES, type AdminMediaCategory } from "@/lib/media/categories";
 import { useAdminMedia } from "@/lib/hooks/useAdminMedia";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
+import { fa } from "@/lib/i18n/fa";
+
+const t = fa.admin.media;
 
 type AdminMediaPickerProps = {
   category: AdminMediaCategory;
@@ -21,7 +24,12 @@ function prettySize(bytes: number): string {
   return `${bytes} B`;
 }
 
-export function AdminMediaPicker({ category, value, label = "مدیریت رسانه", onPick }: AdminMediaPickerProps) {
+export function AdminMediaPicker({
+  category,
+  value,
+  label = t.pickerLabel,
+  onPick,
+}: AdminMediaPickerProps) {
   const media = useAdminMedia();
   const [open, setOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<AdminMediaCategory>(category);
@@ -33,7 +41,11 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
   }, [open, media.isAdmin, media.load, activeCategory, media]);
 
   const options = useMemo(
-    () => ADMIN_MEDIA_CATEGORIES.map((item) => ({ value: item.value, label: item.label })),
+    () =>
+      ADMIN_MEDIA_CATEGORIES.map((item) => ({
+        value: item.value,
+        label: t.categories[item.value],
+      })),
     []
   );
 
@@ -41,11 +53,11 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
     <div className="admin-media-picker">
       <div className="admin-media-picker-head">
         <Button type="button" variant="outline" size="sm" onClick={() => setOpen((prev) => !prev)}>
-          {open ? "بستن" : label}
+          {open ? t.close : label}
         </Button>
         {value ? (
           <Button type="button" size="sm" variant="outline" onClick={() => onPick("")}>
-            پاک‌کردن انتخاب
+            {t.clearSelection}
           </Button>
         ) : null}
       </div>
@@ -54,17 +66,18 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
         <div className="admin-media-picker-panel">
           <div className="admin-media-picker-toolbar">
             <SelectBox
-              label="دسته‌بندی"
+              label={t.categoryLabel}
               value={activeCategory}
               options={options}
               onValueChange={(v) => setActiveCategory(v as AdminMediaCategory)}
             />
             <label className="admin-file-upload-btn">
-              آپلود فایل
+              {media.isSaving ? t.uploading : t.upload}
               <input
                 type="file"
                 accept="image/*"
                 hidden
+                disabled={media.isSaving}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -77,12 +90,16 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
           </div>
 
           {media.isLoading ? (
-            <LoadingState variant="media-grid" count={8} className="py-4" />
+            <LoadingState variant="media-grid" count={8} className="py-4" label={t.loading} />
           ) : (
             <div className="admin-media-grid">
               {media.assets.map((asset) => {
                 const src = asset.webpUrl ?? asset.url;
                 const selected = value === src || value === asset.url;
+                const dimensions =
+                  asset.width && asset.height
+                    ? t.dimensions(asset.width, asset.height)
+                    : t.noDimensions;
                 return (
                   <article key={asset.id} className={`admin-media-card${selected ? " admin-media-card--selected" : ""}`}>
                     <button type="button" className="admin-media-thumb" onClick={() => onPick(src)}>
@@ -90,19 +107,22 @@ export function AdminMediaPicker({ category, value, label = "مدیریت رسا
                     </button>
                     <div className="admin-media-meta">
                       <p className="line-clamp-1">{asset.originalName}</p>
-                      <p>{asset.width && asset.height ? `${asset.width}×${asset.height}` : "—"} · {prettySize(asset.sizeBytes)}</p>
+                      <p>
+                        {dimensions} · {prettySize(asset.sizeBytes)}
+                      </p>
                     </div>
                     <div className="admin-media-actions">
                       <Button type="button" size="sm" variant="outline" onClick={() => onPick(src)}>
-                        انتخاب
+                        {t.select}
                       </Button>
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
+                        disabled={media.isSaving}
                         onClick={() => void media.remove(asset.id)}
                       >
-                        حذف
+                        {t.delete}
                       </Button>
                     </div>
                   </article>

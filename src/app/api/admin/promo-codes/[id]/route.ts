@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { badRequest, notFound, ok, serverError, conflict } from "@/lib/server/http";

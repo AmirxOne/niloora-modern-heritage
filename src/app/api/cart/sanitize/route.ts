@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { sanitizeCartItems } from "@/lib/server/cart/sanitize-cart";

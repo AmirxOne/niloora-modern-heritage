@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { badRequest, ok, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { serverEnv } from "@/lib/server/env";

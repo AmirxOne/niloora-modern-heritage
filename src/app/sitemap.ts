@@ -10,6 +10,8 @@ import { listStoneGuidesForCatalog } from "@/lib/stones";
 import { listShopLandingParams, shopLandingPath } from "@/lib/seo/landing-pages";
 import { listStoneCompareParams } from "@/lib/seo/stone-compare";
 
+export const dynamic = "force-dynamic";
+
 const STATIC_PATHS: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[0]["changeFrequency"] }[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
   { path: "/shop", priority: 0.9, changeFrequency: "daily" },

@@ -1,3 +1,5 @@
+import { apiFetch } from "@/lib/api/client-fetch";
+
 const EXCEL_MIME =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -28,7 +30,7 @@ export async function downloadExcelFromResponse(
 
 export async function postExcelFile(url: string, file: File): Promise<Response> {
   const buffer = await file.arrayBuffer();
-  return fetch(url, {
+  return apiFetch(url, {
     method: "POST",
     headers: {
       "Content-Type": EXCEL_MIME,

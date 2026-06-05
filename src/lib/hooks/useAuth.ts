@@ -205,7 +205,7 @@ export function useAuth() {
         return;
       }
 
-      const response = await fetch("/api/auth/register", {
+      const response = await apiFetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone: normalizedPhone, password }),
@@ -249,7 +249,7 @@ export function useAuth() {
   );
 
   const logout = useCallback(() => {
-    fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    apiFetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
     dispatch(logoutAccount());
   }, [dispatch]);
 
@@ -261,7 +261,7 @@ export function useAuth() {
         dispatch(setAuthError("phone_not_found"));
         return;
       }
-      const response = await fetch("/api/auth/forgot-password/request", {
+      const response = await apiFetch("/api/auth/forgot-password/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: normalizedPhone }),
@@ -292,7 +292,7 @@ export function useAuth() {
         dispatch(setAuthError("invalid_reset"));
         return;
       }
-      const response = await fetch("/api/auth/forgot-password/reset", {
+      const response = await apiFetch("/api/auth/forgot-password/reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -332,7 +332,7 @@ export function useAuth() {
         return null;
       }
 
-      const response = await fetch("/api/auth/otp/request", {
+      const response = await apiFetch("/api/auth/otp/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: normalizedPhone }),

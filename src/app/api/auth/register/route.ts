@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { hash } from "bcryptjs";
 import { normalizeIranPhone } from "@/lib/auth/phone";
 import { prisma } from "@/lib/server/prisma";

@@ -1,5 +1,7 @@
+import { BRAND_MARK_IMAGE_WITH_CACHE } from "@/lib/images";
+
 /** مسیر پیش‌فرض نماد برند (cache-busted برای رفرش فوری لوگو) */
-export const BRAND_MARK_PATH = "/brand-mark.png?v=20260603";
+export const BRAND_MARK_PATH = BRAND_MARK_IMAGE_WITH_CACHE;
 
 /** بزرگ‌نمایی داخل قاب — فایل PNG حاشیه/پس‌زمینه زیاد دارد */
 export const BRAND_MARK_VISUAL_ZOOM = 1.25;

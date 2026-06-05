@@ -184,13 +184,14 @@ function AdminOrderCard({
 
 export function AdminOrdersPanel() {
   const admin = useAdminOrders();
+  const { isAdmin, loadOrders, statusFilter } = admin;
   const [importReport, setImportReport] = useState<string[]>([]);
 
   useEffect(() => {
-    if (admin.isAdmin) {
-      void admin.loadOrders(admin.statusFilter);
+    if (isAdmin) {
+      void loadOrders(statusFilter);
     }
-  }, [admin.isAdmin, admin.statusFilter, admin.loadOrders]);
+  }, [isAdmin, loadOrders, statusFilter]);
 
   const sortedOrders = useMemo(
     () => [...admin.orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),

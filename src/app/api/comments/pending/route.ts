@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { prisma } from "@/lib/server/prisma";
 import { ok, serverError } from "@/lib/server/http";

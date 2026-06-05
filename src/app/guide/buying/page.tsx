@@ -4,6 +4,8 @@ import { buildPageMetadata } from "@/lib/seo/site";
 import { fa } from "@/lib/i18n/fa";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/structured-data";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = buildPageMetadata({
   title: fa.guide.title,
   description: fa.guide.metaDescription,

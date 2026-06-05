@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminSiteSettings } from "@/lib/site-settings/types";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminSiteSettings() {
   const auth = useAuth();
@@ -20,7 +21,12 @@ export function useAdminSiteSettings() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/site-settings");
+      const response = await apiFetch("/api/admin/site-settings");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
+        setSettings(null);
+        return;
+      }
       if (!response.ok) {
         toast.error("دریافت تنظیمات انجام نشد.");
         return;
@@ -37,7 +43,7 @@ export function useAdminSiteSettings() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/site-settings", {
+        const response = await apiFetch("/api/admin/site-settings", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

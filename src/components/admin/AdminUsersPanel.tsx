@@ -181,12 +181,13 @@ function AdminUserCard({
 
 export function AdminUsersPanel() {
   const admin = useAdminUsers();
+  const { isAdmin, loadUsers } = admin;
 
   useEffect(() => {
-    if (admin.isAdmin) {
-      void admin.loadUsers({ page: 1 });
+    if (isAdmin) {
+      void loadUsers({ page: 1 });
     }
-  }, [admin.isAdmin]);
+  }, [isAdmin, loadUsers]);
 
   const pageUsers = useMemo(() => admin.users, [admin.users]);
 

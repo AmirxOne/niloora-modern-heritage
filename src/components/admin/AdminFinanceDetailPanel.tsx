@@ -36,10 +36,11 @@ function formatFinanceDate(iso: string): string {
 
 export function AdminFinanceDetailPanel({ paymentId }: { paymentId: string }) {
   const detail = useAdminFinanceDetail(paymentId);
+  const { isAdmin, loadDetail } = detail;
 
   useEffect(() => {
-    if (detail.isAdmin) void detail.loadDetail();
-  }, [detail.isAdmin, detail.loadDetail]);
+    if (isAdmin) void loadDetail();
+  }, [isAdmin, loadDetail]);
 
   if (!detail.allowed) return null;
 

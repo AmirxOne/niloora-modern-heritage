@@ -146,7 +146,7 @@ export function SupportRequestForm() {
       {!auth.user ? (
         <p className="rounded-heritage border border-gold/15 bg-parchment/20 px-4 py-3 text-sm text-silver">
           {s.loginHint}{" "}
-          <Link href="/login" className="text-turquoise-dark hover:text-turquoise">
+          <Link href="/auth" className="text-turquoise-dark hover:text-turquoise">
             {s.loginCta}
           </Link>
         </p>

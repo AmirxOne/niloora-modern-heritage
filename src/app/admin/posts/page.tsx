@@ -1,23 +1,18 @@
 import { ContentWorkflowGuard } from "@/components/admin/AdminGuard";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPostsPanel } from "@/components/admin/AdminPostsPanel";
-import { PageTransition } from "@/components/layout/PageTransition";
 import { fa } from "@/lib/i18n/fa";
 
 export default function AdminPostsPage() {
   return (
     <ContentWorkflowGuard redirectTo="/admin/posts">
-      <PageTransition>
-        <div className="pb-24 pt-6 md:pt-8">
-          <div className="site-container max-w-4xl">
+      <div className="max-w-4xl">
             <AdminPageHeader
               title={fa.admin.posts.pageTitle}
               subtitle={fa.admin.posts.subtitle}
             />
             <AdminPostsPanel />
           </div>
-        </div>
-      </PageTransition>
-    </ContentWorkflowGuard>
+      </ContentWorkflowGuard>
   );
 }

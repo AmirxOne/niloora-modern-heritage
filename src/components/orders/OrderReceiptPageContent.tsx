@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { OrderReceiptView } from "@/components/orders/OrderReceiptView";
+import { OrderReturnRequestSection } from "@/components/orders/OrderReturnRequestSection";
 import { Button } from "@/components/ui/Button";
 import { orderHasReceipt } from "@/lib/orders/order-receipt";
 import type { Order } from "@/lib/types";
@@ -93,6 +94,10 @@ export function OrderReceiptPageContent({ orderId }: OrderReceiptPageContentProp
       </header>
 
       <OrderReceiptView order={order} />
+
+      <div className="no-print">
+        <OrderReturnRequestSection order={order} />
+      </div>
 
       <p className="order-receipt-print-hint no-print">{fa.receipt.printHint}</p>
     </div>

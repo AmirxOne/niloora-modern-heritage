@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { badRequest, notFound, ok, serverError } from "@/lib/server/http";
@@ -6,8 +8,9 @@ import {
   ADMIN_ORDER_STATUSES,
   isAdminSettableStatus,
 } from "@/lib/server/orders/admin-order";
-import { toAdminOrderDto } from "@/lib/server/orders/admin-order-dto";
+import { toAdminOrderListItemDto } from "@/lib/server/orders/admin-order-dto";
 import { orderInclude } from "@/lib/server/orders/order-dto";
+import { loadOrderReturnSummariesByOrderIds } from "@/lib/server/returns/order-return-service";
 import { notifyOrderAdminUpdate } from "@/lib/server/notifications/order-notify";
 import { prisma } from "@/lib/server/prisma";
 import { writeAdminAuditLog } from "@/lib/server/audit-log";
@@ -36,7 +39,10 @@ export async function GET(
     });
     if (!order) return notFound("سفارش یافت نشد.");
 
-    return ok({ order: toAdminOrderDto(order) });
+    const returnMap = await loadOrderReturnSummariesByOrderIds([id]);
+    return ok({
+      order: toAdminOrderListItemDto(order, returnMap.get(id) ?? []),
+    });
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/orders/[id]" });
   }
@@ -121,7 +127,10 @@ export async function PATCH(
       },
     });
 
-    return ok({ order: toAdminOrderDto(order) });
+    const returnMap = await loadOrderReturnSummariesByOrderIds([id]);
+    return ok({
+      order: toAdminOrderListItemDto(order, returnMap.get(id) ?? []),
+    });
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/orders/[id]" });
   }

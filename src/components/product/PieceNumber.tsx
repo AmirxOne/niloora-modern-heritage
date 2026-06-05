@@ -26,6 +26,14 @@ export interface PieceNumberProps {
   className?: string;
 }
 
+const pieceNumberBaseClassName = "tabular-nums tracking-[0.04em]";
+
+const pieceNumberValueClassName =
+  'font-[ui-monospace,"SF_Mono","Cascadia_Mono",Menlo,Consolas,monospace] select-all [-webkit-user-select:all]';
+
+const pieceNumberCopyClassName =
+  "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[rgba(184,134,11,0.25)] bg-[rgba(255,255,255,0.9)] px-[9px] py-1 text-[10px] font-semibold text-[#8b6914] transition-[background-color,transform] duration-100 [-webkit-tap-highlight-color:transparent] hover:bg-[rgba(184,134,11,0.06)] active:scale-[0.96]";
+
 /**
  * نمایش «شمارهٔ اثر» با امکان کپی روی موبایل و دسکتاپ.
  *
@@ -74,18 +82,32 @@ export function PieceNumber({
   if (variant === "card") {
     return (
       <div
-        className={cn("piece-number piece-number--card", className)}
+        className={cn(
+          pieceNumberBaseClassName,
+          "flex flex-col gap-1.5 rounded-xl border border-[rgba(184,134,11,0.22)] bg-[linear-gradient(180deg,rgba(184,134,11,0.06)_0%,rgba(184,134,11,0.02)_100%),rgba(255,252,247,0.85)] px-3 py-2.5 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_4px_16px_-8px_rgba(184,134,11,0.18)]",
+          className
+        )}
         dir="ltr"
       >
-        <div className="piece-number__head" dir="rtl">
-          <span className="piece-number__label">{fa.product.pieceCode.label}</span>
+        <div className="flex items-center justify-between gap-2" dir="rtl">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8b6914]">
+            {fa.product.pieceCode.label}
+          </span>
           {showTypeLabel && typeLabel ? (
-            <span className="piece-number__type">{typeLabel}</span>
+            <span className="rounded-full border border-[rgba(184,134,11,0.15)] bg-[rgba(184,134,11,0.08)] px-1.5 py-0.5 text-[10px] font-medium text-[#78716c]">
+              {typeLabel}
+            </span>
           ) : null}
         </div>
 
-        <div className="piece-number__row">
-          <span className="piece-number__value" aria-label={fa.product.pieceCode.label}>
+        <div className="flex items-center justify-between gap-2.5">
+          <span
+            className={cn(
+              pieceNumberValueClassName,
+              "text-[15px] font-bold tracking-[0.06em] text-[#2c2a29]"
+            )}
+            aria-label={fa.product.pieceCode.label}
+          >
             {normalized}
           </span>
 
@@ -93,19 +115,19 @@ export function PieceNumber({
             <button
               type="button"
               onClick={onCopy}
-              className="piece-number__copy"
+              className={pieceNumberCopyClassName}
               aria-label={fa.product.pieceCode.copyAria}
               title={fa.product.pieceCode.copy}
             >
               {copied ? <Check size={16} variant="Bold" /> : <Copy size={16} variant={ICON_VARIANT} />}
-              <span className="piece-number__copy-label">
+              <span className="whitespace-nowrap max-[480px]:hidden">
                 {copied ? fa.product.pieceCode.copied : fa.product.pieceCode.copy}
               </span>
             </button>
           ) : null}
         </div>
 
-        <p className="piece-number__hint" dir="rtl">
+        <p className="m-0 text-[10px] leading-[1.45] text-[#78716c]" dir="rtl">
           {fa.product.pieceCode.hint}
         </p>
       </div>
@@ -115,7 +137,12 @@ export function PieceNumber({
   if (variant === "compact") {
     return (
       <span
-        className={cn("piece-number piece-number--compact", className)}
+        className={cn(
+          pieceNumberBaseClassName,
+          pieceNumberValueClassName,
+          "inline-block rounded border border-[rgba(184,134,11,0.12)] bg-[rgba(184,134,11,0.06)] px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] text-[#a8a29e]",
+          className
+        )}
         dir="ltr"
         title={`${fa.product.pieceCode.label}: ${normalized}`}
       >
@@ -127,20 +154,28 @@ export function PieceNumber({
   // variant === "inline"
   return (
     <span
-      className={cn("piece-number piece-number--inline", className)}
+      className={cn(
+        pieceNumberBaseClassName,
+        "inline-flex items-center gap-1.5 text-[11px] text-[#78716c]",
+        className
+      )}
       dir="rtl"
     >
-      <span className="piece-number__inline-label">
-        {fa.product.pieceCode.labelShort}
-      </span>
-      <span className="piece-number__value" dir="ltr">
+      <span className="text-[#a8a29e]">{fa.product.pieceCode.labelShort}</span>
+      <span
+        className={cn(
+          pieceNumberValueClassName,
+          "font-semibold tracking-[0.05em] text-[#5a5550] [direction:ltr]"
+        )}
+        dir="ltr"
+      >
         {normalized}
       </span>
       {isCopyable ? (
         <button
           type="button"
           onClick={onCopy}
-          className="piece-number__copy piece-number__copy--inline"
+          className="cursor-pointer rounded-md border-0 bg-transparent p-0.5 text-[#a8a29e] [-webkit-tap-highlight-color:transparent] hover:bg-[rgba(184,134,11,0.08)] hover:text-[#8b6914]"
           aria-label={fa.product.pieceCode.copyAria}
           title={fa.product.pieceCode.copy}
         >
@@ -150,4 +185,3 @@ export function PieceNumber({
     </span>
   );
 }
-

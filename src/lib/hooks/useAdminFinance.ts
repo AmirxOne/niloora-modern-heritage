@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -11,7 +12,7 @@ import type {
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
 import { downloadExcelFromResponse } from "@/lib/admin/excel-io";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export type AdminFinanceFilters = {
   status: AdminPaymentStatus | "all";
@@ -64,9 +65,9 @@ export function useAdminFinance() {
       setIsLoading(true);
       try {
         const query = buildQuery(opts);
-        const response = await fetch(`/api/admin/finance?${query}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/finance?${query}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setTransactions([]);
           setSummary(null);
           return;
@@ -97,7 +98,7 @@ export function useAdminFinance() {
     const params = new URLSearchParams(buildQuery({ page: 1 }));
     params.delete("page");
     params.delete("pageSize");
-    const response = await fetch(`/api/admin/finance/csv?${params.toString()}`);
+    const response = await apiFetch(`/api/admin/finance/csv?${params.toString()}`);
     const ok = await downloadExcelFromResponse(response, "finance-transactions.xlsx");
     if (!ok) toast.error("خروجی Excel انجام نشد.");
   }, [buildQuery, isAdmin]);

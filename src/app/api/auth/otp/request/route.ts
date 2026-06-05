@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { getOtpApiMessage } from "@/lib/auth/otp-api-messages";
 import { normalizeIranPhone } from "@/lib/auth/phone";
 import { assertOtpRequestRateLimit } from "@/lib/server/auth/otp-rate-limit";

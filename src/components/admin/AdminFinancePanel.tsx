@@ -130,12 +130,13 @@ function SummaryMetrics({ summary }: { summary: NonNullable<ReturnType<typeof us
 
 export function AdminFinancePanel() {
   const finance = useAdminFinance();
+  const { isAdmin, loadFinance } = finance;
 
   useEffect(() => {
-    if (finance.isAdmin) {
-      void finance.loadFinance({ page: 1 });
+    if (isAdmin) {
+      void loadFinance({ page: 1 });
     }
-  }, [finance.isAdmin]);
+  }, [isAdmin, loadFinance]);
 
   if (!finance.allowed) return null;
 

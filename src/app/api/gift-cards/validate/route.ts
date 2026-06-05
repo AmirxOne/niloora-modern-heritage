@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { badRequest, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { validateGiftCardForCheckout } from "@/lib/server/gift-card/gift-card-service";

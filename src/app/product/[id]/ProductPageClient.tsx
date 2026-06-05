@@ -134,7 +134,15 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         dedupe_key: `view_product:${product.id}`,
       });
     }
-  }, [product?.id, productCategory, productName, productPrice, productStone, trackRecentlyViewed]);
+  }, [
+    product?.id,
+    product?.namePersian,
+    productCategory,
+    productName,
+    productPrice,
+    productStone,
+    trackRecentlyViewed,
+  ]);
 
   if (isMissing) {
     notFound();

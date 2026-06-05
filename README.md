@@ -131,19 +131,24 @@ Typical flow:
 
 ## Deployment Notes
 
-- Set production env vars in your hosting provider
+- See **[docs/production.md](docs/production.md)** for env checklist, cron jobs, and health checks
+- Production startup **fails fast** if `DATABASE_URL`, `SESSION_SECRET`, public site URL, or `ABANDONED_CART_CRON_SECRET` are missing (`NODE_ENV=production`)
 - Run `npm run prisma:migrate:deploy` during deployment
 - Build with `npm run build` and serve with `npm run start`
-- Ensure `NEXT_PUBLIC_SITE_URL` matches the production domain
+- Schedule cron HTTP calls:
+  - `POST /api/cron/abandoned-cart-recovery` (every 15–30 min)
+  - `POST /api/cron/messaging-journeys` (daily)
+- Optional probe: `GET /api/health` (liveness) or `GET /api/health?detailed=1` (readiness)
 
 ## Documentation Map
 
 For faster onboarding of new team members:
 
 1. `README.md` (project overview and setup)
-2. `src/app/api/README.md` (API routes and server handlers)
-3. `src/lib/README.md` (business logic and utilities)
-4. `src/components/README.md` (UI organization, shared Modal contract)
+2. `docs/production.md` (production env, cron, health)
+3. `src/app/api/README.md` (API routes and server handlers)
+4. `src/lib/README.md` (business logic and utilities)
+5. `src/components/README.md` (UI organization, shared Modal contract)
 
 ## Security
 

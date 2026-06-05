@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/Button";
@@ -21,9 +21,16 @@ import type {
   RingPurchaseCustomization,
 } from "@/lib/types/ring-customization";
 import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
+import {
+  DEFAULT_PRODUCT_IMAGE,
+  RING_CARVING_PATTERN_FLORAL_IMAGE,
+  SITE_ARTISAN_WORKSHOP_IMAGE,
+} from "@/lib/images";
 
 type BranchState = "unchanged" | "customized" | "opted_out";
 type CustomizeStep = "size" | "shank" | "stone" | "review";
+
+const CUSTOMIZE_STEP_ORDER: CustomizeStep[] = ["size", "shank", "stone", "review"];
 
 type ProductPayload = {
   id: string;
@@ -117,7 +124,7 @@ export default function CustomizePage() {
       return catalog.map((item) => ({
         id: item.id,
         name: item.name,
-        image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+        image: item.imageUrl || DEFAULT_PRODUCT_IMAGE,
         meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
       }));
     }
@@ -145,7 +152,7 @@ export default function CustomizePage() {
         {
           id: match.id,
           name: artisan.name,
-          image: artisan.image || match.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+          image: artisan.image || match.imageUrl || DEFAULT_PRODUCT_IMAGE,
           meta: `+${match.priceAdd.toLocaleString("fa-IR")} تومان`,
         },
       ];
@@ -162,7 +169,7 @@ export default function CustomizePage() {
         return {
           id: source.id,
           name: artisan.name,
-          image: artisan.image || source.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+          image: artisan.image || source.imageUrl || DEFAULT_PRODUCT_IMAGE,
           meta: `+${source.priceAdd.toLocaleString("fa-IR")} تومان`,
         };
       });
@@ -265,13 +272,12 @@ export default function CustomizePage() {
   const selectedStoneArtisan = config?.catalog.stoneArtisans.find((item) => item.id === stoneArtisanId);
   const selectedScriptStyle = config?.catalog.scriptStyles.find((item) => item.id === scriptStyleId);
   const selectedStoneText = config?.catalog.stoneTexts.find((item) => item.id === stoneTextId);
-  const stepOrder: CustomizeStep[] = ["size", "shank", "stone", "review"];
-  const stepIndex = Math.max(0, stepOrder.indexOf(step));
-  const nextStep = stepOrder[Math.min(stepOrder.length - 1, stepIndex + 1)];
-  const prevStep = stepOrder[Math.max(0, stepIndex - 1)];
+  const stepIndex = Math.max(0, CUSTOMIZE_STEP_ORDER.indexOf(step));
+  const nextStep = CUSTOMIZE_STEP_ORDER[Math.min(CUSTOMIZE_STEP_ORDER.length - 1, stepIndex + 1)];
+  const prevStep = CUSTOMIZE_STEP_ORDER[Math.max(0, stepIndex - 1)];
   const stepperSteps = useMemo<StepperStep[]>(
     () =>
-      stepOrder.map((item) => ({
+      CUSTOMIZE_STEP_ORDER.map((item) => ({
         id: item,
         label:
           item === "size"
@@ -290,7 +296,7 @@ export default function CustomizePage() {
                 ? "تنظیمات حکاکی سنگ"
                 : "تایید نهایی و اعمال در سبد",
       })),
-    [stepOrder]
+    []
   );
 
   useEffect(() => {
@@ -384,29 +390,7 @@ export default function CustomizePage() {
     }
   }, [stoneState, filteredScriptStyles, scriptStyleId]);
 
-  useEffect(() => {
-    if (!config || !productId) return;
-    const timeout = window.setTimeout(() => {
-      void previewPrice();
-    }, 250);
-    return () => window.clearTimeout(timeout);
-  }, [
-    config,
-    productId,
-    useSize,
-    size,
-    useShank,
-    shankState,
-    shankArtisanId,
-    shankPatternId,
-    useStone,
-    stoneState,
-    stoneArtisanId,
-    stoneTextId,
-    scriptStyleId,
-  ]);
-
-  const previewPrice = async () => {
+  const previewPrice = useCallback(async () => {
     if (!productId) return;
     setSaving(true);
     try {
@@ -445,7 +429,28 @@ export default function CustomizePage() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [
+    productId,
+    useSize,
+    size,
+    useShank,
+    shankState,
+    shankArtisanId,
+    shankPatternId,
+    useStone,
+    stoneState,
+    stoneArtisanId,
+    stoneTextId,
+    scriptStyleId,
+  ]);
+
+  useEffect(() => {
+    if (!config || !productId) return;
+    const timeout = window.setTimeout(() => {
+      void previewPrice();
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [config, productId, previewPrice]);
 
   const applyToCart = () => {
     if (!preview || !product) return;
@@ -529,7 +534,7 @@ export default function CustomizePage() {
                 <div className="grid gap-3">
                   <div className="relative aspect-square w-full overflow-hidden rounded-heritage border border-gold/15 bg-parchment">
                     <Image
-                      src={product.image || "/Picsart_26-04-26_15-15-33-128.jpg"}
+                      src={product.image || DEFAULT_PRODUCT_IMAGE}
                       alt={product.namePersian || product.name || ""}
                       fill
                       className="object-cover"
@@ -593,7 +598,7 @@ export default function CustomizePage() {
                 <Stepper
                   steps={stepperSteps}
                   currentStepId={step}
-                  completedStepIds={stepOrder.slice(0, stepIndex)}
+                  completedStepIds={CUSTOMIZE_STEP_ORDER.slice(0, stepIndex)}
                   orientation="horizontal"
                   onStepClick={(stepId) => setStep(stepId as CustomizeStep)}
                 />
@@ -698,7 +703,7 @@ export default function CustomizePage() {
                           options={filteredShankPatterns.map((item) => ({
                             id: item.id,
                             name: item.name,
-                            image: item.imageUrl || "/Gemini_Generated_Image_iay12tiay12tiay1.png",
+                            image: item.imageUrl || RING_CARVING_PATTERN_FLORAL_IMAGE,
                             meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
                           }))}
                           value={shankPatternId || null}
@@ -759,7 +764,7 @@ export default function CustomizePage() {
                           options={filteredStoneArtisans.map((item) => ({
                             id: item.id,
                             name: item.name,
-                            image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+                            image: item.imageUrl || DEFAULT_PRODUCT_IMAGE,
                             meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
                           }))}
                           value={stoneArtisanId || null}
@@ -785,7 +790,7 @@ export default function CustomizePage() {
                           options={filteredScriptStyles.map((item) => ({
                             id: item.id,
                             name: item.name,
-                            image: item.imageUrl || "/Picsart_26-04-26_15-15-33-128.jpg",
+                            image: item.imageUrl || DEFAULT_PRODUCT_IMAGE,
                             meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
                           }))}
                           value={scriptStyleId || null}
@@ -807,7 +812,7 @@ export default function CustomizePage() {
                             id: item.id,
                             name: item.name,
                             description: item.description || undefined,
-                            image: item.imageUrl || "/Picsart_26-04-26_15-17-47-470.jpg",
+                            image: item.imageUrl || SITE_ARTISAN_WORKSHOP_IMAGE,
                             meta: `+${item.priceAdd.toLocaleString("fa-IR")} تومان`,
                           }))}
                           value={stoneTextId || null}

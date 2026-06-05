@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { badRequest, notFound, ok, serverError } from "@/lib/server/http";
@@ -8,6 +10,8 @@ import {
   SUPPORT_INTERNAL_NOTES_MAX,
 } from "@/lib/server/support-request/support-request";
 import { prisma } from "@/lib/server/prisma";
+import { syncReturnFromSupportStatus } from "@/lib/server/returns/return-status-sync";
+import type { OrderReturnStatus } from "@/lib/server/returns/order-return";
 
 type Body = {
   status?: string;
@@ -56,12 +60,40 @@ export async function PATCH(
     const existing = await prisma.supportRequest.findUnique({ where: { id } });
     if (!existing) return notFound("درخواست یافت نشد.");
 
-    const row = await prisma.supportRequest.update({
-      where: { id },
-      data: {
-        ...(hasStatus ? { status: body.status } : {}),
-        ...(hasInternalNotes ? { internalNotes } : {}),
-      },
+    const row = await prisma.$transaction(async (tx) => {
+      const updated = await tx.supportRequest.update({
+        where: { id },
+        data: {
+          ...(hasStatus ? { status: body.status } : {}),
+          ...(hasInternalNotes ? { internalNotes } : {}),
+        },
+        include: {
+          orderReturn: { select: { id: true, status: true } },
+        },
+      });
+
+      if (
+        hasStatus &&
+        updated.kind === "return" &&
+        updated.orderReturn &&
+        body.status &&
+        isSupportRequestStatus(body.status)
+      ) {
+        await syncReturnFromSupportStatus(
+          tx,
+          updated.orderReturn.id,
+          updated.orderReturn.status as OrderReturnStatus,
+          body.status,
+          user?.id ?? null
+        );
+        const refreshed = await tx.supportRequest.findUniqueOrThrow({
+          where: { id },
+          include: { orderReturn: { select: { id: true, status: true } } },
+        });
+        return refreshed;
+      }
+
+      return updated;
     });
 
     return ok({ request: toAdminSupportRequestDto(row) });

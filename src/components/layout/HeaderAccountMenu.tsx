@@ -3,19 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { adminNavIconById } from "@/components/admin/adminNavIcons";
 import {
   ChevronDown,
   Gem,
-  LayoutDashboard,
   LogOut,
-  PenTool,
-  ShoppingCart,
   Recycle,
   ShoppingBag,
   Sparkles,
   Store,
   User,
 } from "@/components/icons";
+import { getAdminNavItemsForRole } from "@/lib/admin/navigation";
 import { fa } from "@/lib/i18n/fa";
 import {
   accountDisplayInitials,
@@ -76,6 +75,16 @@ export function HeaderAccountMenu() {
     };
   }, [auth.user]);
 
+  const adminItems: MenuItem[] = useMemo(
+    () =>
+      getAdminNavItemsForRole(auth.user?.role).map((item) => ({
+        href: item.href,
+        label: item.label,
+        icon: adminNavIconById[item.id] ?? null,
+      })),
+    [auth.user?.role]
+  );
+
   useEffect(() => {
     close();
   }, [pathname, close]);
@@ -114,77 +123,6 @@ export function HeaderAccountMenu() {
       </Link>
     );
   }
-
-  const adminItems: MenuItem[] =
-    auth.user?.role === "admin" ||
-    auth.user?.role === "editor" ||
-    auth.user?.role === "reviewer"
-      ? [
-          ...(auth.user?.role === "admin"
-            ? [
-                {
-                  href: "/admin/users",
-                  label: fa.admin.users.navLabel,
-                  icon: <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/finance",
-                  label: fa.admin.finance.navLabel,
-                  icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/orders",
-                  label: fa.admin.orders.navLabel,
-                  icon: <ShoppingCart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/returns",
-                  label: fa.admin.returns.navLabel,
-                  icon: <Recycle size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/products",
-                  label: fa.admin.products.navLabel,
-                  icon: <Store size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/trade-in",
-                  label: fa.admin.tradeIn.navLabel,
-                  icon: <Recycle size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/support-requests",
-                  label: fa.admin.supportRequests.navLabel,
-                  icon: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/promo-codes",
-                  label: fa.admin.promoCodes.navLabel,
-                  icon: <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-              ]
-            : []),
-          {
-            href: "/admin/posts",
-            label: fa.admin.posts.navLabel,
-            icon: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-          },
-          ...(auth.user?.role === "admin"
-            ? [
-                {
-                  href: "/admin/home",
-                  label: fa.admin.home.navLabel,
-                  icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-                {
-                  href: "/admin/settings",
-                  label: fa.admin.settings.navLabel,
-                  icon: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-                },
-              ]
-            : []),
-        ]
-      : [];
 
   const menuSections: MenuSection[] = [
     {

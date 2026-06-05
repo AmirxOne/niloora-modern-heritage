@@ -1,34 +1,19 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
-import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
-
-export type AdminAuditLogEntry = {
-  id: string;
-  at: string;
-  action: string;
-  method: string;
-  route: string;
-  entityType?: string;
-  entityId?: string;
-  summary?: string;
-  payload?: string;
-  actorId: string;
-  actorName?: string | null;
-  actorPhone?: string | null;
-  actorRole?: string | null;
-  ip?: string;
-  userAgent?: string;
-};
+import type { AuditLogEntry } from "@/lib/types";
+import { useAuth } from "./useAuth";
+import { useAdminAccess } from "./useAdminAccess";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminAuditLogs() {
   const auth = useAuth();
   const isAdmin = auth.user?.role === "admin";
   const allowed = useAdminAccess(isAdmin);
-  const [logs, setLogs] = useState<AdminAuditLogEntry[]>([]);
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const load = useCallback(
@@ -37,13 +22,20 @@ export function useAdminAuditLogs() {
       setIsLoading(true);
       try {
         const qs = new URLSearchParams(params ?? {});
-        const response = await fetch(`/api/admin/audit-logs${qs.toString() ? `?${qs.toString()}` : ""}`);
-        if (!response.ok) {
-          toast.error("دریافت Audit Log انجام نشد.");
+        const response = await apiFetch(`/api/admin/audit-logs${qs.toString() ? `?${qs.toString()}` : ""}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
+          setLogs([]);
+          setTotal(0);
           return;
         }
-        const data = await parseJsonResponse<{ logs?: AdminAuditLogEntry[] }>(response);
+        if (!response.ok) {
+          toast.error("دریافت گزارش فعالیت انجام نشد.");
+          return;
+        }
+        const data = await parseJsonResponse<{ logs?: AuditLogEntry[]; total?: number }>(response);
         setLogs(data?.logs ?? []);
+        setTotal(data?.total ?? data?.logs?.length ?? 0);
       } finally {
         setIsLoading(false);
       }
@@ -51,5 +43,5 @@ export function useAdminAuditLogs() {
     [isAdmin]
   );
 
-  return { allowed, isAdmin, logs, isLoading, load };
+  return { allowed, isAdmin, logs, total, isLoading, load };
 }

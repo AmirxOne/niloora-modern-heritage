@@ -6,11 +6,13 @@ import { fa } from "@/lib/i18n/fa";
 import { Button } from "@/components/ui/Button";
 import { TextAreaBox, TextBox } from "@/components/inputs";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
+import { BRAND_MARK_IMAGE } from "@/lib/images";
 
 const t = fa.admin.settings;
 
 export function AdminSettingsPanel() {
   const admin = useAdminSiteSettings();
+  const { isAdmin, loadSettings } = admin;
   const [form, setForm] = useState({
     brandName: "",
     brandTagline: "",
@@ -35,8 +37,8 @@ export function AdminSettingsPanel() {
   });
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadSettings();
-  }, [admin.isAdmin]);
+    if (isAdmin) void loadSettings();
+  }, [isAdmin, loadSettings]);
 
   useEffect(() => {
     if (!admin.settings) return;
@@ -111,7 +113,7 @@ export function AdminSettingsPanel() {
             <TextBox label={t.brandName} value={form.brandName} onChange={(e) => setForm({ ...form, brandName: e.target.value })} />
             <TextBox label={t.brandTagline} value={form.brandTagline} onChange={(e) => setForm({ ...form, brandTagline: e.target.value })} />
             <TextAreaBox label={t.shortDescription} id="settings-short-desc" value={form.shortDescription} onChange={(e) => setForm({ ...form, shortDescription: e.target.value })} />
-            <TextBox label={t.logoUrl} value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} inputClassName="auth-input-ltr" placeholder="/brand-mark.png" />
+            <TextBox label={t.logoUrl} value={form.logoUrl} onChange={(e) => setForm({ ...form, logoUrl: e.target.value })} inputClassName="auth-input-ltr" placeholder={BRAND_MARK_IMAGE} />
           </section>
 
           <section className="admin-finance-detail-section space-y-4">

@@ -1,9 +1,10 @@
 import { fa } from "@/lib/i18n/fa";
 import { BRAND_MARK_PATH } from "@/lib/brand/assets";
+import { DEFAULT_OG_IMAGE_PATH } from "@/lib/images";
+
+export { DEFAULT_OG_IMAGE_PATH };
 
 export const SITE_SETTINGS_ID = "default";
-
-export const DEFAULT_OG_IMAGE_PATH = "/Picsart_26-04-26_15-15-33-128.jpg";
 
 export function buildDefaultSiteSettingsRecord() {
   return {

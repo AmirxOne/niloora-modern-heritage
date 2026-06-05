@@ -1,8 +1,26 @@
-import type { SupportRequest as PrismaSupportRequest } from "@prisma/client";
-import type { AdminSupportRequest } from "@/lib/types";
+import type { AdminSupportRequest, OrderReturnStatus } from "@/lib/types";
+import { resolveUnifiedReturnStatus } from "@/lib/returns/workflow";
 import type { SupportRequestKind, SupportRequestStatus } from "./support-request";
 
-export function toAdminSupportRequestDto(row: PrismaSupportRequest): AdminSupportRequest {
+type SupportRequestRow = {
+  id: string;
+  userId: string | null;
+  orderId: string | null;
+  kind: string;
+  category: string;
+  fullName: string;
+  phone: string;
+  email: string | null;
+  message: string;
+  internalNotes: string | null;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  orderReturn?: { id: string; status: string } | null;
+};
+
+export function toAdminSupportRequestDto(row: SupportRequestRow): AdminSupportRequest {
+  const orderReturnStatus = row.orderReturn?.status as OrderReturnStatus | undefined;
   return {
     id: row.id,
     userId: row.userId ?? undefined,
@@ -17,5 +35,11 @@ export function toAdminSupportRequestDto(row: PrismaSupportRequest): AdminSuppor
     status: row.status as SupportRequestStatus,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
+    orderReturnId: row.orderReturn?.id,
+    orderReturnStatus,
+    unifiedStatus: resolveUnifiedReturnStatus({
+      returnStatus: orderReturnStatus ?? null,
+      supportStatus: row.status as SupportRequestStatus,
+    }),
   };
 }

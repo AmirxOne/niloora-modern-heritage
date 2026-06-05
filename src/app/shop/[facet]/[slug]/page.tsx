@@ -18,6 +18,8 @@ type PageProps = {
   params: Promise<{ facet: string; slug: string }>;
 };
 
+export const revalidate = 3600;
+
 function toShopQuery(facet: ShopLandingFacet, slug: StoneType | RingStyle | ProductOccasion): string {
   if (facet === "stone") return `/shop?stones=${slug}`;
   if (facet === "style") return `/shop?styles=${slug}`;

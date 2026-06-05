@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminPostRecord } from "@/lib/server/blog/post";
 import { useAuth } from "./useAuth";
 import { useContentWorkflowAccess } from "./useContentWorkflowAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 import { canAccessContentWorkflow, canCreateContent, canDeleteContent } from "@/lib/auth/content-workflow";
 
 export function useAdminPosts() {
@@ -23,7 +24,12 @@ export function useAdminPosts() {
     if (!isWorkflowUser) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/posts");
+      const response = await apiFetch("/api/admin/posts");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
+        setPosts([]);
+        return;
+      }
       if (!response.ok) {
         toast.error("دریافت مقالات انجام نشد.");
         return;
@@ -40,7 +46,7 @@ export function useAdminPosts() {
       if (!canCreate) return null;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/posts", {
+        const response = await apiFetch("/api/admin/posts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -65,7 +71,7 @@ export function useAdminPosts() {
       if (!isWorkflowUser) return null;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -90,7 +96,7 @@ export function useAdminPosts() {
       if (!canDelete) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/posts/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
         if (!response.ok) {

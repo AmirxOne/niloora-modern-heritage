@@ -8,15 +8,13 @@ export default function AdminSupportRequestsPage() {
 
   return (
     <AdminGuard redirectTo={redirectTo}>
-      <div className="admin-page">
-        <div className="site-container">
+      <div>
           <AdminPageHeader
             title={fa.admin.supportRequests.title}
             subtitle={fa.admin.supportRequests.subtitle}
           />
           <AdminSupportRequestsPanel />
         </div>
-      </div>
     </AdminGuard>
   );
 }

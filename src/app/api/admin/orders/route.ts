@@ -1,9 +1,11 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { badRequest, ok, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { parseAdminOrderFilter } from "@/lib/server/orders/admin-order";
-import { toAdminOrderDto } from "@/lib/server/orders/admin-order-dto";
+import { toAdminOrderListItemDto } from "@/lib/server/orders/admin-order-dto";
 import { orderInclude } from "@/lib/server/orders/order-dto";
 import { loadOrderReturnSummariesByOrderIds } from "@/lib/server/returns/order-return-service";
 import { prisma } from "@/lib/server/prisma";
@@ -30,10 +32,9 @@ export async function GET(request: Request) {
     const returnMap = await loadOrderReturnSummariesByOrderIds(orders.map((o) => o.id));
 
     return ok({
-      orders: orders.map((order) => ({
-        ...toAdminOrderDto(order),
-        returns: returnMap.get(order.id) ?? [],
-      })),
+      orders: orders.map((order) =>
+        toAdminOrderListItemDto(order, returnMap.get(order.id) ?? [])
+      ),
     });
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/orders" });

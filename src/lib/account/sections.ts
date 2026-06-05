@@ -11,23 +11,10 @@ export const ACCOUNT_SECTION_IDS = [
   "designs",
 ] as const;
 
-export const ACCOUNT_ADMIN_SECTION_IDS = [
-  "admin-moderation",
-  "admin-orders",
-  "admin-products",
-  "admin-trade-in",
-  "admin-promo-codes",
-  "admin-home",
-  "admin-posts",
-  "admin-gift-cards",
-  "admin-customizer-quotes",
-] as const;
-
 export type AccountSectionId = (typeof ACCOUNT_SECTION_IDS)[number];
-export type AccountAdminSectionId = (typeof ACCOUNT_ADMIN_SECTION_IDS)[number];
-export type AccountNavSectionId = AccountSectionId | AccountAdminSectionId;
+export type AccountNavSectionId = AccountSectionId;
 
-const LEGACY_ALIASES: Record<string, AccountNavSectionId> = {
+const LEGACY_ALIASES: Record<string, AccountSectionId> = {
   dashboard: "overview",
 };
 
@@ -35,12 +22,8 @@ export function isAccountSectionId(value: string): value is AccountSectionId {
   return (ACCOUNT_SECTION_IDS as readonly string[]).includes(value);
 }
 
-export function isAccountAdminSectionId(value: string): value is AccountAdminSectionId {
-  return (ACCOUNT_ADMIN_SECTION_IDS as readonly string[]).includes(value);
-}
-
 export function isAccountNavSectionId(value: string): value is AccountNavSectionId {
-  return isAccountSectionId(value) || isAccountAdminSectionId(value);
+  return isAccountSectionId(value);
 }
 
 export function parseAccountSection(

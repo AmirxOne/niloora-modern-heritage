@@ -174,6 +174,14 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
                 {fa.dashboard.viewInvoice}
               </Link>
             ) : null}
+            {orderHasReceipt(order) ? (
+              <Link
+                href={`${orderReceiptPath(order.id)}#return`}
+                className="order-history-invoice-link"
+              >
+                {fa.dashboard.submitReturnRequest}
+              </Link>
+            ) : null}
             <Link
               href={`/support?orderId=${encodeURIComponent(order.id)}`}
               className="order-history-invoice-link"

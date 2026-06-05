@@ -6,6 +6,11 @@ All handlers are in `route.ts`. Business logic should stay in `src/lib/server/*`
 - Use `handleRouteError(error, { route: "/api/..." })` in `catch` blocks (see `src/lib/server/route-errors.ts`)
 - Structured logs: `serverLogger` in `src/lib/observability/logger.ts`
 - Sentry: set `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN` — see `src/lib/observability/README.md`
+- Production env + cron: **`docs/production.md`**
+
+## Health
+- `GET /api/health` — liveness (`status`, `healthy`)
+- `GET /api/health?detailed=1` — DB + SMS/Zarinpal/Sentry checks; optional `x-health-secret` if `HEALTH_CHECK_SECRET` is set
 
 ## Tests (Vitest)
 - `npm run test` — pricing, promo validation, auth phone/session JWT, order creation (mocked DB)

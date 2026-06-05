@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { buildStoneCompareJsonLd, buildStoneCompareMetadata, listStoneCompareParams, parseStoneComparePair, resolveStoneCompareData } from "@/lib/seo/stone-compare";
+import { buildStoneCompareJsonLd, buildStoneCompareMetadata, parseStoneComparePair, resolveStoneCompareData } from "@/lib/seo/stone-compare";
 import { getCatalogProducts } from "@/lib/server/products";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { fa } from "@/lib/i18n/fa";
@@ -10,9 +10,7 @@ type PageProps = {
   params: Promise<{ pair: string }>;
 };
 
-export async function generateStaticParams() {
-  return listStoneCompareParams();
-}
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { pair } = await params;

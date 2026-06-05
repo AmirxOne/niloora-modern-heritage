@@ -19,6 +19,10 @@ Server-only helpers used by API route handlers.
 - `http.ts` - normalized response helpers
 - `prisma.ts` - Prisma singleton
 
+## Environment
+- `env.ts` — typed `serverEnv` + production fail-fast (`env-validate.ts`)
+- `env-validate.ts` — startup validation + health report builder
+
 ## Security Boundaries
 - Never trust client totals or client role flags.
 - Always gate admin routes with `ensureAdmin`.

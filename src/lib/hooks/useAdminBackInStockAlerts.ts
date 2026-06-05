@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminBackInStockAlert, BackInStockAlertStatus } from "@/lib/types";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminBackInStockAlerts() {
   const auth = useAuth();
@@ -29,9 +30,9 @@ export function useAdminBackInStockAlerts() {
         if (status !== "all") params.set("status", status);
         if (q.trim()) params.set("q", q.trim());
         const query = params.toString();
-        const response = await fetch(`/api/admin/back-in-stock-alerts${query ? `?${query}` : ""}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/back-in-stock-alerts${query ? `?${query}` : ""}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setAlerts([]);
           return;
         }
@@ -53,7 +54,7 @@ export function useAdminBackInStockAlerts() {
       if (!isAdmin || alertIds.length === 0) return false;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/back-in-stock-alerts/notify", {
+        const response = await apiFetch("/api/admin/back-in-stock-alerts/notify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ alertIds }),

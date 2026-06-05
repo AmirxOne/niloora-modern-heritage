@@ -1,4 +1,5 @@
 import { toOrderDto, type orderInclude } from "@/lib/server/orders/order-dto";
+import type { AdminOrder, AdminOrderReturnSummary } from "@/lib/types";
 import type { Prisma } from "@prisma/client";
 
 type AdminOrderRecord = Prisma.OrderGetPayload<{
@@ -16,4 +17,14 @@ export function toAdminOrderDto(order: AdminOrderRecord) {
       email: order.user.email,
     },
   };
+}
+
+export function toAdminOrderListItemDto(
+  order: AdminOrderRecord,
+  returns: AdminOrderReturnSummary[] = []
+): AdminOrder {
+  return {
+    ...toAdminOrderDto(order),
+    returns,
+  } as AdminOrder;
 }

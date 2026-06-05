@@ -13,9 +13,6 @@ export type ResolvedCartLine = CartItem & { quantity: number };
 export type DbProduct = {
   id: string;
   name: string;
-  productType?: Product["productType"];
-  pieceCode?: string | null;
-  sku?: string | null;
   price: number;
   listPrice?: number | null;
   discountPercent?: number | null;
@@ -81,12 +78,7 @@ function applyRingCustomizationOnCatalogLine(
       productId: product.id,
     });
   }
-  const expectedPieceCode = resolvePieceCode({
-    id: product.id,
-    productType: product.productType ?? "ring-men",
-    pieceCode: product.pieceCode ?? null,
-    sku: product.sku ?? null,
-  });
+  const expectedPieceCode = resolvePieceCode({ id: product.id });
   const incomingProductRef = normalizePieceCode(incoming.productId);
   const normalizedProductId = normalizePieceCode(product.id);
   if (incomingProductRef !== normalizePieceCode(expectedPieceCode) && incomingProductRef !== normalizedProductId) {

@@ -24,13 +24,14 @@ import {
 
 export function AdminPostsPanel() {
   const admin = useAdminPosts();
+  const { isWorkflowUser, loadPosts } = admin;
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<AdminPostFormValues>(emptyAdminPostForm());
 
   useEffect(() => {
-    if (admin.isWorkflowUser) void admin.loadPosts();
-  }, [admin.isWorkflowUser, admin.loadPosts]);
+    if (isWorkflowUser) void loadPosts();
+  }, [isWorkflowUser, loadPosts]);
 
   const startCreate = () => {
     if (!admin.canCreate) return;

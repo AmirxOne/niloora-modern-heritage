@@ -1,31 +1,7 @@
+import type { AdminHomeKpiDto } from "@/lib/types";
 import { prisma } from "@/lib/server/prisma";
 
 const SUCCESS_ORDER_STATUSES = ["processing", "crafting", "shipped", "delivered"] as const;
-
-type KpiBucket = {
-  label: string;
-  value: number;
-};
-
-type StoneSalesItem = {
-  stone: string;
-  quantity: number;
-  revenue: number;
-};
-
-export type AdminHomeKpiDto = {
-  conversionRatePercent: number;
-  averageBasketValue: number;
-  successfulOrders: number;
-  attemptedOrders: number;
-  salesToday: number;
-  salesWeek: number;
-  salesMonth: number;
-  dailySales: KpiBucket[];
-  weeklySales: KpiBucket[];
-  monthlySales: KpiBucket[];
-  stoneSales: StoneSalesItem[];
-};
 
 function startOfDay(date: Date): Date {
   const d = new Date(date);

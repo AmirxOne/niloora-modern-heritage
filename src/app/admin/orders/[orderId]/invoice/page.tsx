@@ -1,6 +1,5 @@
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminOrderInvoicePageContent } from "@/components/admin/AdminOrderInvoicePageContent";
-import { PageTransition } from "@/components/layout/PageTransition";
 
 type PageProps = {
   params: { orderId: string };
@@ -11,13 +10,9 @@ export default function AdminOrderInvoicePage({ params }: PageProps) {
 
   return (
     <AdminGuard redirectTo={redirectTo}>
-      <PageTransition>
-        <div className="pb-24 pt-6 md:pt-8 admin-order-invoice-shell">
-          <div className="site-container max-w-4xl">
+      <div className="max-w-4xl admin-order-invoice-shell">
             <AdminOrderInvoicePageContent orderId={params.orderId} />
           </div>
-        </div>
-      </PageTransition>
-    </AdminGuard>
+      </AdminGuard>
   );
 }

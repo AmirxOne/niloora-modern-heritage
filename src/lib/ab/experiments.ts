@@ -25,3 +25,8 @@ export const AB_EXPERIMENTS: Record<string, AbExperimentDefinition> = {
 export function getExperimentDefinition(experimentId: string): AbExperimentDefinition | null {
   return AB_EXPERIMENTS[experimentId] ?? null;
 }
+
+/** Experiments surfaced in the admin A/B results dashboard */
+export const ADMIN_AB_EXPERIMENT_IDS = ["hero_cta_v1", "shop_card_layout_v1"] as const;
+
+export type AdminAbExperimentId = (typeof ADMIN_AB_EXPERIMENT_IDS)[number];

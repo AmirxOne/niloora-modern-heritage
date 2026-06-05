@@ -5,7 +5,7 @@ import {
   getEngravingMaster,
   getShankMaster,
 } from "@/lib/customizer/catalog";
-import { pickSiteImageByKey, pickTestArtisanImageByKey } from "@/lib/images";
+import { pickArtisanPortraitImageByKey, pickSiteImageByKey } from "@/lib/images";
 
 export type ArtisanRole =
   | "shank-designer"
@@ -160,7 +160,7 @@ function deriveArtisanProfile(name: string, role: DerivedArtisanRole): ArtisanPr
       role === "shank-designer"
         ? `«${name}» در محصولات کاتالوگ به‌عنوان سازنده و طراح رکاب معرفی شده است.`
         : `«${name}» در محصولات کاتالوگ به‌عنوان استاد حکاکی رکاب معرفی شده است.`,
-    image: pickTestArtisanImageByKey(slugifyFa(name)),
+    image: pickArtisanPortraitImageByKey(slugifyFa(name)),
     yearsExperience: 12,
     location: "کارگاه همکار",
     roleTags: role === "shank-designer" ? ["ساخت رکاب", "طراحی رکاب"] : ["حکاکی رکاب", "خوشنویسی رکاب"],

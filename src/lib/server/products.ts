@@ -4,6 +4,7 @@ import {
   getCatalogMaxPrice as resolveCatalogMaxPrice,
   normalizeCatalogProductPricing,
 } from "@/lib/catalog/product-catalog";
+import { DEFAULT_PRODUCT_IMAGE, resolvePublicImagePath } from "@/lib/images";
 import { prisma } from "@/lib/server/prisma";
 const preOwnedGrades = new Set(["excellent", "very-good", "good"]);
 
@@ -134,8 +135,8 @@ export function mapDbProduct(product: DbProduct): Product {
         : undefined,
     },
     ...pricing,
-    image: product.image,
-    images: product.images.map((item) => item.url),
+    image: resolvePublicImagePath(product.image, DEFAULT_PRODUCT_IMAGE),
+    images: product.images.map((item) => resolvePublicImagePath(item.url, "")).filter(Boolean),
     category: product.category as Product["category"],
     metal: product.metal as Product["metal"],
     stone: product.stone as Product["stone"],
@@ -232,8 +233,8 @@ function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
         : undefined,
     },
     ...pricing,
-    image: product.image,
-    images: product.images.map((item) => item.url),
+    image: resolvePublicImagePath(product.image, DEFAULT_PRODUCT_IMAGE),
+    images: product.images.map((item) => resolvePublicImagePath(item.url, "")).filter(Boolean),
     category: product.category as Product["category"],
     metal: product.metal as Product["metal"],
     stone: product.stone as Product["stone"],

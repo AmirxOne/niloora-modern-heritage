@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { badRequest, ok } from "@/lib/server/http";
@@ -17,7 +19,7 @@ export async function GET(request: Request) {
       return badRequest("limit نامعتبر است.");
     }
 
-    const logs = await queryAdminAuditLogs({
+    const { logs, total } = await queryAdminAuditLogs({
       q: searchParams.get("q") ?? undefined,
       action: searchParams.get("action") ?? undefined,
       entityType: searchParams.get("entityType") ?? undefined,
@@ -26,7 +28,7 @@ export async function GET(request: Request) {
       to: searchParams.get("to") ?? undefined,
       limit,
     });
-    return ok({ logs });
+    return ok({ logs, total });
   } catch (error) {
     return handleRouteError(error, { route: "/api/admin/audit-logs" });
   }

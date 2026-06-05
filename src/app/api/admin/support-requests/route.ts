@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { readSessionUser } from "@/lib/server/auth/session";
 import { ensureAdmin } from "@/lib/server/auth/guards";
 import { ok, serverError } from "@/lib/server/http";
@@ -23,6 +25,9 @@ export async function GET(request: Request) {
       where: {
         ...(statusFilter === "all" ? {} : { status: statusFilter }),
         ...(kindFilter === "all" ? {} : { kind: kindFilter }),
+      },
+      include: {
+        orderReturn: { select: { id: true, status: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 200,

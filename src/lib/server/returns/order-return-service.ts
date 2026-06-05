@@ -12,6 +12,7 @@ import {
   adminOrderReturnDetailSelect,
   toAdminOrderReturnDetailDto,
 } from "@/lib/server/returns/admin-order-return-dto";
+import { syncSupportRequestFromReturnStatus } from "@/lib/server/returns/return-status-sync";
 
 import type { OrderReturnItemInput } from "@/lib/types";
 
@@ -59,7 +60,7 @@ function normalizeStatusNote(raw: string | null | undefined): string | null {
   return trimmed;
 }
 
-async function validateReturnItems(
+export async function validateReturnItems(
   orderId: string,
   items: ReturnItemInput[],
   tx: Prisma.TransactionClient
@@ -92,6 +93,7 @@ export async function createOrderReturn(input: {
   refundableAmount?: number;
   items: ReturnItemInput[];
   changedById?: string | null;
+  supportRequestId?: string | null;
 }) {
   if (!isOrderReturnReason(input.reason)) {
     throw new Error("دلیل مرجوعی نامعتبر است.");
@@ -120,6 +122,7 @@ export async function createOrderReturn(input: {
       data: {
         orderId: order.id,
         userId: order.userId,
+        supportRequestId: input.supportRequestId ?? null,
         reason: input.reason,
         reasonDetail: reasonDetail ?? null,
         status: "requested",
@@ -149,7 +152,7 @@ export async function createOrderReturn(input: {
 export async function updateOrderReturn(returnId: string, input: UpdateOrderReturnInput) {
   const existing = await prisma.orderReturn.findUnique({
     where: { id: returnId },
-    select: { id: true, status: true, orderId: true },
+    select: { id: true, status: true, orderId: true, supportRequestId: true },
   });
   if (!existing) throw new Error("درخواست مرجوعی یافت نشد.");
 
@@ -188,7 +191,7 @@ export async function updateOrderReturn(returnId: string, input: UpdateOrderRetu
       });
     }
 
-    const nextStatus = input.status ?? existing.status;
+    const nextStatus = (input.status ?? existing.status) as OrderReturnStatus;
     const statusChanged = input.status !== undefined && input.status !== existing.status;
 
     await tx.orderReturn.update({
@@ -214,6 +217,9 @@ export async function updateOrderReturn(returnId: string, input: UpdateOrderRetu
           changedById: input.changedById ?? null,
         },
       });
+      if (existing.supportRequestId) {
+        await syncSupportRequestFromReturnStatus(tx, existing.supportRequestId, nextStatus);
+      }
     }
 
     const updated = await tx.orderReturn.findUniqueOrThrow({

@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { randomUUID } from "node:crypto";
 import { getOtpApiMessage } from "@/lib/auth/otp-api-messages";
 import { normalizeIranPhone } from "@/lib/auth/phone";

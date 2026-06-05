@@ -363,6 +363,7 @@ model OrderReturn {
   id               String   @id @default(cuid())
   orderId          String
   userId           String?
+  supportRequestId String?  @unique
   reason           String
   reasonDetail     String?
   status           String   @default("requested")
@@ -372,6 +373,7 @@ model OrderReturn {
   updatedAt        DateTime @updatedAt
   order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  supportRequest   SupportRequest? @relation(fields: [supportRequestId], references: [id], onDelete: SetNull)
   items            OrderReturnItem[]
   statusHistory    OrderReturnStatusHistory[]
 
@@ -459,6 +461,7 @@ model SupportRequest {
   updatedAt     DateTime @updatedAt
   user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   order         Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderReturn   OrderReturn?
 
   @@index([status, createdAt])
   @@index([kind, createdAt])
@@ -1025,4 +1028,27 @@ model PriceDropUnsubscribeToken {
 
   @@unique([userId, channel, contact])
   @@index([userId, active])
+}
+
+model AdminAuditLog {
+  id         String   @id
+  createdAt  DateTime @default(now())
+  action     String
+  method     String
+  route      String
+  entityType String?
+  entityId   String?
+  summary    String?
+  payload    String?
+  actorId    String
+  actorName  String?
+  actorPhone String?
+  actorRole  String?
+  ip         String?
+  userAgent  String?
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action])
+  @@index([entityType])
+  @@index([actorId])
 }

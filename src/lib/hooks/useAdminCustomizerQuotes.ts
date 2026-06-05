@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
 import type { CustomizerQuoteLiveStage, CustomizerQuoteRequest, CustomizerQuoteStatus } from "@/lib/types";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export type AdminCustomizerQuote = CustomizerQuoteRequest & {
   userName: string;
@@ -24,8 +25,8 @@ export function useAdminCustomizerQuotes() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/customizer/quote-requests");
-      if (response.status === 401) {
+      const response = await apiFetch("/api/admin/customizer/quote-requests");
+      if (isAuthDenied(response)) {
         setQuotes([]);
         toast.error("دسترسی مدیریت ندارید.");
         return;
@@ -56,7 +57,7 @@ export function useAdminCustomizerQuotes() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/customizer/quote-requests/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/customizer/quote-requests/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

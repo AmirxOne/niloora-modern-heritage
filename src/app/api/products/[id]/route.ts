@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { notFound, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import {

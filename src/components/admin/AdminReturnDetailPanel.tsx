@@ -8,6 +8,7 @@ import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { AdminReturnEditForm } from "@/components/admin/AdminReturnEditForm";
+import { unifiedReturnStatusBadgeVariant } from "@/lib/returns/workflow";
 import type { OrderReturnStatus } from "@/lib/types";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
 
@@ -36,10 +37,11 @@ function formatDate(iso: string): string {
 
 export function AdminReturnDetailPanel({ returnId }: { returnId: string }) {
   const detail = useAdminReturnDetail(returnId);
+  const { isAdmin, loadDetail } = detail;
 
   useEffect(() => {
-    if (detail.isAdmin) void detail.loadDetail();
-  }, [detail.isAdmin, detail.loadDetail]);
+    if (isAdmin) void loadDetail();
+  }, [isAdmin, loadDetail]);
 
   if (!detail.allowed) return null;
 
@@ -62,6 +64,14 @@ export function AdminReturnDetailPanel({ returnId }: { returnId: string }) {
         <Link href={`/admin/orders`} className="admin-order-invoice-link" dir="ltr">
           {t.orderId}: {row.orderId}
         </Link>
+        {row.supportRequestId ? (
+          <Link
+            href={`/admin/support-requests#support-${row.supportRequestId}`}
+            className="admin-order-invoice-link"
+          >
+            {t.linkedSupportRequest}
+          </Link>
+        ) : null}
         <Button type="button" variant="outline" onClick={() => void detail.loadDetail()}>
           {t.refresh}
         </Button>
@@ -78,7 +88,14 @@ export function AdminReturnDetailPanel({ returnId }: { returnId: string }) {
             </p>
             <p className="admin-order-date">{formatDate(row.createdAt)}</p>
           </div>
-          <Badge variant={statusVariant[row.status]}>{statusLabels[row.status]}</Badge>
+          <div className="flex flex-col items-end gap-2">
+            {row.unifiedStatus ? (
+              <Badge variant={unifiedReturnStatusBadgeVariant(row.unifiedStatus)}>
+                {t.unifiedStatus[row.unifiedStatus]}
+              </Badge>
+            ) : null}
+            <Badge variant={statusVariant[row.status]}>{statusLabels[row.status]}</Badge>
+          </div>
         </header>
 
         <div className="admin-order-card-summary flex-col items-start gap-1 px-5 py-4">

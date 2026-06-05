@@ -1,4 +1,4 @@
-import { RETURN_CATEGORIES } from "@/lib/server/support-request/support-request";
+import { ORDER_RETURN_REASONS, type OrderReturnReason } from "@/lib/returns/constants";
 
 export const ORDER_RETURN_STATUSES = [
   "requested",
@@ -15,9 +15,7 @@ export const ORDER_RETURN_FILTER_STATUSES = ["all", ...ORDER_RETURN_STATUSES] as
 
 export type OrderReturnFilterStatus = (typeof ORDER_RETURN_FILTER_STATUSES)[number];
 
-export const ORDER_RETURN_REASONS = RETURN_CATEGORIES;
-
-export type OrderReturnReason = (typeof ORDER_RETURN_REASONS)[number];
+export { ORDER_RETURN_REASONS, type OrderReturnReason };
 
 export const ORDER_RETURN_INTERNAL_NOTES_MAX = 4000;
 export const ORDER_RETURN_REASON_DETAIL_MAX = 4000;

@@ -25,14 +25,15 @@ function formatCampaignDiscount(record: AdminCampaignRecord) {
 
 export function AdminCampaignsPanel() {
   const admin = useAdminCampaigns();
+  const { isAdmin, loadCampaigns } = admin;
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<AdminCampaignFormValues>(emptyAdminCampaignForm());
   const [detail, setDetail] = useState<AdminCampaignDetailRecord | null>(null);
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadCampaigns();
-  }, [admin.isAdmin, admin.loadCampaigns]);
+    if (isAdmin) void loadCampaigns();
+  }, [isAdmin, loadCampaigns]);
 
   const startCreate = () => {
     setMode("create");

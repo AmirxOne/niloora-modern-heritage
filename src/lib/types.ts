@@ -376,8 +376,37 @@ export interface AdminOrderReturnItem {
   lineTotal: number;
 }
 
+export type UnifiedReturnStatusKey =
+  | "submitted"
+  | "reviewing"
+  | "approved"
+  | "completed"
+  | "declined"
+  | "cancelled";
+
+export interface CustomerOrderReturnItem {
+  orderItemId: string;
+  quantity: number;
+  name: string;
+}
+
+export interface CustomerOrderReturn {
+  id: string;
+  orderId: string;
+  supportRequestId?: string;
+  status: OrderReturnStatus;
+  unifiedStatus: UnifiedReturnStatusKey;
+  reason: string;
+  reasonDetail: string | null;
+  refundableAmount: number;
+  createdAt: string;
+  items: CustomerOrderReturnItem[];
+}
+
 export interface AdminOrderReturn extends AdminOrderReturnSummary {
   userId: string | null;
+  supportRequestId?: string | null;
+  unifiedStatus?: UnifiedReturnStatusKey;
   reasonDetail: string | null;
   internalNotes: string | null;
   updatedAt: string;
@@ -836,4 +865,90 @@ export interface AdminSupportRequest extends SupportRequest {
   userId?: string;
   internalNotes?: string;
   updatedAt: string;
+  orderReturnId?: string;
+  orderReturnStatus?: OrderReturnStatus;
+  unifiedStatus?: UnifiedReturnStatusKey;
 }
+
+/** Admin home dashboard KPI buckets and aggregates (`GET /api/admin/home/kpi`) */
+export type HomeKpiBucketDto = {
+  label: string;
+  value: number;
+};
+
+export type HomeStoneSalesDto = {
+  stone: string;
+  quantity: number;
+  revenue: number;
+};
+
+export type AdminHomeKpiDto = {
+  conversionRatePercent: number;
+  averageBasketValue: number;
+  successfulOrders: number;
+  attemptedOrders: number;
+  salesToday: number;
+  salesWeek: number;
+  salesMonth: number;
+  dailySales: HomeKpiBucketDto[];
+  weeklySales: HomeKpiBucketDto[];
+  monthlySales: HomeKpiBucketDto[];
+  stoneSales: HomeStoneSalesDto[];
+};
+
+/** Admin gift card list item (`GET /api/admin/gift-cards`) */
+export interface AdminGiftCardTransaction {
+  id: string;
+  type: string;
+  amount: number;
+  description: string;
+  orderId: string;
+  createdAt: string;
+}
+
+export interface AdminGiftCardRecord {
+  id: string;
+  code: string;
+  initialAmount: number;
+  remainingAmount: number;
+  active: boolean;
+  expiresAt: string | null;
+  note: string;
+  recipientName: string;
+  recipientContact: string;
+  purchaserUserId: string;
+  purchaserPhone: string;
+  orderId: string;
+  createdAt: string;
+  updatedAt: string;
+  transactions: AdminGiftCardTransaction[];
+}
+
+/** Admin activity log row (`GET /api/admin/audit-logs`) */
+export interface AuditLogEntry {
+  id: string;
+  at: string;
+  action: string;
+  method: string;
+  route: string;
+  entityType?: string;
+  entityId?: string;
+  summary?: string;
+  payload?: string;
+  actorId: string;
+  actorName?: string | null;
+  actorPhone?: string | null;
+  actorRole?: string | null;
+  ip?: string;
+  userAgent?: string;
+}
+
+export type AdminAuditLogQuery = {
+  q?: string;
+  action?: string;
+  entityType?: string;
+  actorId?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+};

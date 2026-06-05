@@ -5,7 +5,7 @@ import { computeProductRating } from "../product-rating";
 import type { ProductComment } from "../types";
 import { apiFetch } from "@/lib/api/client-fetch";
 import { useAuth } from "./useAuth";
-import { parseJsonResponse } from "./fetch-utils";
+import { isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 type CommentDto = ProductComment;
 
@@ -25,7 +25,7 @@ export function useComments() {
     setIsPendingLoading(true);
     try {
       const response = await apiFetch("/api/comments/pending");
-      if (response.status === 401) {
+      if (isAuthDenied(response)) {
         setPendingComments([]);
         setCanModerate(false);
         return;
@@ -61,7 +61,7 @@ export function useComments() {
         mediaType?: "image" | "video";
       }
     ) => {
-      const response = await fetch("/api/comments", {
+      const response = await apiFetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId, authorName, body, rating, ...dimensionRatings, ...media }),
@@ -73,7 +73,7 @@ export function useComments() {
 
   const updateStatus = useCallback(async (id: string, action: "approve" | "reject") => {
     if (!canModerate) return;
-    const response = await fetch(`/api/comments/${id}`, {
+    const response = await apiFetch(`/api/comments/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
@@ -141,7 +141,7 @@ export function useProductComments(productId: string) {
         mediaType?: "image" | "video";
       }
     ) => {
-      const response = await fetch("/api/comments", {
+      const response = await apiFetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: id, authorName, body, rating, ...dimensionRatings, ...media }),

@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminUser, AdminUserDetail, AdminUserRole, AdminUsersPagination } from "@/lib/types";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminUsers() {
   const auth = useAuth();
@@ -37,9 +38,9 @@ export function useAdminUsers() {
         params.set("page", String(page));
         params.set("pageSize", String(pageSize));
 
-        const response = await fetch(`/api/admin/users?${params.toString()}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/users?${params.toString()}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setUsers([]);
           return;
         }
@@ -64,7 +65,7 @@ export function useAdminUsers() {
   const loadUserDetail = useCallback(
     async (userId: string): Promise<AdminUserDetail | null> => {
       if (!isAdmin) return null;
-      const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}`);
+      const response = await apiFetch(`/api/admin/users/${encodeURIComponent(userId)}`);
       const data = await parseJsonResponse<{ user?: AdminUserDetail; message?: string }>(response);
       if (!response.ok || !data?.user) {
         toast.error(data?.message ?? "دریافت جزئیات کاربر انجام نشد.");
@@ -83,7 +84,7 @@ export function useAdminUsers() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
+        const response = await apiFetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

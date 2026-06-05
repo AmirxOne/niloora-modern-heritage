@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminOrder } from "@/lib/types";
@@ -7,7 +8,7 @@ import type { AdminOrderFilterStatus, AdminSettableOrderStatus } from "@/lib/ser
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
 import { downloadExcelFromResponse, postExcelFile } from "@/lib/admin/excel-io";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminOrders() {
   const auth = useAuth();
@@ -25,9 +26,9 @@ export function useAdminOrders() {
       setIsLoading(true);
       try {
         const query = filter === "all" ? "" : `?status=${encodeURIComponent(filter)}`;
-        const response = await fetch(`/api/admin/orders${query}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/orders${query}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setOrders([]);
           return;
         }
@@ -52,7 +53,7 @@ export function useAdminOrders() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+        const response = await apiFetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -74,7 +75,7 @@ export function useAdminOrders() {
 
   const exportExcel = useCallback(async () => {
     if (!isAdmin) return;
-    const response = await fetch("/api/admin/orders/csv");
+    const response = await apiFetch("/api/admin/orders/csv");
     const ok = await downloadExcelFromResponse(response, "orders.xlsx");
     if (!ok) toast.error("خروجی Excel سفارش‌ها انجام نشد.");
   }, [isAdmin]);

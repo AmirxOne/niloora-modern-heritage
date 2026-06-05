@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -10,7 +11,7 @@ import type {
 } from "@/lib/types/home-content";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminHomeContent() {
   const auth = useAuth();
@@ -29,11 +30,21 @@ export function useAdminHomeContent() {
     setIsLoading(true);
     try {
       const [bannerRes, sliderRes, testimonialRes, instagramRes] = await Promise.all([
-        fetch("/api/admin/home/banner"),
-        fetch("/api/admin/home/slider"),
-        fetch("/api/admin/home/testimonials"),
-        fetch("/api/admin/home/instagram"),
+        apiFetch("/api/admin/home/banner"),
+        apiFetch("/api/admin/home/slider"),
+        apiFetch("/api/admin/home/testimonials"),
+        apiFetch("/api/admin/home/instagram"),
       ]);
+
+      const deniedRes = [bannerRes, sliderRes, testimonialRes, instagramRes].find(isAuthDenied);
+      if (deniedRes) {
+        toast.error(getAuthDeniedMessage(deniedRes.status, "admin"));
+        setBanner(null);
+        setSliderItems([]);
+        setTestimonials([]);
+        setInstagramPosts([]);
+        return;
+      }
 
       if (bannerRes.ok) {
         const data = await parseJsonResponse<{ banner: HomeBannerDto }>(bannerRes);
@@ -61,7 +72,7 @@ export function useAdminHomeContent() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/home/banner", {
+        const response = await apiFetch("/api/admin/home/banner", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -86,7 +97,7 @@ export function useAdminHomeContent() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/home/slider", {
+        const response = await apiFetch("/api/admin/home/slider", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -111,7 +122,7 @@ export function useAdminHomeContent() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/home/slider/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/home/slider/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -134,7 +145,7 @@ export function useAdminHomeContent() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/home/slider/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/home/slider/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
         if (!response.ok) {
@@ -157,7 +168,7 @@ export function useAdminHomeContent() {
       setIsSaving(true);
       try {
         const isEdit = Boolean(payload.id);
-        const response = await fetch(
+        const response = await apiFetch(
           isEdit
             ? `/api/admin/home/testimonials/${encodeURIComponent(payload.id!)}`
             : "/api/admin/home/testimonials",
@@ -186,7 +197,7 @@ export function useAdminHomeContent() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           `/api/admin/home/testimonials/${encodeURIComponent(id)}`,
           { method: "DELETE" }
         );
@@ -210,7 +221,7 @@ export function useAdminHomeContent() {
       setIsSaving(true);
       try {
         const isEdit = Boolean(payload.id);
-        const response = await fetch(
+        const response = await apiFetch(
           isEdit
             ? `/api/admin/home/instagram/${encodeURIComponent(payload.id!)}`
             : "/api/admin/home/instagram",
@@ -239,7 +250,7 @@ export function useAdminHomeContent() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/home/instagram/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/home/instagram/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
         if (!response.ok) {

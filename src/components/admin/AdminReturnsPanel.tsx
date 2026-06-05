@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { unifiedReturnStatusBadgeVariant } from "@/lib/returns/workflow";
 import type { AdminOrderReturn, OrderReturnStatus } from "@/lib/types";
 import { useAdminReturns } from "@/lib/hooks/useAdminReturns";
 import { formatPrice } from "@/lib/utils";
@@ -76,7 +77,14 @@ function AdminReturnCard({
             {t.orderId}: {row.orderId}
           </p>
         </div>
-        <Badge variant={statusVariant[row.status]}>{statusLabels[row.status]}</Badge>
+        <div className="flex flex-col items-end gap-2">
+          {row.unifiedStatus ? (
+            <Badge variant={unifiedReturnStatusBadgeVariant(row.unifiedStatus)}>
+              {t.unifiedStatus[row.unifiedStatus]}
+            </Badge>
+          ) : null}
+          <Badge variant={statusVariant[row.status]}>{statusLabels[row.status]}</Badge>
+        </div>
       </header>
 
       <div className="admin-order-card-summary flex-col items-start gap-1">
@@ -89,10 +97,18 @@ function AdminReturnCard({
         ) : null}
       </div>
 
-      <div className="admin-finance-card-actions">
+      <div className="admin-finance-card-actions flex-wrap gap-3">
         <Link href={`/admin/returns/${row.id}`} className="admin-order-invoice-link">
           {t.viewDetail}
         </Link>
+        {row.supportRequestId ? (
+          <Link
+            href={`/admin/support-requests#support-${row.supportRequestId}`}
+            className="admin-order-invoice-link"
+          >
+            {t.linkedSupportRequest}
+          </Link>
+        ) : null}
       </div>
 
       <AdminReturnEditForm data={row} isSaving={isSaving} onSave={onSave} />
@@ -102,15 +118,17 @@ function AdminReturnCard({
 
 export function AdminReturnsPanel() {
   const admin = useAdminReturns();
+  const { isAdmin, loadReturns } = admin;
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadReturns({ page: 1 });
-  }, [admin.isAdmin]);
+    if (isAdmin) void loadReturns({ page: 1 });
+  }, [isAdmin, loadReturns]);
 
   if (!admin.allowed) return null;
 
   return (
     <div className="admin-orders-panel">
+      <p className="admin-orders-workflow-hint">{t.workflowHint}</p>
       <div className="admin-orders-toolbar flex-wrap">
         <SelectBox
           label={t.filterStatus}

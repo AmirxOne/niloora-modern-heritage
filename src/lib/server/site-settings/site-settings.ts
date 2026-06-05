@@ -4,11 +4,8 @@ import type { SiteSettings } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
 import { serverEnv } from "@/lib/server/env";
 import { resolveBrandLogoUrl } from "@/lib/brand/assets";
-import {
-  buildDefaultSiteSettingsRecord,
-  DEFAULT_OG_IMAGE_PATH,
-  SITE_SETTINGS_ID,
-} from "@/lib/site-settings/defaults";
+import { DEFAULT_OG_IMAGE_PATH, resolvePublicImagePath } from "@/lib/images";
+import { buildDefaultSiteSettingsRecord, SITE_SETTINGS_ID } from "@/lib/site-settings/defaults";
 import type { AdminSiteSettings, PublicSiteSettings } from "@/lib/site-settings/types";
 
 function mapRowToPublic(row: SiteSettings): PublicSiteSettings {
@@ -42,7 +39,7 @@ function mapRowToPublic(row: SiteSettings): PublicSiteSettings {
     seo: {
       title: seoTitle,
       description: seoDescription,
-      ogImageUrl: row.seoOgImageUrl?.trim() || DEFAULT_OG_IMAGE_PATH,
+      ogImageUrl: resolvePublicImagePath(row.seoOgImageUrl, DEFAULT_OG_IMAGE_PATH),
     },
     services: {
       paymentGateway: {

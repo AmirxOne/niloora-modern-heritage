@@ -1,8 +1,9 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useEffect, useState } from "react";
 import type { ProductUgcMedia, ProductUgcMediaAdmin, ProductUgcMediaType } from "@/lib/types";
-import { parseJsonResponse } from "./fetch-utils";
+import { isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 type SubmitPayload = {
   productId: string;
@@ -33,7 +34,7 @@ export function useProductUgc(productId: string) {
   }, [load]);
 
   const submit = useCallback(async (payload: SubmitPayload) => {
-    const response = await fetch("/api/ugc", {
+    const response = await apiFetch("/api/ugc", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -51,7 +52,7 @@ export function useMyUgc() {
   const load = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/ugc/my");
+      const response = await apiFetch("/api/ugc/my");
       if (!response.ok) return;
       const data = await parseJsonResponse<{ items: ProductUgcMedia[] }>(response);
       setItems(data?.items ?? []);
@@ -75,8 +76,8 @@ export function useAdminUgcModeration() {
   const loadPending = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/ugc/pending");
-      if (response.status === 401) {
+      const response = await apiFetch("/api/admin/ugc/pending");
+      if (isAuthDenied(response)) {
         setCanModerate(false);
         setPendingItems([]);
         return;
@@ -100,7 +101,7 @@ export function useAdminUgcModeration() {
   const update = useCallback(
     async (id: string, action: "approve" | "reject") => {
       if (!canModerate) return false;
-      const response = await fetch(`/api/admin/ugc/${encodeURIComponent(id)}`, {
+      const response = await apiFetch(`/api/admin/ugc/${encodeURIComponent(id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),

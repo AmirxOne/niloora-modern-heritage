@@ -23,8 +23,9 @@ Customer notifications after checkout and admin status updates.
 | `maintenance_stone_check` | Scheduled after paid order (+90 days) | SMS + Email |
 | `price_drop` | Cron compares wishlist baseline price with current product price | SMS + Email (with unsubscribe token) |
 
-Cron endpoint:
+Cron endpoints (see **`docs/production.md`** for schedules and examples):
 - `POST /api/cron/messaging-journeys` with `x-cron-secret: ABANDONED_CART_CRON_SECRET`
+- `POST /api/cron/abandoned-cart-recovery` with the same secret
 - `GET /api/price-drop/unsubscribe?token=...` for per-channel unsubscribe
 
 ## Env

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminTradeInSubmission } from "@/lib/types";
@@ -9,7 +10,7 @@ import type {
 } from "@/lib/server/trade-in/admin-trade-in";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminTradeIn() {
   const auth = useAuth();
@@ -27,9 +28,9 @@ export function useAdminTradeIn() {
       setIsLoading(true);
       try {
         const query = filter === "all" ? "" : `?status=${encodeURIComponent(filter)}`;
-        const response = await fetch(`/api/admin/trade-in${query}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/trade-in${query}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setSubmissions([]);
           return;
         }
@@ -54,7 +55,7 @@ export function useAdminTradeIn() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/trade-in/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/trade-in/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

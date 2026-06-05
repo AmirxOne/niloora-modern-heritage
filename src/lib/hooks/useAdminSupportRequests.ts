@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { AdminSupportRequest } from "@/lib/types";
@@ -10,7 +11,7 @@ import type {
 } from "@/lib/server/support-request/support-request";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminSupportRequests() {
   const auth = useAuth();
@@ -35,9 +36,9 @@ export function useAdminSupportRequests() {
         if (status !== "all") params.set("status", status);
         if (kind !== "all") params.set("kind", kind);
         const query = params.toString() ? `?${params}` : "";
-        const response = await fetch(`/api/admin/support-requests${query}`);
-        if (response.status === 401) {
-          toast.error("دسترسی مدیریت ندارید.");
+        const response = await apiFetch(`/api/admin/support-requests${query}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
           setRequests([]);
           return;
         }
@@ -62,7 +63,7 @@ export function useAdminSupportRequests() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(
+        const response = await apiFetch(
           `/api/admin/support-requests/${encodeURIComponent(id)}`,
           {
             method: "PATCH",

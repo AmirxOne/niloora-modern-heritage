@@ -1,3 +1,5 @@
+export { dynamic } from "@/lib/server/route-segment";
+
 import { notFound, ok, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { getPublishedPostBySlug } from "@/lib/server/blog/post-service";

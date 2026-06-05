@@ -1,11 +1,15 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useAdminAccess } from "@/lib/hooks/useAdminAccess";
-import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "@/lib/hooks/fetch-utils";
+import { fa } from "@/lib/i18n/fa";
 import type { AdminMediaCategory } from "@/lib/media/categories";
+
+const t = fa.admin.media.toast;
 
 export type AdminMediaAsset = {
   id: string;
@@ -34,9 +38,14 @@ export function useAdminMedia() {
       setIsLoading(true);
       try {
         const query = category ? `?category=${encodeURIComponent(category)}` : "";
-        const response = await fetch(`/api/admin/media${query}`);
+        const response = await apiFetch(`/api/admin/media${query}`);
+        if (isAuthDenied(response)) {
+          toast.error(getAuthDeniedMessage(response.status, "admin"));
+          setAssets([]);
+          return;
+        }
         if (!response.ok) {
-          toast.error("دریافت رسانه‌ها انجام نشد.");
+          toast.error(t.loadError);
           return;
         }
         const data = await parseJsonResponse<{ assets?: AdminMediaAsset[] }>(response);
@@ -56,14 +65,14 @@ export function useAdminMedia() {
         const form = new FormData();
         form.set("file", file);
         form.set("category", category);
-        const response = await fetch("/api/admin/media", { method: "POST", body: form });
+        const response = await apiFetch("/api/admin/media", { method: "POST", body: form });
         const data = await parseJsonResponse<{ asset?: AdminMediaAsset; message?: string }>(response);
         if (!response.ok || !data?.asset) {
-          toast.error(data?.message ?? "آپلود فایل انجام نشد.");
+          toast.error(data?.message ?? t.uploadError);
           return null;
         }
         setAssets((prev) => [data.asset!, ...prev]);
-        toast.success("رسانه آپلود شد.");
+        toast.success(t.uploadSuccess);
         return data.asset;
       } finally {
         setIsSaving(false);
@@ -77,13 +86,13 @@ export function useAdminMedia() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/media/${encodeURIComponent(id)}`, { method: "DELETE" });
+        const response = await apiFetch(`/api/admin/media/${encodeURIComponent(id)}`, { method: "DELETE" });
         if (!response.ok) {
-          toast.error("حذف رسانه انجام نشد.");
+          toast.error(t.deleteError);
           return false;
         }
         setAssets((prev) => prev.filter((item) => item.id !== id));
-        toast.success("رسانه حذف شد.");
+        toast.success(t.deleteSuccess);
         return true;
       } finally {
         setIsSaving(false);

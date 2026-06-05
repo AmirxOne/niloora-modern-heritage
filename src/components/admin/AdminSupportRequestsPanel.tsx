@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import { unifiedReturnStatusBadgeVariant } from "@/lib/returns/workflow";
 import {
   SUPPORT_REQUEST_FILTER_KINDS,
   SUPPORT_REQUEST_FILTER_STATUSES,
@@ -100,6 +102,7 @@ function AdminSupportRequestCard({
 
   return (
     <motion.article
+      id={`support-${request.id}`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.4 }}
@@ -120,6 +123,11 @@ function AdminSupportRequestCard({
         </div>
         <div className="flex flex-col items-end gap-2">
           <Badge variant="royal">{kindLabels[request.kind]}</Badge>
+          {request.kind === "return" && request.unifiedStatus ? (
+            <Badge variant={unifiedReturnStatusBadgeVariant(request.unifiedStatus)}>
+              {t.unifiedStatus[request.unifiedStatus]}
+            </Badge>
+          ) : null}
           <Badge variant={statusVariant[request.status]}>{statusLabels[request.status]}</Badge>
         </div>
       </header>
@@ -134,6 +142,11 @@ function AdminSupportRequestCard({
         <p className="text-sm leading-relaxed text-ivory-light whitespace-pre-wrap">
           {request.message}
         </p>
+        {request.kind === "return" && request.orderReturnId ? (
+          <Link href={`/admin/returns/${request.orderReturnId}`} className="admin-order-invoice-link">
+            {t.linkedReturnRecord}
+          </Link>
+        ) : null}
       </div>
 
       <div className="admin-order-card-form">
@@ -172,12 +185,13 @@ function AdminSupportRequestCard({
 
 export function AdminSupportRequestsPanel() {
   const admin = useAdminSupportRequests();
+  const { isAdmin, loadRequests, statusFilter, kindFilter } = admin;
 
   useEffect(() => {
-    if (admin.isAdmin) {
-      void admin.loadRequests(admin.statusFilter, admin.kindFilter);
+    if (isAdmin) {
+      void loadRequests(statusFilter, kindFilter);
     }
-  }, [admin.isAdmin, admin.statusFilter, admin.kindFilter, admin.loadRequests]);
+  }, [isAdmin, loadRequests, statusFilter, kindFilter]);
 
   const sorted = useMemo(
     () =>
@@ -191,6 +205,7 @@ export function AdminSupportRequestsPanel() {
 
   return (
     <div className="admin-orders-panel">
+      <p className="admin-orders-workflow-hint">{t.workflowHint}</p>
       <div className="admin-orders-toolbar flex-wrap">
         <SelectBox
           label={t.filterStatusLabel}

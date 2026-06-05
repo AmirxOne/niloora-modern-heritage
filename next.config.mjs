@@ -3,6 +3,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
+  async redirects() {
+    return [
+      { source: "/login", destination: "/auth", permanent: true },
+      { source: "/register", destination: "/auth", permanent: true },
+    ];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,

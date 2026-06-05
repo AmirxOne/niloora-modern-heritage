@@ -18,14 +18,15 @@ import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminPromoCodesPanel() {
   const admin = useAdminPromoCodes();
+  const { isAdmin, loadPromoCodes } = admin;
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<AdminPromoFormValues>(emptyAdminPromoForm());
   const [importReport, setImportReport] = useState<string[]>([]);
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadPromoCodes();
-  }, [admin.isAdmin, admin.loadPromoCodes]);
+    if (isAdmin) void loadPromoCodes();
+  }, [isAdmin, loadPromoCodes]);
 
   const startCreate = () => {
     setMode("create");

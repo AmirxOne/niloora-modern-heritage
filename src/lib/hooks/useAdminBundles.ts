@@ -1,11 +1,12 @@
 "use client";
 
+import { apiFetch } from "@/lib/api/client-fetch";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { BundleOfferDefinition } from "@/lib/types";
 import { useAuth } from "./useAuth";
 import { useAdminAccess } from "./useAdminAccess";
-import { parseJsonResponse } from "./fetch-utils";
+import { getAuthDeniedMessage, isAuthDenied, parseJsonResponse } from "./fetch-utils";
 
 export function useAdminBundles() {
   const auth = useAuth();
@@ -20,9 +21,9 @@ export function useAdminBundles() {
     if (!isAdmin) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/bundles");
-      if (response.status === 401) {
-        toast.error("دسترسی مدیریت ندارید.");
+      const response = await apiFetch("/api/admin/bundles");
+      if (isAuthDenied(response)) {
+        toast.error(getAuthDeniedMessage(response.status, "admin"));
         setBundles([]);
         return;
       }
@@ -42,7 +43,7 @@ export function useAdminBundles() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch("/api/admin/bundles", {
+        const response = await apiFetch("/api/admin/bundles", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -67,7 +68,7 @@ export function useAdminBundles() {
       if (!isAdmin) return null;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/bundles/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/bundles/${encodeURIComponent(id)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -92,7 +93,7 @@ export function useAdminBundles() {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
-        const response = await fetch(`/api/admin/bundles/${encodeURIComponent(id)}`, {
+        const response = await apiFetch(`/api/admin/bundles/${encodeURIComponent(id)}`, {
           method: "DELETE",
         });
         if (!response.ok) {

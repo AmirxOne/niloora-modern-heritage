@@ -1,10 +1,12 @@
 import type { Prisma } from "@prisma/client";
-import type { AdminOrderReturn, AdminOrderReturnDetail, AdminOrderReturnSummary } from "@/lib/types";
+import { resolveUnifiedReturnStatus } from "@/lib/returns/workflow";
+import type { AdminOrderReturn, AdminOrderReturnDetail, AdminOrderReturnSummary, OrderReturnStatus } from "@/lib/types";
 
 export const adminOrderReturnListSelect = {
   id: true,
   orderId: true,
   userId: true,
+  supportRequestId: true,
   reason: true,
   reasonDetail: true,
   status: true,
@@ -79,9 +81,12 @@ export function toAdminOrderReturnSummaryDto(row: ReturnListRow): AdminOrderRetu
 }
 
 export function toAdminOrderReturnDto(row: ReturnListRow): AdminOrderReturn {
+  const status = row.status as OrderReturnStatus;
   return {
     ...toAdminOrderReturnSummaryDto(row),
     userId: row.userId,
+    supportRequestId: row.supportRequestId,
+    unifiedStatus: resolveUnifiedReturnStatus({ returnStatus: status }),
     reasonDetail: row.reasonDetail,
     internalNotes: row.internalNotes,
     updatedAt: row.updatedAt.toISOString(),

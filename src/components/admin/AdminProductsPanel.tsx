@@ -21,6 +21,7 @@ import { LoadingState } from "@/components/ui/loading/LoadingState";
 
 export function AdminProductsPanel() {
   const admin = useAdminProducts();
+  const { isAdmin, loadAll } = admin;
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [formValues, setFormValues] = useState<AdminProductFormValues>(emptyAdminProductForm());
@@ -33,8 +34,8 @@ export function AdminProductsPanel() {
   const [importReport, setImportReport] = useState<string[]>([]);
 
   useEffect(() => {
-    if (admin.isAdmin) void admin.loadAll();
-  }, [admin.isAdmin, admin.loadAll]);
+    if (isAdmin) void loadAll();
+  }, [isAdmin, loadAll]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
