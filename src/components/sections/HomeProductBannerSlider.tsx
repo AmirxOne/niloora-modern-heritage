@@ -51,7 +51,7 @@ export function HomeProductBannerSlider() {
     return (
       <section className={homeBannerSliderSection} aria-busy="true">
         <div className="site-container pb-3 pt-1 md:pb-5 md:pt-3">
-          <div className="sk relative overflow-hidden rounded-heritage aspect-[4/3] min-h-[280px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[380px]">
+          <div className="sk relative overflow-hidden rounded-heritage aspect-[4/3] min-h-[220px] md:aspect-[21/9] md:min-h-[260px] lg:min-h-[300px]">
             <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10 lg:flex-row lg:items-end lg:justify-between lg:p-12">
               <div className="max-w-xl flex-1 space-y-3">
                 <div className="sk h-6 w-24 rounded-full" />
@@ -86,18 +86,18 @@ export function HomeProductBannerSlider() {
       aria-label={fa.home.bannerEyebrow}
     >
       <div className="site-container pb-3 pt-1 md:pb-5 md:pt-3">
-        <header className="mb-4 text-center md:mb-6">
+        <header className="mb-3 text-center md:mb-4">
           <p className="heritage-eyebrow mx-auto">{fa.home.bannerEyebrow}</p>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-ivory md:text-3xl lg:text-4xl">
+          <h2 className="mt-2 font-display text-xl font-semibold text-ivory md:text-2xl lg:text-[1.65rem]">
             {fa.home.bannerTitle}
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-silver md:text-base">
+          <p className="mx-auto mt-2 max-w-2xl text-xs leading-relaxed text-silver md:text-sm">
             {fa.home.bannerSubtitle}
           </p>
         </header>
 
         <div className="relative overflow-hidden rounded-heritage border border-gold/15 shadow-luxury">
-          <div className="relative aspect-[4/3] min-h-[280px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[380px]">
+          <div className="relative aspect-[4/3] min-h-[220px] md:aspect-[21/9] md:min-h-[260px] lg:min-h-[300px]">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={active.id}
@@ -126,8 +126,8 @@ export function HomeProductBannerSlider() {
 
                 <div
                   className={cn(
-                    "absolute inset-0 flex flex-col justify-end overflow-hidden p-6 md:gap-8 md:p-10 lg:flex-row lg:items-end lg:justify-between lg:p-12",
-                    slides.length > 1 ? "pb-12 md:pb-16" : ""
+                    "absolute inset-0 flex flex-col justify-end overflow-hidden p-5 md:gap-6 md:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-9",
+                    slides.length > 1 ? "pb-10 md:pb-14" : ""
                   )}
                 >
                   <div className="min-w-0 max-w-xl flex-1 md:pb-0 lg:pb-1">
@@ -147,7 +147,7 @@ export function HomeProductBannerSlider() {
                     <p className="text-xs font-medium tracking-wide text-gold-light/90">
                       {active.collection ?? active.namePersian}
                     </p>
-                    <h3 className="mt-1 font-display text-2xl font-semibold leading-tight text-white md:text-3xl lg:text-4xl">
+                    <h3 className="mt-1 font-display text-xl font-semibold leading-tight text-white md:text-2xl lg:text-[1.65rem]">
                       {active.name}
                     </h3>
                     <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-parchment/90 md:line-clamp-3 lg:hidden">

@@ -15,7 +15,7 @@ export const fa = {
     trustCheckoutHint: "سبد شفاف تا ثبت نهایی سفارش",
     heroAssistLine:
       "تمرکز ما فروش اثر دست‌ساز با قیمت شفاف است — از انتخاب در گالری تا هماهنگی تحویل در کنار شما می‌مانیم.",
-    heroShopPrimary: "خرید از گالری آماده",
+    heroShopPrimary: "رفتن به گالری",
     quickAddToCart: "افزودن به سبد",
     quickAddSoldOut: "ناموجود در ویترین",
     productCheckoutHint:
@@ -130,6 +130,23 @@ export const fa = {
     heroMetric1: "انگشتر اختصاصی",
     heroMetric2: "سفارشی‌سازی",
     heroMetric3: "برآورد شفاف",
+    heroShowcaseEyebrow: "زیبایی ماندگار، منحصراً برای شما",
+    heroShowcaseTitle: "ساخته‌شده برای تحسین",
+    heroShowcaseLead:
+      "طرح‌هایی ظریف که لحظات ارزشمند زندگی را با درخششی بی‌همتا جشن می‌گیرند.",
+    heroGlamourTitle1: "بیانی",
+    heroGlamourTitle2: "ظریف شما",
+    heroExplore: "کاوش مجموعه",
+    heroWatchVideo: "تماشای ویدیو",
+    heroTrustCertTitle: "گواهی اصالت",
+    heroTrustCertDesc: "هر قطعه با استاندارد کارگاه و ضمانت اصالت عرضه می‌شود.",
+    heroGalleryUp: "محصول قبلی",
+    heroGalleryDown: "محصول بعدی",
+    heroShopNow: "رفتن به گالری",
+    heroGalleryPrev: "اسلاید قبلی",
+    heroGalleryNext: "اسلاید بعدی",
+    heroGallerySlide: (current: number) =>
+      current.toLocaleString("fa-IR", { minimumIntegerDigits: 2 }),
     designRing: "شروع سفارشی‌سازی",
     exploreCollection: "ورود به گالری",
     collectionsEyebrow: "مجموعه‌های منتخب",

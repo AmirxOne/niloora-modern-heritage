@@ -5,8 +5,6 @@ import { getPublicSiteSettings } from "@/lib/server/site-settings/site-settings"
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { StoreProvider } from "@/lib/store/StoreProvider";
 import { AppProvider } from "@/lib/context/AppContext";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { ConditionalLayoutChrome } from "@/components/layout/ConditionalLayoutChrome";
 import { AppToaster } from "@/components/ui/AppToaster";
 import { PersianDigitsEnforcer } from "@/components/providers/PersianDigitsEnforcer";

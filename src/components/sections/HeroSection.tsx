@@ -1,47 +1,68 @@
 "use client";
 
+import { useCallback, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
-import { Button } from "@/components/ui/Button";
-import { SITE_IMAGE_1 } from "@/lib/images";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { A11y } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
+import { BadgeCheck, ChevronDown } from "@/components/icons";
+import { SITE_IMAGE_1, SITE_IMAGE_2 } from "@/lib/images";
 import { fa } from "@/lib/i18n/fa";
 import { useAbExperiment } from "@/lib/hooks/useAbExperiment";
 import { trackAbEvent } from "@/lib/ab/tracker";
+import { useHomeDataContext } from "@/lib/context/HomeDataContext";
+import { Button } from "@/components/ui/Button";
+import { ICON_VARIANT, iconSizes } from "@/lib/icons";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/lib/types";
+import "swiper/css";
 
-const stats = [
-  { value: "۹۲۵", label: fa.home.heroMetric1 },
-  { value: "۱۰۰٪", label: fa.home.heroMetric2 },
-  { value: "تومان", label: fa.home.heroMetric3 },
-];
-
-const ease = [0.22, 1, 0.36, 1] as const;
-
-const reveal = {
-  hidden: { opacity: 0, y: 32 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, delay: 0.12 + i * 0.09, ease },
-  }),
+type HeroSlide = {
+  id: string;
+  name: string;
+  image: string;
 };
 
+const FALLBACK_SLIDES: HeroSlide[] = [
+  { id: "hero-fallback-1", name: fa.brand.name, image: SITE_IMAGE_1 },
+  { id: "hero-fallback-2", name: fa.brand.name, image: SITE_IMAGE_2 },
+  { id: "hero-fallback-3", name: fa.brand.name, image: SITE_IMAGE_1 },
+  { id: "hero-fallback-4", name: fa.brand.name, image: SITE_IMAGE_2 },
+  { id: "hero-fallback-5", name: fa.brand.name, image: SITE_IMAGE_2 },
+];
+
+function toHeroSlides(products: Product[]): HeroSlide[] {
+  return products.map((product) => ({
+    id: product.id,
+    name: product.namePersian?.trim() || product.name,
+    image: product.image,
+  }));
+}
+
+function slideHref(id: string) {
+  return id.startsWith("hero-fallback-") ? "/shop" : `/product/${id}`;
+}
+
 export function HeroSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-  const visualY = useTransform(scrollYProgress, [0, 1], [0, 60]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, 30]);
+  const { sliders, bestsellers } = useHomeDataContext();
+  const swiperRef = useRef<SwiperType | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [navState, setNavState] = useState({ isBeginning: true, isEnd: false });
   const ctaExperiment = useAbExperiment("hero_cta_v1");
+
   const ctaPrimaryHref = ctaExperiment.variantId === "customize_first" ? "/customize" : "/shop";
   const ctaPrimaryLabel =
-    ctaExperiment.variantId === "customize_first" ? fa.home.designRing : fa.commerce.heroShopPrimary;
-  const ctaSecondaryHref = ctaExperiment.variantId === "customize_first" ? "/shop" : "/customize";
-  const ctaSecondaryLabel =
-    ctaExperiment.variantId === "customize_first" ? fa.commerce.heroShopPrimary : fa.home.designRing;
+    ctaExperiment.variantId === "customize_first" ? fa.home.designRing : fa.home.heroExplore;
+
+  const slides = useMemo(() => {
+    const source = sliders.length > 0 ? sliders : bestsellers.length > 0 ? bestsellers : [];
+    if (source.length === 0) return FALLBACK_SLIDES;
+    return toHeroSlides(source).slice(0, 12);
+  }, [sliders, bestsellers]);
+
+  const activeSlide = slides[activeIndex] ?? slides[0];
+  const slideCount = slides.length;
 
   const trackCtaConversion = (slot: "primary" | "secondary") => {
     void trackAbEvent({
@@ -54,139 +75,157 @@ export function HeroSection() {
     });
   };
 
+  const syncNavState = useCallback((swiper: SwiperType) => {
+    setActiveIndex(swiper.realIndex);
+    setNavState({ isBeginning: swiper.isBeginning, isEnd: swiper.isEnd });
+  }, []);
+
+  const go = useCallback((dir: -1 | 1) => {
+    if (dir === -1) swiperRef.current?.slidePrev();
+    else swiperRef.current?.slideNext();
+  }, []);
+
   return (
-    <section ref={sectionRef} className="heritage-hero" aria-label={fa.home.heroEyebrow}>
-      <div className="hero-fade-bottom" aria-hidden />
-
-      <motion.div
-        className="pointer-events-none absolute -start-32 top-0 h-64 w-64 rounded-full bg-gold/10 blur-[100px] md:h-80 md:w-80"
-        animate={{ opacity: [0.4, 0.65, 0.4] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        aria-hidden
-      />
-      <motion.div
-        className="pointer-events-none absolute -end-24 bottom-0 h-56 w-56 rounded-full bg-turquoise/10 blur-[90px] md:h-64 md:w-64"
-        animate={{ opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        aria-hidden
-      />
-
-      <div className="site-container relative z-10 pb-4 pt-0 md:pb-6">
-        <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-10 lg:items-stretch xl:gap-12">
-          <motion.div style={{ y: textY }} className="order-2 min-w-0 text-center lg:order-1 lg:text-start">
-            <motion.div custom={0} variants={reveal} initial="hidden" animate="visible">
-              <span className="hero-kicker mx-auto lg:mx-0">
-                <span className="hero-kicker-dot" />
-                {fa.home.heroEyebrow}
+    <section className="home-hero" aria-label={fa.home.heroGlamourTitle1}>
+      <div className="home-hero-layout">
+        <div className="home-hero-inner" dir="rtl">
+          <div className="home-hero-copy">
+            <h1 className="home-hero-heading">
+              <span className="home-hero-heading-line">{fa.home.heroGlamourTitle1}</span>
+              <span className="home-hero-heading-line home-hero-heading-line--accent">
+                {fa.home.heroGlamourTitle2}
               </span>
-            </motion.div>
+            </h1>
 
-            <motion.div custom={1} variants={reveal} initial="hidden" animate="visible">
-              <motion.div
-                className="hero-brand-lockup"
-                aria-label={`${fa.home.heroTitle1} ${fa.home.heroTitle3Lead} ${fa.home.heroTitle3Accent}`}
-              >
-                <h1 className="hero-headline">
-                  <span className="hero-headline-primary">
-                    <span className="hero-headline-text">{fa.home.heroTitle1}</span>
-                  </span>
-                  <span className="hero-headline-closing">
-                    <span className="hero-headline-closing-prefix">{fa.home.heroTitle3Lead}</span>
-                    <span className="hero-headline-closing-accent">{fa.home.heroTitle3Accent}</span>
-                  </span>
-                </h1>
-              </motion.div>
-            </motion.div>
+            <p className="home-hero-lead">{fa.home.heroShowcaseLead}</p>
 
-            <motion.p
-              custom={3}
-              variants={reveal}
-              initial="hidden"
-              animate="visible"
-              className="hero-lead mx-auto lg:mx-0"
-            >
-              {fa.home.heroSubtitle}
-            </motion.p>
-
-            <motion.div
-              custom={4}
-              variants={reveal}
-              initial="hidden"
-              animate="visible"
-              className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start"
-            >
-              <Link href={ctaPrimaryHref} className="w-full sm:w-auto">
+            <div className="home-hero-cta-row">
+              <Link href={ctaPrimaryHref} className="home-hero-cta-link">
                 <Button
-                  size="lg"
-                  className="w-full shadow-luxury-gold sm:min-w-[11.5rem]"
+                  size="md"
+                  className="w-full min-w-[8.5rem] shadow-luxury-gold sm:w-auto"
                   onClick={() => trackCtaConversion("primary")}
                 >
                   {ctaPrimaryLabel}
                 </Button>
               </Link>
-              <Link href={ctaSecondaryHref} className="w-full sm:w-auto">
+              <Link href="/about" className="home-hero-cta-link">
                 <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:min-w-[10rem]"
+                  variant="secondary"
+                  size="md"
+                  className="home-hero-cta-video w-full sm:w-auto"
                   onClick={() => trackCtaConversion("secondary")}
                 >
-                  {ctaSecondaryLabel}
+                  <span className="home-hero-play-icon" aria-hidden />
+                  {fa.home.heroWatchVideo}
                 </Button>
               </Link>
-            </motion.div>
+            </div>
 
-            <motion.div
-              custom={5}
-              variants={reveal}
-              initial="hidden"
-              animate="visible"
-              className="mt-6 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
-            >
-              {stats.map((s) => (
-                <div key={s.label} className="hero-metric-pill min-w-[5.5rem] flex-1 sm:flex-none">
-                  <span className="font-display text-base font-semibold text-gold-dark">{s.value}</span>
-                  <span className="mt-0.5 text-[10px] text-silver">{s.label}</span>
-                </div>
-              ))}
-            </motion.div>
-
-            <motion.p
-              custom={6}
-              variants={reveal}
-              initial="hidden"
-              animate="visible"
-              className="hero-commerce-assist mx-auto mt-6 max-w-xl text-center text-xs leading-relaxed text-silver lg:mx-0 lg:text-start"
-            >
-              {fa.commerce.heroAssistLine}
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            style={{ y: visualY }}
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.1, ease }}
-            className="hero-visual order-1 min-w-0 w-full lg:order-2"
-          >
-            {/* قاب اصلی — بدون لایه‌های شلوغ روی عکس */}
-            <div className="hero-visual-frame">
-              <div className="relative w-full min-w-0 overflow-hidden rounded-heritage bg-parchment/40 shadow-hojreh ring-1 ring-gold/10 aspect-[4/5] sm:aspect-[5/6] lg:aspect-auto lg:h-[min(56vh,480px)] lg:min-h-[300px]">
-                <Image
-                  src={SITE_IMAGE_1}
-                  alt={`انگشتر دست‌ساز ${fa.brand.name}`}
-                  fill
-                  className="object-cover object-center"
-                  priority
-                  sizes="(max-width: 1024px) 92vw, (max-width: 1280px) 48vw, 560px"
-                />
-                <div
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-950/25 via-transparent to-stone-950/[0.07]"
-                  aria-hidden
-                />
+            <div className="home-hero-trust">
+              <span className="home-hero-trust-icon" aria-hidden>
+                <BadgeCheck size={iconSizes.lg} variant={ICON_VARIANT} />
+              </span>
+              <div className="home-hero-trust-text">
+                <p className="home-hero-trust-title">{fa.home.heroTrustCertTitle}</p>
+                <p className="home-hero-trust-desc">{fa.home.heroTrustCertDesc}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
+
+          <div className="home-hero-visual">
+            <div className="home-hero-feature" aria-hidden={!activeSlide}>
+              {activeSlide ? (
+                <Link href={slideHref(activeSlide.id)} className="home-hero-feature-link">
+                  <Image
+                    key={activeSlide.id}
+                    src={activeSlide.image}
+                    alt={activeSlide.name}
+                    fill
+                    className="home-hero-feature-image"
+                    priority
+                    sizes="(max-width: 1024px) 55vw, 420px"
+                  />
+                </Link>
+              ) : null}
+            </div>
+
+            <div
+              className="home-hero-rail"
+              aria-roledescription="carousel"
+              aria-label={fa.home.heroShowcaseTitle}
+            >
+            {slideCount > 1 ? (
+              <button
+                type="button"
+                className={cn("home-hero-rail-nav", navState.isBeginning && "home-hero-rail-nav--dimmed")}
+                aria-label={fa.home.heroGalleryUp}
+                disabled={navState.isBeginning}
+                onClick={() => go(-1)}
+              >
+                <ChevronDown className="home-hero-rail-nav-icon rotate-180" variant={ICON_VARIANT} aria-hidden />
+              </button>
+            ) : null}
+
+            <div className="home-hero-rail-viewport">
+              <Swiper
+                modules={[A11y]}
+                direction="vertical"
+                slidesPerView={3}
+                spaceBetween={14}
+                slideToClickedSlide
+                watchSlidesProgress
+                className="home-hero-rail-swiper"
+                onSwiper={(swiper) => {
+                  swiperRef.current = swiper;
+                  syncNavState(swiper);
+                }}
+                onSlideChange={syncNavState}
+                onReachBeginning={syncNavState}
+                onReachEnd={syncNavState}
+                onFromEdge={syncNavState}
+                onResize={syncNavState}
+              >
+                {slides.map((item, index) => (
+                  <SwiperSlide key={item.id} className="home-hero-rail-slide">
+                    <Link
+                      href={slideHref(item.id)}
+                      className={cn(
+                        "home-hero-rail-card",
+                        index === activeIndex && "home-hero-rail-card--active"
+                      )}
+                      aria-label={item.name}
+                      aria-current={index === activeIndex ? "true" : undefined}
+                    >
+                      <span className="home-hero-rail-card-media">
+                        <Image
+                          src={item.image}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="120px"
+                        />
+                      </span>
+                      <span className="home-hero-rail-card-label">{item.name}</span>
+                    </Link>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+
+            {slideCount > 1 ? (
+              <button
+                type="button"
+                className={cn("home-hero-rail-nav", navState.isEnd && "home-hero-rail-nav--dimmed")}
+                aria-label={fa.home.heroGalleryDown}
+                disabled={navState.isEnd}
+                onClick={() => go(1)}
+              >
+                <ChevronDown className="home-hero-rail-nav-icon" variant={ICON_VARIANT} aria-hidden />
+              </button>
+            ) : null}
+            </div>
+          </div>
         </div>
       </div>
     </section>

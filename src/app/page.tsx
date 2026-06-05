@@ -27,15 +27,19 @@ export default function HomePage() {
   return (
     <HomeDataProvider>
       <HeroSection />
-      <SalesTrustStrip variant="dense" />
-      <HomeProductBannerSlider />
-      <HomePersonalizedRecommendations />
-      <FeaturedCollections />
-      <BestSellers />
-      <CustomizerCTA />
-      <BrandStory />
-      <Testimonials />
-      <InstagramGallery />
+      <div className="site-shell min-h-0">
+        <main className="home-page">
+          <SalesTrustStrip variant="dense" />
+          <HomeProductBannerSlider />
+          <HomePersonalizedRecommendations />
+          <FeaturedCollections />
+          <BestSellers />
+          <CustomizerCTA />
+          <BrandStory />
+          <Testimonials />
+          <InstagramGallery />
+        </main>
+      </div>
     </HomeDataProvider>
   );
 }

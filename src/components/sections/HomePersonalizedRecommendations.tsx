@@ -42,14 +42,14 @@ export function HomePersonalizedRecommendations() {
             {personalized.map((product, i) => (
               <SwiperSlide key={product.id} className={productRailSlide}>
                 <div className={productRailSlideInner}>
-                  <ProductCard product={product} index={i} />
+                  <ProductCard product={product} index={i} compact />
                 </div>
               </SwiperSlide>
             ))}
           </ProductSwiper>
         ) : (
           <div className="shop-product-grid">
-            <ProductCard product={personalized[0]} index={0} />
+            <ProductCard product={personalized[0]} index={0} compact />
           </div>
         )}
 

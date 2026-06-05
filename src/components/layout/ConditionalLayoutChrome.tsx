@@ -19,8 +19,28 @@ export function ConditionalLayoutChrome({
   const normalizedPath = pathname ? stripLocalePrefix(pathname).path : "/";
   const isAuthPage = AUTH_ROUTES.has(normalizedPath);
 
+  const isHome = normalizedPath === "/";
+
   if (isAuthPage) {
     return <main className="h-[100dvh] overflow-hidden">{children}</main>;
+  }
+
+  if (isHome) {
+    return (
+      <>
+        <Suspense fallback={null}>
+          <LastPathTracker />
+        </Suspense>
+        <Header />
+        <div className="pb-[var(--mobile-nav-height-safe)] pt-[var(--header-height)] lg:pb-0">
+          {children}
+        </div>
+        <div className="hidden lg:block">
+          <Footer />
+        </div>
+        <MobileBottomNav />
+      </>
+    );
   }
 
   return (

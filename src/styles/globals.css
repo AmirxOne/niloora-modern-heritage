@@ -851,6 +851,96 @@
     @apply heritage-section bg-gradient-to-b from-bazaar-mist/70 via-parchment/55 to-matte/90;
   }
 
+  /* ——— صفحه اصلی — چیدمان فشرده‌تر ——— */
+
+  .home-page {
+    overflow-x: hidden;
+  }
+
+  .home-page .heritage-section,
+  .home-page .heritage-section-alt,
+  .home-page .customizer-cta-section {
+    @apply py-8 md:py-11;
+  }
+
+  .home-page .home-hero {
+    @apply py-0;
+  }
+
+  .home-page .page-header {
+    @apply mb-5 border-b border-gold/10 pb-3 md:mb-6;
+  }
+
+  .home-page .page-header-title {
+    @apply text-xl md:text-2xl lg:text-[1.65rem];
+  }
+
+  .home-page .page-header-subtitle {
+    @apply max-w-xl text-xs md:text-sm;
+  }
+
+  .home-page .product-rail-wrap {
+    @apply px-8 md:px-10;
+  }
+
+  .home-page .product-rail-nav-btn {
+    @apply h-9 w-9 md:h-10 md:w-10;
+  }
+
+  .home-page .product-rail-nav-btn svg {
+    @apply h-4 w-4 md:h-[1.1rem] md:w-[1.1rem];
+  }
+
+  .home-page .shop-product-card {
+    padding: 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .home-page .shop-product-card-title {
+    font-size: clamp(0.82rem, 0.76rem + 0.18vw, 0.94rem);
+  }
+
+  .home-page .shop-product-card-price-main,
+  .home-page .shop-product-card-price-amount {
+    font-size: 0.92rem;
+  }
+
+  .home-page .shop-product-card-price-currency {
+    font-size: 0.62rem;
+  }
+
+  .home-page .shop-product-card-attribute-value {
+    font-size: 0.68rem;
+  }
+
+  .home-page .shop-product-card-body {
+    gap: 0.45rem;
+  }
+
+  .home-page .customizer-cta-panel {
+    @apply p-5 md:p-7 lg:p-8;
+  }
+
+  .home-page .customizer-cta-title {
+    @apply text-2xl md:text-3xl lg:text-[2rem];
+  }
+
+  .home-page .customizer-cta-subtitle {
+    @apply mt-3 text-xs md:mt-4 md:text-sm;
+  }
+
+  .home-page .customizer-cta-feature {
+    @apply min-h-0 gap-2.5 p-3.5 lg:gap-3 lg:p-3.5;
+  }
+
+  .home-page .customizer-cta-feature-icon {
+    @apply h-9 w-9;
+  }
+
+  .home-page .customizer-cta-feature-text {
+    @apply text-xs lg:text-sm;
+  }
+
   /* ——— صفحه اصلی — غنی‌سازی ——— */
 
   .home-promo-strip {
@@ -996,6 +1086,208 @@
 
   .customizer-cta-feature-text {
     @apply text-sm leading-snug text-ivory lg:order-3 lg:min-w-0 lg:flex-1;
+  }
+
+  /* ——— هیرو صفحه اصلی — Glamoura-style (RTL) ——— */
+
+  .home-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    max-width: none;
+    background: #faf8f5;
+    border-bottom: 1px solid #ece8e2;
+  }
+
+  .home-hero-layout {
+    @apply relative z-10 mx-auto flex w-full max-w-site items-center px-5 py-10 md:px-8 md:py-12 lg:px-12 lg:py-14 xl:px-16;
+    min-height: clamp(520px, 62vh, 680px);
+  }
+
+  .home-hero-inner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero-inner {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(2rem, 3vw, 3.5rem);
+      min-height: clamp(420px, 52vh, 560px);
+    }
+  }
+
+  .home-hero-visual {
+    @apply flex w-full flex-col items-center gap-6;
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero-visual {
+      @apply w-auto shrink-0 flex-row items-center;
+      gap: clamp(1.5rem, 3vw, 3rem);
+    }
+  }
+
+  .home-hero-copy {
+    @apply flex w-full flex-col text-start;
+    max-width: 30rem;
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero-copy {
+      width: min(30rem, 28vw);
+      flex-shrink: 0;
+    }
+  }
+
+  .home-hero-heading {
+    @apply font-display font-semibold leading-[1.08] text-ivory;
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+  }
+
+  .home-hero-heading-line {
+    @apply block;
+  }
+
+  .home-hero-heading-line--accent {
+    @apply text-ivory;
+  }
+
+  .home-hero-lead {
+    @apply mt-4 max-w-md text-sm leading-[1.85] text-silver md:mt-5 md:text-[0.9375rem];
+  }
+
+  .home-hero-cta-row {
+    @apply mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:mt-8;
+  }
+
+  .home-hero-cta-link {
+    @apply inline-flex w-full sm:w-auto;
+  }
+
+  .home-hero-cta-video {
+    @apply gap-2.5 border-[#ebe6df] bg-[#f5f2ec] text-gold-dark hover:border-gold/35 hover:bg-[#f0ebe3] hover:text-gold-dark;
+  }
+
+  .home-hero-play-icon {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-inline-start: 8px solid currentColor;
+    flex-shrink: 0;
+  }
+
+  .home-hero-trust {
+    @apply mt-8 flex items-start gap-3 border-t border-gold/10 pt-6 md:mt-10;
+  }
+
+  .home-hero-trust-icon {
+    @apply inline-flex shrink-0 text-gold;
+  }
+
+  .home-hero-trust-title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .home-hero-trust-desc {
+    @apply mt-1 max-w-xs text-xs leading-relaxed text-silver;
+  }
+
+  .home-hero-feature {
+    @apply relative flex shrink-0 items-center justify-center;
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero-feature {
+      z-index: 2;
+    }
+  }
+
+  .home-hero-feature-link {
+    @apply relative block aspect-square overflow-hidden rounded-[1.25rem] bg-white shadow-[0_20px_44px_-28px_rgba(44,42,41,0.18)];
+    width: min(72vw, 22rem);
+  }
+
+  .home-hero-feature-image {
+    @apply object-cover;
+  }
+
+  .home-hero-rail {
+    --hero-rail-thumb: 5.25rem;
+    --hero-rail-card-inner-gap: 0.5rem;
+    --hero-rail-card-pad: 0.625rem;
+    --hero-rail-label-h: 1.125rem;
+    --hero-rail-card-gap: 0.875rem;
+    --hero-rail-card-h: calc(
+      var(--hero-rail-card-pad) * 2 + var(--hero-rail-thumb) + var(--hero-rail-card-inner-gap) +
+        var(--hero-rail-label-h)
+    );
+    @apply flex flex-col items-center gap-3;
+    width: min(100%, 8.75rem);
+  }
+
+  .home-hero-rail-viewport {
+    @apply relative w-full overflow-hidden;
+    height: calc(var(--hero-rail-card-h) * 3 + var(--hero-rail-card-gap) * 2);
+  }
+
+  .home-hero-rail-swiper {
+    @apply h-full w-full !overflow-hidden;
+  }
+
+  .home-hero-rail-swiper .swiper-wrapper {
+    @apply items-stretch;
+  }
+
+  .home-hero-rail-slide {
+    height: var(--hero-rail-card-h) !important;
+  }
+
+  .home-hero-rail-card {
+    @apply flex h-full w-full flex-col items-center gap-2 rounded-[1.1rem] border border-transparent bg-[#f5f2ec] p-2.5 transition-[border-color,box-shadow,transform] duration-200;
+  }
+
+  .home-hero-rail-card:hover {
+    @apply border-gold/25 shadow-[0_8px_24px_-16px_rgba(184,134,11,0.35)];
+  }
+
+  .home-hero-rail-card--active {
+    @apply border-gold/55 shadow-[0_10px_28px_-14px_rgba(184,134,11,0.4)];
+  }
+
+  .home-hero-rail-card-media {
+    @apply relative block aspect-square w-full max-w-[var(--hero-rail-thumb)] shrink-0 overflow-hidden rounded-[0.85rem] bg-white;
+  }
+
+  .home-hero-rail-card-label {
+    @apply line-clamp-1 w-full text-center text-[11px] font-medium text-ivory-light;
+  }
+
+  .home-hero-rail-nav {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold/20 bg-white text-ivory-light transition-[color,border-color,opacity,transform] duration-200 hover:border-gold/45 hover:text-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35;
+  }
+
+  .home-hero-rail-nav--dimmed,
+  .home-hero-rail-nav:disabled {
+    @apply cursor-not-allowed border-gold/15 text-silver/70 opacity-75 hover:border-gold/15 hover:text-silver/70;
+  }
+
+  .home-hero-rail-nav-icon {
+    @apply h-4 w-4;
+  }
+
+  @media (max-width: 1023px) {
+    .home-hero-copy {
+      max-width: none;
+    }
   }
 
   .heritage-hero {

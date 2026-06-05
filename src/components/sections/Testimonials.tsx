@@ -15,12 +15,12 @@ export function Testimonials() {
     <section className="heritage-section-alt">
       <div className="site-container">
         <SectionHeading eyebrow={fa.home.testimonialsEyebrow} title={fa.home.testimonialsTitle} />
-        <div className="grid gap-4 md:grid-cols-3 md:gap-5">
+        <div className="grid gap-3 md:grid-cols-3 md:gap-4">
           {isLoading
             ? Array.from({ length: 3 }).map((_, idx) => (
                 <blockquote
                   key={idx}
-                  className="heritage-card flex h-full flex-col p-8"
+                  className="heritage-card flex h-full flex-col p-5 md:p-6"
                   aria-busy="true"
                 >
                   <div className="mb-4 flex gap-1">
@@ -42,7 +42,7 @@ export function Testimonials() {
                   <motion.blockquote
                     whileHover={{ y: -4 }}
                     transition={{ duration: 0.4 }}
-                    className="heritage-card flex h-full flex-col p-8"
+                    className="heritage-card flex h-full flex-col p-5 md:p-6"
                   >
                     <div className="mb-4 flex gap-1">
                       {Array.from({ length: t.rating }).map((_, j) => (

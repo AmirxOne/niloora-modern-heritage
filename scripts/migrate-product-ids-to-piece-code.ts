@@ -17,8 +17,8 @@ function computeTargetId(sourceId: string): string {
   return resolvePieceCode({
     id: sourceId,
     productType: "ring-men",
-    pieceCode: null,
-    sku: null,
+    pieceCode: undefined,
+    sku: undefined,
   });
 }
 

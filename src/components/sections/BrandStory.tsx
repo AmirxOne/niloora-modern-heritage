@@ -31,10 +31,10 @@ export function BrandStory() {
             </div>
           </ScrollReveal>
           <ScrollReveal direction="start" delay={0.2}>
-            <div className="space-y-6 text-silver">
-              <p className="text-lg leading-relaxed">{fa.home.heritageP1}</p>
-              <p className="leading-relaxed">{fa.home.heritageP2}</p>
-              <p className="font-display text-xl text-turquoise-dark">{fa.home.heritageQuote}</p>
+            <div className="space-y-4 text-silver md:space-y-5">
+              <p className="text-base leading-relaxed md:text-[0.95rem]">{fa.home.heritageP1}</p>
+              <p className="text-sm leading-relaxed">{fa.home.heritageP2}</p>
+              <p className="font-display text-lg text-turquoise-dark md:text-xl">{fa.home.heritageQuote}</p>
             </div>
           </ScrollReveal>
         </div>

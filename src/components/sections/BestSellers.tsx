@@ -38,7 +38,7 @@ export function BestSellers() {
 
         {isLoading ? (
           <div className="shop-product-grid" aria-busy="true">
-            {Array.from({ length: 4 }).map((_, idx) => (
+            {Array.from({ length: 5 }).map((_, idx) => (
               <ProductCardSkeleton key={idx} />
             ))}
           </div>
@@ -60,6 +60,7 @@ export function BestSellers() {
                     product={product}
                     index={i}
                     variant="carousel"
+                    compact
                   />
                 </div>
               </SwiperSlide>
@@ -72,6 +73,7 @@ export function BestSellers() {
                 product={products[0]}
                 index={0}
                 variant="carousel"
+                compact
               />
             </div>
           </div>
