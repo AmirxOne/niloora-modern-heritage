@@ -8,16 +8,9 @@ import { zarinpalVerifyPayment } from "@/lib/server/payment/zarinpal";
 import { logRouteError } from "@/lib/server/route-errors";
 import { notifyOrderPlaced } from "@/lib/server/notifications/order-notify";
 import { prisma } from "@/lib/server/prisma";
-import { rewardReferralOnPaidOrder } from "@/lib/server/referral/referral";
-import {
-  consumeGiftCardForOrder,
-  createGiftCard,
-  releaseGiftCardReservation,
-} from "@/lib/server/gift-card/gift-card-service";
-import { rewardLoyaltyOnPaidOrder } from "@/lib/server/loyalty/loyalty";
-import { scheduleOrderMaintenanceReminders } from "@/lib/server/notifications/maintenance-reminders";
+import { releaseGiftCardReservation } from "@/lib/server/gift-card/gift-card-service";
 import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
-import { commitInventoryForPaidOrder } from "@/lib/server/inventory/commit-order-inventory";
+import { finalizePaidOrder } from "@/lib/server/orders/finalize-paid-order";
 
 function redirect(path: string) {
   return NextResponse.redirect(`${getAppBaseUrl()}${path}`);
@@ -129,38 +122,7 @@ export async function GET(request: Request) {
           errorMessage: null,
         },
       });
-      if (payment.order.orderType === "product") {
-        await commitInventoryForPaidOrder(tx, payment.order.items);
-      }
-      await tx.order.update({
-        where: { id: payment.orderId },
-        data: {
-          status: "processing",
-          loyaltyPointsEarned: payment.order.loyaltyPointsEarned ?? 0,
-        },
-      });
-      if (payment.order.giftCardCode && (payment.order.giftCardAppliedAmount ?? 0) > 0) {
-        await consumeGiftCardForOrder({
-          code: payment.order.giftCardCode,
-          orderId: payment.orderId,
-          amount: payment.order.giftCardAppliedAmount ?? 0,
-          tx,
-        });
-      }
-      if (payment.order.orderType === "gift-card" && (payment.order.giftCardPurchaseAmount ?? 0) > 0) {
-        await createGiftCard({
-          amount: payment.order.giftCardPurchaseAmount ?? 0,
-          purchaserUserId: payment.order.userId,
-          orderId: payment.orderId,
-          recipientName: payment.order.giftCardRecipientName ?? null,
-          recipientContact: payment.order.giftCardRecipientContact ?? null,
-          note: "Gift card purchased online",
-          tx,
-        });
-      }
-      await rewardReferralOnPaidOrder(tx, payment.orderId);
-      await rewardLoyaltyOnPaidOrder(tx, payment.orderId);
-      await scheduleOrderMaintenanceReminders(tx, payment.orderId);
+      await finalizePaidOrder(tx, payment.order);
     });
 
     await logPaymentEvent({

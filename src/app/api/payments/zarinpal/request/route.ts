@@ -15,6 +15,8 @@ import {
   zarinpalRequestPayment,
 } from "@/lib/server/payment/zarinpal";
 import { releaseGiftCardReservation } from "@/lib/server/gift-card/gift-card-service";
+import { finalizePaidOrder } from "@/lib/server/orders/finalize-paid-order";
+import { notifyOrderPlaced } from "@/lib/server/notifications/order-notify";
 import { prisma } from "@/lib/server/prisma";
 import type { CartItem, CheckoutPaymentMethod } from "@/lib/types";
 import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
@@ -110,10 +112,20 @@ export async function POST(request: Request) {
         });
         return badRequest(eligibility.message);
       }
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { status: "processing" },
+      const amountRial = tomanToRial(order.total);
+      await prisma.$transaction(async (tx) => {
+        await tx.payment.create({
+          data: {
+            orderId: order.id,
+            gateway: "bnpl",
+            amountRial,
+            status: "paid",
+            verifiedAt: new Date(),
+          },
+        });
+        await finalizePaidOrder(tx, order);
       });
+      notifyOrderPlaced(order.id);
       await logPaymentEvent({
         orderId: order.id,
         level: "info",
