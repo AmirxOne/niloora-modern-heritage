@@ -107,6 +107,20 @@ function isMissingSiteSettingsColumn(error: unknown): boolean {
   return false;
 }
 
+function isDatabaseUnavailable(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === "P1001" || error.code === "ECONNREFUSED";
+  }
+  if (error instanceof Error) {
+    return (
+      error.message.includes("ECONNREFUSED") ||
+      error.message.includes("Can't reach database server") ||
+      error.message.includes("P1001")
+    );
+  }
+  return false;
+}
+
 function defaultSiteSettingsRow(): SiteSettings {
   return {
     ...buildDefaultSiteSettingsRecord(),
@@ -129,6 +143,12 @@ async function ensureSiteSettingsRow(): Promise<SiteSettings> {
       },
     });
   } catch (error) {
+    if (isDatabaseUnavailable(error)) {
+      console.warn(
+        "[site-settings] Database unavailable — using defaults. Check DATABASE_URL and ensure Postgres is running."
+      );
+      return defaultSiteSettingsRow();
+    }
     if (isMissingSiteSettingsTable(error)) {
       console.warn(
         "[site-settings] SiteSettings table missing — using defaults. Run: npx prisma migrate deploy"
@@ -202,6 +222,11 @@ export async function updateSiteSettings(input: UpdateSiteSettingsInput) {
   try {
     await ensureSiteSettingsRow();
   } catch (error) {
+    if (isDatabaseUnavailable(error)) {
+      throw new Error(
+        "اتصال به پایگاه داده برقرار نشد. بررسی کنید PostgreSQL روشن باشد و DATABASE_URL صحیح باشد."
+      );
+    }
     if (isMissingSiteSettingsTable(error)) {
       throw new Error(
         "جدول تنظیمات سایت در پایگاه داده وجود ندارد. دستور npx prisma migrate deploy را اجرا کنید."
