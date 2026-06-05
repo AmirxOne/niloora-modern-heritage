@@ -311,20 +311,32 @@ export async function consumeGiftCardForOrder(input: {
         expiresAt: true,
       },
     });
-    if (!card || !card.active || card.remainingAmount <= 0 || giftCardIsExpired(card.expiresAt)) {
-      return null;
+    if (!card || !card.active || giftCardIsExpired(card.expiresAt)) {
+      throw new GiftCardConsumeError("کارت هدیه معتبر نیست یا موجودی کافی ندارد.");
     }
-    const applyAmount = Math.min(card.remainingAmount, input.amount);
-    if (applyAmount <= 0) return null;
 
-    const nextRemaining = card.remainingAmount - applyAmount;
-    await tx.giftCard.update({
-      where: { id: card.id },
+    const applyAmount = Math.min(card.remainingAmount, input.amount);
+    if (applyAmount <= 0 || applyAmount !== input.amount) {
+      throw new GiftCardConsumeError("موجودی کارت هدیه برای تکمیل سفارش کافی نیست.");
+    }
+
+    const updated = await tx.giftCard.updateMany({
+      where: {
+        id: card.id,
+        active: true,
+        remainingAmount: { gte: applyAmount },
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
       data: {
-        remainingAmount: nextRemaining,
-        active: nextRemaining > 0,
+        remainingAmount: { decrement: applyAmount },
+        active: card.remainingAmount - applyAmount > 0,
       },
     });
+    if (updated.count !== 1) {
+      throw new GiftCardConsumeError("موجودی کارت هدیه برای تکمیل سفارش کافی نیست.");
+    }
+
+    const nextRemaining = card.remainingAmount - applyAmount;
 
     const nextRemaining = card.remainingAmount - applyAmount;
     await tx.giftCardTransaction.create({
