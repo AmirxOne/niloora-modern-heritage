@@ -7,7 +7,7 @@ import { handleRouteError } from "@/lib/server/route-errors";
 import { CartPurchaseError, createOrderFromCart } from "@/lib/server/orders/create-order";
 import { toOrderDto } from "@/lib/server/orders/order-dto";
 import { parseAndValidateShippingPayload } from "@/lib/server/orders/validate-shipping";
-import { isInstallmentMonthOption, validateBnplEligibility } from "@/lib/checkout/bnpl";
+import { isBnplEnabled, isInstallmentMonthOption, validateBnplEligibility } from "@/lib/checkout/bnpl";
 import { logPaymentEvent } from "@/lib/server/payment/log";
 import {
   isZarinpalConfigured,
@@ -41,6 +41,10 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as Body;
     const paymentMethod: CheckoutPaymentMethod =
       payload.paymentMethod === "bnpl" ? "bnpl" : "zarinpal";
+    if (paymentMethod === "bnpl" && !isBnplEnabled()) {
+      // No real BNPL gateway is connected; never auto-mark such orders paid.
+      return badRequest("پرداخت اقساطی هنوز فعال نشده است. به‌زودی در دسترس خواهد بود.");
+    }
     const installmentMonths =
       paymentMethod === "bnpl" && isInstallmentMonthOption(Number(payload.installmentMonths))
         ? Number(payload.installmentMonths)

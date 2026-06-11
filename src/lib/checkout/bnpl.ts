@@ -2,6 +2,16 @@ export const INSTALLMENT_MONTH_OPTIONS = [3, 4, 6] as const;
 export type InstallmentMonthOption = (typeof INSTALLMENT_MONTH_OPTIONS)[number];
 export type CheckoutPaymentMethod = "zarinpal" | "bnpl";
 
+/**
+ * BNPL (installments) has no real lender/gateway wired yet — the request flow
+ * would otherwise mark the order "paid" without collecting money. It stays
+ * disabled until `NEXT_PUBLIC_BNPL_ENABLED=true` is set (also gated server-side),
+ * so the option is hidden in the UI and rejected by the API by default.
+ */
+export function isBnplEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_BNPL_ENABLED === "true";
+}
+
 export function isInstallmentMonthOption(value: number): value is InstallmentMonthOption {
   return INSTALLMENT_MONTH_OPTIONS.includes(value as InstallmentMonthOption);
 }

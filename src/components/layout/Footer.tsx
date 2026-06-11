@@ -134,6 +134,15 @@ export function Footer() {
         {/* ── خط جداکننده ── */}
         <div className="my-10 h-px bg-gradient-to-l from-transparent via-[rgba(184,134,11,0.3)] to-transparent" />
 
+        {site.enamadHtml ? (
+          <div
+            className="mb-8 flex flex-wrap items-center justify-center gap-4"
+            aria-label="نماد اعتماد الکترونیکی"
+            // Admin-controlled official eNamad embed snippet.
+            dangerouslySetInnerHTML={{ __html: site.enamadHtml }}
+          />
+        ) : null}
+
         {/* ── ردیف پایین ── */}
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-[#78716C] sm:flex-row">
           <p>

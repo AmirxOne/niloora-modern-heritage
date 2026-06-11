@@ -1,7 +1,82 @@
-import { absoluteUrl } from "@/lib/seo/site";
+import { absoluteUrl, getSiteUrl } from "@/lib/seo/site";
 import { fa } from "@/lib/i18n/fa";
+import type { SiteSocialLinks } from "@/lib/site-settings/types";
 
 type BreadcrumbItem = { name: string; path: string };
+
+export function buildOrganizationJsonLd(input: {
+  brandName: string;
+  logoUrl: string | null;
+  social: SiteSocialLinks;
+  contactPhone?: string | null;
+}) {
+  const sameAs = Object.values(input.social).filter(
+    (value): value is string => typeof value === "string" && value.startsWith("http")
+  );
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: input.brandName,
+    url: getSiteUrl(),
+    logo: input.logoUrl ? absoluteUrl(input.logoUrl) : undefined,
+    ...(sameAs.length ? { sameAs } : {}),
+    ...(input.contactPhone
+      ? {
+          contactPoint: {
+            "@type": "ContactPoint",
+            telephone: input.contactPhone,
+            contactType: "customer service",
+            areaServed: "IR",
+            availableLanguage: ["fa"],
+          },
+        }
+      : {}),
+  };
+}
+
+export function buildWebSiteJsonLd(input: { brandName: string }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: input.brandName,
+    url: getSiteUrl(),
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${getSiteUrl()}/shop?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+export function buildLocalBusinessJsonLd(input: {
+  brandName: string;
+  logoUrl: string | null;
+  telephone?: string | null;
+  address?: string | null;
+  openingHours?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "JewelryStore",
+    name: input.brandName,
+    url: getSiteUrl(),
+    image: input.logoUrl ? absoluteUrl(input.logoUrl) : undefined,
+    ...(input.telephone ? { telephone: input.telephone } : {}),
+    ...(input.address
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: input.address,
+            addressCountry: "IR",
+          },
+        }
+      : {}),
+    ...(input.openingHours ? { openingHours: input.openingHours } : {}),
+  };
+}
 
 export function buildBreadcrumbJsonLd(items: BreadcrumbItem[]) {
   return {

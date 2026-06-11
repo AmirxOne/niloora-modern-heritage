@@ -3,13 +3,15 @@ import Link from "next/link";
 import { BlogPostCard } from "@/components/blog/BlogPostCard";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { fa } from "@/lib/i18n/fa";
 import { buildPageMetadata } from "@/lib/seo/site";
 import { listPublishedPosts } from "@/lib/server/blog/post-service";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: `${fa.blog.title} | ${fa.brand.name}`,
+  // Brand name is appended by the root title template — keep this bare.
+  title: fa.blog.title,
   description: fa.blog.listDescription,
   path: "/blog",
 });
@@ -22,6 +24,12 @@ export default async function BlogPage() {
       <div className="blog-page pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="blog-page-shell">
+            <Breadcrumb
+              items={[
+                { label: fa.nav.home, href: "/" },
+                { label: fa.blog.title },
+              ]}
+            />
             <PageHeader
               eyebrow={fa.nav.blog}
               title={fa.blog.title}

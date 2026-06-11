@@ -629,6 +629,51 @@
     @apply pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-matte to-transparent;
   }
 
+  .hero-showcase-shell {
+    @apply mx-auto grid w-full max-w-[68rem] grid-cols-1 items-center gap-8;
+  }
+
+  @screen lg {
+    .hero-showcase-shell {
+      min-height: clamp(420px, 52vh, 560px);
+      grid-template-columns: minmax(0, 30rem) 34rem;
+      justify-content: center;
+      column-gap: clamp(2rem, 3vw, 3.5rem);
+    }
+  }
+
+  .hero-showcase-visual {
+    @apply mx-auto flex w-full max-w-[34rem] shrink-0 flex-col items-center gap-6;
+  }
+
+  @screen lg {
+    .hero-showcase-visual {
+      @apply w-[34rem] max-w-none flex-row items-center justify-end gap-[clamp(1.5rem,3vw,3rem)];
+    }
+  }
+
+  .hero-showcase-rail {
+    width: 8.75rem;
+    min-width: 8.75rem;
+  }
+
+  .hero-showcase-rail .swiper:not(.swiper-initialized) .swiper-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hero-rail-card-gap);
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero-showcase-rail .swiper:not(.swiper-initialized) .swiper-slide {
+    height: var(--hero-rail-card-h) !important;
+    flex-shrink: 0;
+  }
+
+  .hero-showcase-rail .swiper:not(.swiper-initialized) .swiper-slide:nth-child(n + 4) {
+    display: none;
+  }
+
   .hero-brand-lockup {
     @apply flex flex-col items-center gap-4 lg:items-start lg:gap-[1.125rem];
   }
@@ -4652,7 +4697,7 @@
   }
 
   .product-gallery-thumb {
-    @apply relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-heritage border-2 border-transparent opacity-70 transition-all hover:opacity-100;
+    @apply relative h-14 w-14 shrink-0 overflow-hidden rounded-heritage border-2 border-transparent opacity-70 transition-all hover:opacity-100 md:h-[4.5rem] md:w-[4.5rem];
     scroll-snap-align: start;
   }
 

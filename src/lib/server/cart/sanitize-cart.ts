@@ -21,6 +21,7 @@ type DbProduct = {
   price: number;
   listPrice: number | null;
   discountPercent: number | null;
+  discountEndsAt: Date | null;
   image: string;
   availability: string;
   stock: number;
@@ -35,6 +36,7 @@ function refreshCatalogLine(item: CartItem, product: DbProduct): CartItem {
     price: product.price,
     listPrice: product.listPrice ?? undefined,
     discountPercent: product.discountPercent ?? undefined,
+    discountEndsAt: product.discountEndsAt ?? undefined,
   });
 
   return {
@@ -89,6 +91,7 @@ export async function sanitizeCartItems(items: CartItem[]): Promise<SanitizeCart
           price: true,
           listPrice: true,
           discountPercent: true,
+          discountEndsAt: true,
           image: true,
           availability: true,
           stock: true,

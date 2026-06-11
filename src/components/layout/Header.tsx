@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/context/AppContext";
@@ -170,10 +169,7 @@ export function Header() {
       ref={headerRef}
       className="header-shell fixed inset-x-0 top-0 z-50 w-full"
     >
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      <div
         className={cn("header-glass", searchOpen && "header-glass--search-open")}
       >
         {hasPromo ? <HeaderPromoStrip banner={banner} /> : null}
@@ -298,7 +294,7 @@ export function Header() {
             </div>
           </div>
         </nav>
-      </motion.div>
+      </div>
     </header>
   );
 }

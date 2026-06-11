@@ -14,3 +14,9 @@ export function toEnglishDigits(input: string): string {
 export function toPersianDigits(input: string): string {
   return input.replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit);
 }
+
+/** User-visible copy: always Persian digits on server and client (avoids hydration drift). */
+export function displayDigits(input: string | number | null | undefined): string {
+  if (input == null) return "";
+  return toPersianDigits(String(input));
+}

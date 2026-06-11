@@ -2,7 +2,8 @@ export { dynamic } from "@/lib/server/route-segment";
 
 import { badRequest, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
-import { searchProductsFuzzy } from "@/lib/catalog/product-catalog";
+import { buildSearchSuggestions, searchProductsFuzzy } from "@/lib/catalog/product-catalog";
+import { findProductByPieceCode, isValidPieceCode, normalizePieceCode } from "@/lib/products/piece-code";
 import { getCatalogProducts } from "@/lib/server/products";
 
 function normalizeQueryForResponse(input: string): string {
@@ -28,10 +29,22 @@ export async function GET(request: Request) {
 
     const catalog = await getCatalogProducts();
 
-    const catalogProducts = searchProductsFuzzy(catalog, query);
+    let catalogProducts = searchProductsFuzzy(catalog, query);
+
+    // SKU / piece-code lookup: if the query is a valid piece code, surface that
+    // exact product first (deduplicated against the fuzzy results).
+    const pieceCodeNeedle = normalizePieceCode(query);
+    if (isValidPieceCode(pieceCodeNeedle)) {
+      const direct = findProductByPieceCode(catalog, pieceCodeNeedle);
+      if (direct) {
+        catalogProducts = [direct, ...catalogProducts.filter((p) => p.id !== direct.id)];
+      }
+    }
+
     return ok({
       query,
       normalizedQuery: normalizeQueryForResponse(query),
+      suggestions: buildSearchSuggestions(catalog, query),
       products: {
         catalog: catalogProducts,
       },

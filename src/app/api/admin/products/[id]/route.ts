@@ -11,6 +11,11 @@ import {
   updateAdminProduct,
 } from "@/lib/server/products/admin-product-service";
 import { writeAdminAuditLog } from "@/lib/server/audit-log";
+import { dispatchBackInStockAlerts } from "@/lib/server/notifications/back-in-stock-dispatch";
+
+function isPurchasable(availability: string, stock: number): boolean {
+  return availability !== "sold" && stock > 0;
+}
 
 export async function GET(
   _request: Request,
@@ -60,6 +65,21 @@ export async function PATCH(
         summary: `update product ${id}`,
         payload: { id, price: product.price, availability: product.availability, stock: product.stock },
       });
+
+      // Auto-fire back-in-stock alerts when the product becomes purchasable again
+      // (was sold/out-of-stock, now available). Failures here must not break the
+      // admin update, so they are swallowed and observed separately.
+      const becameAvailable =
+        !isPurchasable(existing.availability, existing.stock) &&
+        isPurchasable(product.availability, product.stock);
+      if (becameAvailable) {
+        try {
+          await dispatchBackInStockAlerts({ productId: id });
+        } catch (notifyError) {
+          console.error("back-in-stock auto-dispatch failed", notifyError);
+        }
+      }
+
       return ok({ product });
     } catch (error) {
       if (error instanceof Error) {

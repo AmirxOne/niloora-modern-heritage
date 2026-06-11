@@ -5,7 +5,7 @@ import { loadJson, storageKeys } from "../storage";
 interface PromoState {
   appliedCode: string | null;
   appliedPromo: PromoCodeDefinition | null;
-  lastError: "not_found" | "min_order" | "inactive" | null;
+  lastError: "not_found" | "min_order" | "inactive" | "exhausted" | null;
   hydrated: boolean;
 }
 
@@ -40,7 +40,10 @@ const promoSlice = createSlice({
       state.appliedCode = action.payload.code;
       state.lastError = null;
     },
-    setPromoError(state, action: PayloadAction<"not_found" | "min_order" | "inactive" | null>) {
+    setPromoError(
+      state,
+      action: PayloadAction<"not_found" | "min_order" | "inactive" | "exhausted" | null>
+    ) {
       state.lastError = action.payload;
     },
     clearPromoCode(state) {

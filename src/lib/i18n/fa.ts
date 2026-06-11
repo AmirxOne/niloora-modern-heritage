@@ -276,6 +276,7 @@ export const fa = {
     searchApiHint: "جستجو در نام، توضیحات کاتالوگ و مجموعه (هم‌راستا با API گالری)",
     searchNoMatches: "اثری با این عبارت در گالری یافت نشد.",
     searchPreviewTitle: "پیش‌نمایش",
+    searchSuggestionsTitle: "پیشنهادها",
     searchPreviewEmpty: "نتیجه‌ای یافت نشد — Enter برای مشاهدهٔ همهٔ نتایج",
     searchViewAll: (n: number) => `مشاهدهٔ همه (${n.toLocaleString("fa-IR")} اثر)`,
     pageResults: (from: number, to: number, total: number) =>
@@ -341,6 +342,9 @@ export const fa = {
   },
   productStatus: {
     deliveryTitle: "زمان تحویل تقریبی",
+    shippingTitle: "هزینه ارسال",
+    shippingFromHint: (amount: string) => `از ${amount} تومان · بسته به استان مقصد`,
+    shippingCalcNote: "هزینه دقیق ارسال در مرحله تسویه بر اساس استان شما محاسبه می‌شود.",
     waitNote:
       "این اثر در لحظه در ویترین فیزیکی موجود نیست؛ پس از ثبت سفارش، ساخت یا بازسازی در کارگاه آغاز می‌شود.",
     ready: {
@@ -446,6 +450,9 @@ export const fa = {
       `تصویر ${n.toLocaleString("fa-IR")} از ${total.toLocaleString("fa-IR")}`,
     galleryDotsAria: "انتخاب تصویر",
     galleryThumbsAria: "بندانگشتی تصاویر",
+    galleryZoomOpen: "بزرگ‌نمایی تصویر",
+    galleryZoomClose: "بستن بزرگ‌نمایی",
+    galleryZoomHint: "برای زوم کلیک کنید",
     breadcrumbAria: "مسیر صفحه",
     related: "آثار مرتبط",
     smartRecommendations: {
@@ -521,6 +528,10 @@ export const fa = {
     commentMediaImageLabel: "لینک تصویر (اختیاری)",
     commentMediaVideoLabel: "لینک ویدیو (اختیاری)",
     commentMediaPlaceholder: "https://...",
+    commentMediaUploadLabel: "یا آپلود تصویر از دستگاه",
+    commentMediaUploading: "در حال آپلود…",
+    commentMediaUploadError: "آپلود تصویر انجام نشد.",
+    commentMediaRemove: "حذف تصویر",
     commentRating: "امتیاز",
     commentRatingBuildQuality: "کیفیت ساخت",
     commentRatingBeauty: "زیبایی",
@@ -1184,6 +1195,8 @@ export const fa = {
       seoTitle: "عنوان پیش‌فرض",
       seoDescription: "توضیح متا",
       seoOgImage: "تصویر Open Graph",
+      trustSection: "نماد اعتماد",
+      enamadHtml: "کد نماد اعتماد الکترونیکی (eNamad) — کد رسمی را اینجا قرار دهید",
       servicesSection: "سرویس‌ها",
       paymentEnabled: "درگاه پرداخت فعال",
       paymentProvider: "ارائه‌دهنده",
@@ -1585,6 +1598,8 @@ export const fa = {
       typeFixed: "مبلغ ثابت (تومان)",
       value: "مقدار",
       minSubtotal: "حداقل مبلغ سبد (تومان)",
+      maxUses: "سقف دفعات استفاده (خالی = نامحدود)",
+      usedCount: "دفعات استفاده‌شده",
       aliases: "نام‌های مستعار (با ویرگول)",
       aliasesHint: "مثلاً FUROOH20 برای BAHAKAHI20",
       replacesSiteWide: "جایگزین بهاکاهی سراسری گالری",
@@ -2083,6 +2098,7 @@ export const fa = {
     promoApplied: (code: string) => `کد ${code} اعمال شد`,
     promoErrorNotFound: "کد بهاکاهی یافت نشد",
     promoErrorMinOrder: "حداقل مبلغ سبد برای این کد رعایت نشده است",
+    promoErrorExhausted: "ظرفیت استفاده از این کد به پایان رسیده است",
     promoHint: "کد بهاکاهی را وارد کنید — اعتبار از پایگاه داده بررسی می‌شود",
   },
   giftCards: {

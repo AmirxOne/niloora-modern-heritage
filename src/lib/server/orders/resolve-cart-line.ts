@@ -16,6 +16,7 @@ export type DbProduct = {
   price: number;
   listPrice?: number | null;
   discountPercent?: number | null;
+  discountEndsAt?: Date | string | null;
   image: string;
   availability: Product["availability"];
 };
@@ -229,6 +230,7 @@ export function resolveCatalogCartLine(
     price: product.price,
     listPrice: product.listPrice ?? undefined,
     discountPercent: product.discountPercent ?? undefined,
+    discountEndsAt: product.discountEndsAt ?? undefined,
   });
   const ringPurchaseCustomization = applyRingCustomizationOnCatalogLine(item, product, lookup);
   const delta = ringPurchaseCustomization?.totalCustomizationDelta ?? 0;

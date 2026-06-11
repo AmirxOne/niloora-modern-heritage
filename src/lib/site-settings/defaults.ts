@@ -26,6 +26,7 @@ export function buildDefaultSiteSettingsRecord() {
     seoDescription:
       "گالری انگشترهای دست‌ساز ابراهیم آذری — سفارشی‌سازی رکاب و نگین، قلم‌کاری و خوشنویسی با استاندارد کارگاه.",
     seoOgImageUrl: DEFAULT_OG_IMAGE_PATH,
+    enamadHtml: null as string | null,
     paymentGatewayEnabled: true,
     paymentProvider: "zarinpal",
     zarinpalMerchantId: null as string | null,

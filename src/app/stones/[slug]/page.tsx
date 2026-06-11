@@ -3,8 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { fa } from "@/lib/i18n/fa";
 import { getStoneGuideBySlugForCatalog } from "@/lib/stones";
-import { buildPageMetadata } from "@/lib/seo/site";
+import { absoluteUrl, buildPageMetadata } from "@/lib/seo/site";
 import { getCatalogProducts } from "@/lib/server/products";
 
 type PageProps = {
@@ -38,11 +40,32 @@ export default async function StoneDetailPage({ params }: PageProps) {
   const stone = getStoneGuideBySlugForCatalog(slug, catalog);
   if (!stone) notFound();
 
+  const stoneJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: stone.name,
+    description: stone.shortTagline,
+    image: stone.image ? absoluteUrl(stone.image) : undefined,
+    mainEntityOfPage: { "@type": "WebPage", "@id": absoluteUrl(`/stones/${slug}`) },
+    publisher: { "@type": "Organization", name: fa.brand.name },
+  };
+
   return (
     <PageTransition>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(stoneJsonLd) }}
+      />
       <div className="stone-detail-page min-h-screen pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="stone-detail-shell">
+            <Breadcrumb
+              items={[
+                { label: fa.nav.home, href: "/" },
+                { label: "دانشنامه سنگ‌ها", href: "/stones" },
+                { label: stone.name },
+              ]}
+            />
             <header className="stone-detail-head">
               <div className="stone-detail-image-wrap">
                 <Image

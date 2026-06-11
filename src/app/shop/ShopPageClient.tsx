@@ -17,6 +17,7 @@ import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { ShopFiltersPanel, ShopFiltersDrawer } from "@/components/shop/ShopFilters";
 import { PreOwnedShopStrip } from "@/components/pre-owned/PreOwnedShopStrip";
 import { Pagination } from "@/components/ui/Pagination";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useCatalogProducts } from "@/lib/hooks/useCatalogProducts";
 import type { Product } from "@/lib/types";
@@ -278,6 +279,12 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
     <PageTransition>
       <motion.div className="shop-page">
         <motion.div className="site-container">
+          <Breadcrumb
+            items={[
+              { label: fa.nav.home, href: "/" },
+              { label: fa.nav.shop },
+            ]}
+          />
           {!isSearchMode ? <PreOwnedShopStrip /> : null}
 
           {isSearchMode && isLoading ? (

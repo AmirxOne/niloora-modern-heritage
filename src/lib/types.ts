@@ -240,6 +240,9 @@ export interface PromoCodeDefinition {
   value: number;
   minSubtotal: number;
   replacesSiteWide: boolean;
+  /** Null/undefined means unlimited uses. */
+  maxUses?: number | null;
+  usedCount?: number;
 }
 
 export type BundleOfferDiscountType = "percent" | "fixed";

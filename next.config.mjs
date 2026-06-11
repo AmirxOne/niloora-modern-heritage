@@ -3,6 +3,10 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
+  experimental: {
+    // Tree-shake large barrel packages so only used icons/motion utils ship.
+    optimizePackageImports: ["iconsax-reactjs", "framer-motion"],
+  },
   async redirects() {
     return [
       { source: "/login", destination: "/auth", permanent: true },
@@ -12,6 +16,10 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1639, 1920],
+    imageSizes: [64, 80, 96, 128, 256, 384],
+    // Ready for an external image CDN/bucket; add hostnames here when used.
+    remotePatterns: [],
   },
 };
 

@@ -76,6 +76,7 @@ export async function repriceOrderItems(
           price: true,
           listPrice: true,
           discountPercent: true,
+          discountEndsAt: true,
           image: true,
           availability: true,
           collectionId: true,

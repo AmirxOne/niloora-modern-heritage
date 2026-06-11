@@ -1,6 +1,7 @@
 import { Cormorant_Garamond, Vazirmatn } from "next/font/google";
 import "@/styles/globals.css";
 import { rootSiteMetadata, rootSiteViewport } from "@/lib/seo/site";
+import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/structured-data";
 import { getPublicSiteSettings } from "@/lib/server/site-settings/site-settings";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
 import { StoreProvider } from "@/lib/store/StoreProvider";
@@ -39,6 +40,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const siteSettings = await getPublicSiteSettings();
+  const orgJsonLd = buildOrganizationJsonLd({
+    brandName: siteSettings.brandName,
+    logoUrl: siteSettings.logoUrl,
+    social: siteSettings.social,
+    contactPhone: siteSettings.contactPhone,
+  });
+  const webSiteJsonLd = buildWebSiteJsonLd({ brandName: siteSettings.brandName });
   // PROVIDER ORDER: Redux store -> App domain context -> global chrome/widgets.
   return (
     <html
@@ -47,6 +55,10 @@ export default async function RootLayout({
       className={`${cormorant.variable} ${vazirmatn.variable} ${iranYekanFont.variable} ${iranYekanFontNum.variable}`}
     >
       <body className="font-IranYekanFontNum">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd, webSiteJsonLd]) }}
+        />
         <MotionOffProvider>
           <StoreProvider>
             <AppProvider>

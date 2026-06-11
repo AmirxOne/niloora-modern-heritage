@@ -23,7 +23,7 @@ export function CampaignShopBanner({ campaign }: Props) {
         <div className="campaign-shop-banner-image">
           <Image
             src={campaign.banner.imageUrl}
-            alt=""
+            alt={title}
             width={120}
             height={80}
             className="object-cover"

@@ -3,9 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { getArtisanBySlugForCatalog } from "@/lib/artisans";
 import { fa } from "@/lib/i18n/fa";
-import { buildPageMetadata } from "@/lib/seo/site";
+import { absoluteUrl, buildPageMetadata } from "@/lib/seo/site";
 import { getCatalogProducts } from "@/lib/server/products";
 
 type PageProps = {
@@ -41,11 +42,33 @@ export default async function ArtisanDetailPage({ params }: PageProps) {
   const artisan = getArtisanBySlugForCatalog(slug, catalog);
   if (!artisan) notFound();
 
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: artisan.name,
+    jobTitle: artisan.title,
+    description: artisan.specialty || artisan.bio,
+    image: artisan.image ? absoluteUrl(artisan.image) : undefined,
+    url: absoluteUrl(`/artisans/${slug}`),
+    worksFor: { "@type": "Organization", name: fa.brand.name },
+  };
+
   return (
     <PageTransition>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       <div className="artisan-detail-page min-h-screen pb-24 pt-20 md:pt-24">
         <div className="site-container">
           <div className="artisan-detail-shell">
+            <Breadcrumb
+              items={[
+                { label: fa.nav.home, href: "/" },
+                { label: fa.artisans.title, href: "/artisans" },
+                { label: artisan.name },
+              ]}
+            />
             <div className="artisan-detail-top">
               <div className="artisan-detail-image">
                 <Image src={artisan.image} alt={artisan.name} fill className="object-cover" />

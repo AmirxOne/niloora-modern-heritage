@@ -49,6 +49,14 @@ export async function finalizePaidOrder(
     });
   }
 
+  if (order.promoCode) {
+    // Count this redemption so per-code usage caps (maxUses) are enforced.
+    await tx.promoCode.updateMany({
+      where: { code: order.promoCode },
+      data: { usedCount: { increment: 1 } },
+    });
+  }
+
   await rewardReferralOnPaidOrder(tx, order.id);
   await rewardLoyaltyOnPaidOrder(tx, order.id);
   await scheduleOrderMaintenanceReminders(tx, order.id);

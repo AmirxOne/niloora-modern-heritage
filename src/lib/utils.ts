@@ -1,14 +1,16 @@
 import { type ClassValue, clsx } from "clsx";
+import { toPersianDigits } from "@/lib/persian-digits";
 
 export function cn(...inputs: ClassValue[]): string {
   return clsx(inputs);
 }
 
-/** فقط رقم قیمت (بدون واحد) */
+/** فقط رقم قیمت (بدون واحد) — deterministic across SSR and browser */
 export function formatTomanAmount(priceInToman: number): string {
-  return new Intl.NumberFormat("fa-IR", {
+  const grouped = new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
   }).format(priceInToman);
+  return toPersianDigits(grouped);
 }
 
 /** قیمت‌ها به تومان ذخیره و نمایش داده می‌شوند */

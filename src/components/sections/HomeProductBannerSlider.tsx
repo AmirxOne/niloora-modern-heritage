@@ -18,9 +18,11 @@ import {
   homeBannerSliderNavPrev,
   homeBannerSliderSection,
 } from "@/lib/styles/home-banner-swiper";
+import { displayDigits } from "@/lib/persian-digits";
 import { cn } from "@/lib/utils";
 import { ICON_VARIANT } from "@/lib/icons";
 import { useHomeDataContext } from "@/lib/context/HomeDataContext";
+import { BLUR_DATA_URL } from "@/lib/image-blur";
 
 const INTERVAL_MS = 6200;
 
@@ -117,6 +119,8 @@ export function HomeProductBannerSlider() {
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, min(1639px, 92vw)"
                   priority={index === 0}
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
                 />
                 {/* موبایل: تیره از پایین | دسکتاپ: تیره از لبهٔ راست (جایی که در RTL متن اصلی می‌نشیند) */}
                 <div
@@ -147,8 +151,11 @@ export function HomeProductBannerSlider() {
                     <p className="text-xs font-medium tracking-wide text-gold-light/90">
                       {active.collection ?? active.namePersian}
                     </p>
-                    <h3 className="mt-1 font-display text-xl font-semibold leading-tight text-white md:text-2xl lg:text-[1.65rem]">
-                      {active.name}
+                    <h3
+                      className="mt-1 font-display text-xl font-semibold leading-tight text-white md:text-2xl lg:text-[1.65rem]"
+                      data-persian-digits="react"
+                    >
+                      {displayDigits(active.name)}
                     </h3>
                     <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-parchment/90 md:line-clamp-3 lg:hidden">
                       {getProductListingPreview(active, 2)}
@@ -228,7 +235,7 @@ export function HomeProductBannerSlider() {
         </div>
 
         <p className="sr-only" aria-live="polite">
-          {fa.home.bannerSlideStatus(index + 1, slides.length)} — {active.name}
+          {fa.home.bannerSlideStatus(index + 1, slides.length)} — {displayDigits(active.name)}
         </p>
       </div>
     </section>

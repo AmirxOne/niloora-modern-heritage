@@ -1,4 +1,6 @@
-export { dynamic } from "@/lib/server/route-segment";
+// Public, session-independent data: allow ISR so the CDN/Next data cache can
+// serve it instead of rendering on every request.
+export const revalidate = 60;
 
 import { ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";

@@ -21,6 +21,7 @@ export type PublicSiteSettings = {
     description: string;
     ogImageUrl: string;
   };
+  enamadHtml: string | null;
   services: {
     paymentGateway: { enabled: boolean; provider: string; configured: boolean };
     sms: { enabled: boolean; provider: string; configured: boolean };

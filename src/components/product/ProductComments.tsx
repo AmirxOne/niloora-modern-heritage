@@ -59,6 +59,7 @@ export function ProductComments({ productId }: ProductCommentsProps) {
   const [ratingPackaging, setRatingPackaging] = useState(5);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [bodyError, setBodyError] = useState<string | null>(null);
@@ -75,6 +76,31 @@ export function ProductComments({ productId }: ProductCommentsProps) {
     to,
     totalItems,
   } = usePagination(sortedComments, COMMENTS_PAGE_SIZE, sort);
+
+  const handleImageUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/reviews/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { url?: string; message?: string }
+        | null;
+      if (!response.ok || !data?.url) {
+        toast.error(data?.message ?? fa.product.commentMediaUploadError);
+        return;
+      }
+      setMediaType("image");
+      setMediaUrl(data.url);
+    } catch {
+      toast.error(fa.product.commentMediaUploadError);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,6 +261,41 @@ export function ProductComments({ productId }: ProductCommentsProps) {
                       onChange={(e) => setMediaUrl(e.target.value)}
                       inputClassName="auth-input-ltr"
                     />
+                    {mediaType === "image" ? (
+                      <div className="mt-2">
+                        <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-turquoise-dark hover:text-turquoise">
+                          <span>{isUploading ? fa.product.commentMediaUploading : fa.product.commentMediaUploadLabel}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            disabled={isUploading}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleImageUpload(file);
+                              e.currentTarget.value = "";
+                            }}
+                          />
+                        </label>
+                        {mediaUrl && mediaType === "image" ? (
+                          <div className="mt-2 flex items-center gap-3">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={mediaUrl}
+                              alt=""
+                              className="h-16 w-16 rounded-heritage object-cover"
+                            />
+                            <button
+                              type="button"
+                              className="text-xs text-danger hover:underline"
+                              onClick={() => setMediaUrl("")}
+                            >
+                              {fa.product.commentMediaRemove}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
 
                   <div>

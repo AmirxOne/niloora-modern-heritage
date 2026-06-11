@@ -23,6 +23,8 @@ export async function GET() {
       type: item.type,
       value: item.value,
       minSubtotal: item.minSubtotal,
+      maxUses: item.maxUses ?? "",
+      usedCount: item.usedCount ?? 0,
       replacesSiteWide: item.replacesSiteWide ? "1" : "0",
       active: item.active ? "1" : "0",
       aliases: item.aliases.join("|"),
@@ -30,7 +32,7 @@ export async function GET() {
     return excelResponse(
       "promo-codes.xlsx",
       serializeExcelBuffer(
-        ["id", "code", "label", "type", "value", "minSubtotal", "replacesSiteWide", "active", "aliases"],
+        ["id", "code", "label", "type", "value", "minSubtotal", "maxUses", "usedCount", "replacesSiteWide", "active", "aliases"],
         rows
       )
     );
@@ -62,6 +64,7 @@ export async function POST(request: Request) {
         type: row.type,
         value: row.value,
         minSubtotal: row.minSubtotal,
+        maxUses: row.maxUses,
         replacesSiteWide: row.replacesSiteWide === "1" || row.replacesSiteWide?.toLowerCase() === "true",
         active: row.active === "1" || row.active?.toLowerCase() === "true",
         aliases: row.aliases ? row.aliases.split("|").map((item) => item.trim()).filter(Boolean) : [],

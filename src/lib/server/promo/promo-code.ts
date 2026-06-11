@@ -24,6 +24,8 @@ export function toPromoDefinition(row: PrismaPromoCode): PromoCodeDefinition {
     value: row.value,
     minSubtotal: row.minSubtotal,
     replacesSiteWide: row.replacesSiteWide,
+    maxUses: row.maxUses ?? null,
+    usedCount: row.usedCount ?? 0,
   };
 }
 
@@ -48,7 +50,7 @@ export { calcPromoDiscountAmount } from "@/lib/promo-utils";
 
 export type PromoValidationResult =
   | { ok: true; promo: PromoCodeDefinition }
-  | { ok: false; reason: "not_found" | "min_order" | "inactive" };
+  | { ok: false; reason: "not_found" | "min_order" | "inactive" | "exhausted" };
 
 export function validatePromoDefinition(
   promo: PromoCodeDefinition | null,
@@ -57,6 +59,13 @@ export function validatePromoDefinition(
 ): PromoValidationResult {
   if (!promo) return { ok: false, reason: "not_found" };
   if (!active) return { ok: false, reason: "inactive" };
+  if (
+    promo.maxUses != null &&
+    promo.maxUses > 0 &&
+    (promo.usedCount ?? 0) >= promo.maxUses
+  ) {
+    return { ok: false, reason: "exhausted" };
+  }
   if (subtotalSale < promo.minSubtotal) return { ok: false, reason: "min_order" };
   return { ok: true, promo };
 }

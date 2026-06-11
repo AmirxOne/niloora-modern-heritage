@@ -9,6 +9,7 @@ function shouldSkipNode(parent: ParentNode | null): boolean {
   if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT" || tag === "TEXTAREA") return true;
   if (parent.isContentEditable) return true;
   if (tag === "INPUT") return true;
+  if (parent.closest("[data-persian-digits='react']")) return true;
   return false;
 }
 
@@ -19,46 +20,59 @@ function normalizeTextNode(node: Text) {
   node.nodeValue = toPersianDigits(node.nodeValue);
 }
 
+function normalizeDocument(root: ParentNode) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let current = walker.nextNode();
+  while (current) {
+    normalizeTextNode(current as Text);
+    current = walker.nextNode();
+  }
+}
+
+function scheduleAfterHydration(task: () => void): () => void {
+  if (typeof requestIdleCallback === "function") {
+    const idleId = requestIdleCallback(task, { timeout: 3000 });
+    return () => cancelIdleCallback(idleId);
+  }
+  const timeoutId = window.setTimeout(task, 500);
+  return () => window.clearTimeout(timeoutId);
+}
+
 export function PersianDigitsEnforcer() {
   useEffect(() => {
-    const root = document.body;
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let current = walker.nextNode();
-    while (current) {
-      normalizeTextNode(current as Text);
-      current = walker.nextNode();
-    }
+    let observer: MutationObserver | null = null;
+    const cancelSchedule = scheduleAfterHydration(() => {
+      normalizeDocument(document.body);
 
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === "characterData" && mutation.target instanceof Text) {
-          normalizeTextNode(mutation.target);
-          continue;
+      observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === "characterData" && mutation.target instanceof Text) {
+            normalizeTextNode(mutation.target);
+            continue;
+          }
+
+          Array.from(mutation.addedNodes).forEach((node) => {
+            if (node instanceof Text) {
+              normalizeTextNode(node);
+              return;
+            }
+            if (!(node instanceof HTMLElement)) return;
+            normalizeDocument(node);
+          });
         }
+      });
 
-        Array.from(mutation.addedNodes).forEach((node) => {
-          if (node instanceof Text) {
-            normalizeTextNode(node);
-            return;
-          }
-          if (!(node instanceof HTMLElement)) return;
-          const subtreeWalker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-          let textNode = subtreeWalker.nextNode();
-          while (textNode) {
-            normalizeTextNode(textNode as Text);
-            textNode = subtreeWalker.nextNode();
-          }
-        });
-      }
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
     });
 
-    observer.observe(root, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    return () => observer.disconnect();
+    return () => {
+      cancelSchedule();
+      observer?.disconnect();
+    };
   }, []);
 
   return null;

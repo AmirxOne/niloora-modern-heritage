@@ -9,7 +9,8 @@ import { buildBreadcrumbJsonLd, buildFaqJsonLd } from "@/lib/seo/structured-data
 const f = fa.legal.faq;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: `${f.title} | ${fa.brand.name}`,
+  // Brand name is appended by the root title template — keep this bare.
+  title: f.title,
   description: f.metaDescription,
   path: "/faq",
 });
@@ -28,7 +29,15 @@ export default function FaqPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify([faqJsonLd, breadcrumbJsonLd]) }}
       />
-      <InfoPageShell eyebrow={f.eyebrow} title={f.title} subtitle={f.subtitle}>
+      <InfoPageShell
+        eyebrow={f.eyebrow}
+        title={f.title}
+        subtitle={f.subtitle}
+        breadcrumb={[
+          { label: fa.nav.home, href: "/" },
+          { label: f.title },
+        ]}
+      >
         <FaqAccordion items={f.items} />
         <p className="info-page-footer-link">
           <Link href="/contact">{fa.footer.contact}</Link>

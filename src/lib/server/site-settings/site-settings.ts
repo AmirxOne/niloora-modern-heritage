@@ -41,6 +41,7 @@ function mapRowToPublic(row: SiteSettings): PublicSiteSettings {
       description: seoDescription,
       ogImageUrl: resolvePublicImagePath(row.seoOgImageUrl, DEFAULT_OG_IMAGE_PATH),
     },
+    enamadHtml: row.enamadHtml?.trim() || null,
     services: {
       paymentGateway: {
         enabled: row.paymentGatewayEnabled,
@@ -193,6 +194,7 @@ export type UpdateSiteSettingsInput = {
   seoTitle?: string | null;
   seoDescription?: string | null;
   seoOgImageUrl?: string | null;
+  enamadHtml?: string | null;
   paymentGatewayEnabled?: boolean;
   paymentProvider?: string;
   zarinpalMerchantId?: string | null;
@@ -296,6 +298,7 @@ export async function updateSiteSettings(input: UpdateSiteSettingsInput) {
         ? { seoDescription: data.seoDescription?.trim() || null }
         : {}),
       ...(data.seoOgImageUrl !== undefined ? { seoOgImageUrl: data.seoOgImageUrl } : {}),
+      ...(data.enamadHtml !== undefined ? { enamadHtml: data.enamadHtml?.trim() || null } : {}),
       ...(data.paymentGatewayEnabled !== undefined
         ? { paymentGatewayEnabled: data.paymentGatewayEnabled }
         : {}),

@@ -59,5 +59,9 @@ export async function commitInventoryForPaidOrder(
         { code: "insufficient_stock", productId }
       );
     }
+
+    await tx.inventoryLog.create({
+      data: { productId, change: -quantity, reason: "order_paid" },
+    });
   }
 }

@@ -16,7 +16,7 @@ import {
 
 type ValidateResponse =
   | { valid: true; promo: PromoCodeDefinition }
-  | { valid: false; reason: "not_found" | "min_order" | "inactive" };
+  | { valid: false; reason: "not_found" | "min_order" | "inactive" | "exhausted" };
 
 async function validatePromoApi(code: string, subtotalSale: number): Promise<ValidateResponse> {
   const response = await fetch("/api/promo/validate", {
@@ -48,6 +48,8 @@ export function usePromo() {
         dispatch(setPromoError(result.reason));
         if (result.reason === "not_found" || result.reason === "inactive") {
           toast.error(fa.bahakahi.promoErrorNotFound);
+        } else if (result.reason === "exhausted") {
+          toast.error(fa.bahakahi.promoErrorExhausted);
         } else {
           toast.error(fa.bahakahi.promoErrorMinOrder);
         }

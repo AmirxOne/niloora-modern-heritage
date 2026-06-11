@@ -52,7 +52,9 @@ export function FeaturedCollections() {
                           src={collectionImages[col.id] ?? collectionImages["royal-heritage"]}
                           alt={col.name}
                           fill
+                          loading="lazy"
                           className="object-cover transition-transform duration-700 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 33vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/20 to-transparent" />
                         <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">

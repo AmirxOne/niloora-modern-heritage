@@ -63,11 +63,26 @@ export interface CartPricingBreakdown {
   payableAfterGiftCard: number;
 }
 
-export function getProductPricing(product: Pick<Product, "price" | "listPrice" | "discountPercent">): ProductPricing {
+export function isTimedDiscountExpired(discountEndsAt?: string | Date | null): boolean {
+  if (discountEndsAt == null) return false;
+  const endsAt = new Date(discountEndsAt).getTime();
+  if (Number.isNaN(endsAt)) return false;
+  return endsAt <= Date.now();
+}
+
+export function getProductPricing(
+  product: Pick<Product, "price" | "listPrice" | "discountPercent"> & {
+    discountEndsAt?: string | Date | null;
+  }
+): ProductPricing {
   const listPrice = product.listPrice ?? product.price;
   let salePrice = product.price;
 
-  if (product.discountPercent != null && product.discountPercent > 0) {
+  if (isTimedDiscountExpired(product.discountEndsAt)) {
+    // The timed discount window has closed: revert to the full (list) price so
+    // an expired offer is never honoured at checkout or in the storefront.
+    salePrice = listPrice;
+  } else if (product.discountPercent != null && product.discountPercent > 0) {
     salePrice = Math.round(listPrice * (1 - product.discountPercent / 100));
   }
 

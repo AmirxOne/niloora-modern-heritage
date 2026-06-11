@@ -30,6 +30,7 @@ type SearchDropdownProps = {
   previewLoading: boolean;
   preview: Product[];
   previewTotal: number;
+  suggestions: string[];
   onClose: () => void;
   onGoToShopSearch: (q: string) => void;
   className?: string;
@@ -42,6 +43,7 @@ function SearchDropdown({
   previewLoading,
   preview,
   previewTotal,
+  suggestions,
   onClose,
   onGoToShopSearch,
   className,
@@ -76,7 +78,7 @@ function SearchDropdown({
                       <span className="header-search-preview-thumb">
                         <Image
                           src={product.image}
-                          alt=""
+                          alt={product.namePersian || product.name}
                           fill
                           className="object-cover"
                           sizes="48px"
@@ -112,6 +114,24 @@ function SearchDropdown({
         </section>
       )}
 
+      {showPreview && suggestions.length > 0 ? (
+        <section className="header-search-dropdown__section">
+          <p className="header-search-dropdown__label">{fa.shop.searchSuggestionsTitle}</p>
+          <div className="header-search-quick-links">
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className="header-search-quick-link"
+                onClick={() => onGoToShopSearch(suggestion)}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="header-search-dropdown__section">
         <p className="header-search-dropdown__label">{fa.nav.searchQuickLinks}</p>
         <div className="header-search-quick-links">
@@ -139,6 +159,7 @@ function useHeaderSearch(onClose?: () => void) {
   const [preview, setPreview] = useState<Product[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewTotal, setPreviewTotal] = useState(0);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const trimmedQuery = query.trim();
   const showPreview = trimmedQuery.length >= PREVIEW_MIN_CHARS;
@@ -148,6 +169,7 @@ function useHeaderSearch(onClose?: () => void) {
     setPreview((prev) => (prev.length === 0 ? prev : []));
     setPreviewTotal((prev) => (prev === 0 ? prev : 0));
     setPreviewLoading((prev) => (prev === false ? prev : false));
+    setSuggestions((prev) => (prev.length === 0 ? prev : []));
   }, []);
 
   const close = useCallback(() => {
@@ -177,6 +199,7 @@ function useHeaderSearch(onClose?: () => void) {
       setPreview((prev) => (prev.length === 0 ? prev : []));
       setPreviewTotal((prev) => (prev === 0 ? prev : 0));
       setPreviewLoading((prev) => (prev === false ? prev : false));
+      setSuggestions((prev) => (prev.length === 0 ? prev : []));
       return;
     }
 
@@ -191,10 +214,12 @@ function useHeaderSearch(onClose?: () => void) {
           const hits = data?.products.catalog ?? [];
           setPreviewTotal(hits.length);
           setPreview(hits.slice(0, PREVIEW_LIMIT));
+          setSuggestions(data?.suggestions ?? []);
         } catch {
           if (!controller.signal.aborted) {
             setPreview([]);
             setPreviewTotal(0);
+            setSuggestions([]);
           }
         } finally {
           if (!controller.signal.aborted) setPreviewLoading(false);
@@ -216,6 +241,7 @@ function useHeaderSearch(onClose?: () => void) {
     preview,
     previewLoading,
     previewTotal,
+    suggestions,
     showPreview,
     handleSearch,
     goToShopSearch,
@@ -297,6 +323,7 @@ function HeaderSearchInline() {
               previewLoading={search.previewLoading}
               preview={search.preview}
               previewTotal={search.previewTotal}
+              suggestions={search.suggestions}
               onClose={() => {
                 setDropdownOpen(false);
                 search.reset();
@@ -393,6 +420,7 @@ function HeaderSearchExpand({ open, onClose }: HeaderSearchExpandProps) {
               previewLoading={search.previewLoading}
               preview={search.preview}
               previewTotal={search.previewTotal}
+              suggestions={search.suggestions}
               onClose={onClose}
               onGoToShopSearch={search.goToShopSearch}
               className="header-search-dropdown--expand"

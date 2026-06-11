@@ -665,6 +665,16 @@ model ProductQuestionAnswer {
   @@index([userId])
 }
 
+model InventoryLog {
+  id        String   @id @default(cuid())
+  productId String
+  change    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
 model PromoCode {
   id               String   @id @default(cuid())
   code             String   @unique
@@ -674,6 +684,8 @@ model PromoCode {
   minSubtotal      Int      @default(0)
   replacesSiteWide Boolean  @default(false)
   active           Boolean  @default(true)
+  maxUses          Int?
+  usedCount        Int      @default(0)
   aliases          Json     @default("[]")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -993,6 +1005,7 @@ model SiteSettings {
   seoTitle               String?
   seoDescription         String?
   seoOgImageUrl          String?
+  enamadHtml             String?
   paymentGatewayEnabled  Boolean  @default(true)
   paymentProvider        String   @default("zarinpal")
   zarinpalMerchantId     String?

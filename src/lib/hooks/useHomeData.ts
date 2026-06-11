@@ -2,41 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { defaultHomeBannerDto } from "@/lib/home-banner-defaults";
-import type { HomeBannerDto } from "@/lib/types/home-content";
-import type { Product } from "@/lib/types";
+import type { HomePageData } from "@/lib/server/home/get-home-page-data";
 
-type HomeCollection = {
-  id: string;
-  name: string;
-  namePersian: string;
-};
+type HomeResponse = HomePageData;
 
-type HomeTestimonial = {
-  id: string;
-  name: string;
-  location: string;
-  text: string;
-  rating: number;
-};
-
-type HomeInstagramPost = {
-  id: string;
-  image: string;
-  likes: number;
-};
-
-type HomeResponse = {
-  sliders: Product[];
-  bestsellers: Product[];
-  featuredRail: Product[];
-  personalized: Product[];
-  collections: HomeCollection[];
-  testimonials: HomeTestimonial[];
-  instagramPosts: HomeInstagramPost[];
-  banner?: HomeBannerDto;
-};
-
-const initialState: HomeResponse = {
+const emptyHomeData = (): HomeResponse => ({
   sliders: [],
   bestsellers: [],
   featuredRail: [],
@@ -45,14 +15,15 @@ const initialState: HomeResponse = {
   testimonials: [],
   instagramPosts: [],
   banner: defaultHomeBannerDto(),
-};
+  campaigns: [],
+});
 
-export function useHomeData() {
-  const [data, setData] = useState<HomeResponse>(initialState);
-  const [isLoading, setIsLoading] = useState(true);
+export function useHomeData(initialData?: HomePageData) {
+  const [data, setData] = useState<HomeResponse>(() => initialData ?? emptyHomeData());
+  const [isLoading, setIsLoading] = useState(!initialData);
 
   const loadData = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading((current) => current || !initialData);
     try {
       const response = await fetch("/api/home");
       if (!response.ok) return;
@@ -66,11 +37,12 @@ export function useHomeData() {
         testimonials: payload.testimonials ?? [],
         instagramPosts: payload.instagramPosts ?? [],
         banner: payload.banner ?? defaultHomeBannerDto(),
+        campaigns: payload.campaigns ?? [],
       });
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [initialData]);
 
   useEffect(() => {
     loadData();

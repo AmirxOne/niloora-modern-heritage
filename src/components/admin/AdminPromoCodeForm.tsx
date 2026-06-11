@@ -56,6 +56,13 @@ export function AdminPromoCodeForm({ values, onChange, disabled }: Props) {
         disabled={disabled}
         inputClassName="auth-input-ltr"
       />
+      <TextBox
+        label={fa.admin.promoCodes.maxUses}
+        value={values.maxUses}
+        onChange={(e) => set("maxUses", e.target.value.replace(/[^\d]/g, ""))}
+        disabled={disabled}
+        inputClassName="auth-input-ltr"
+      />
       <TextAreaBox
         label={fa.admin.promoCodes.aliases}
         value={values.aliases}

@@ -47,6 +47,11 @@ export type ShippingCostQuote = {
   methodSurcharge: number;
 };
 
+/** Lowest standard shipping cost across zones, for "from X" product-page hints. */
+export function getMinStandardShippingCost(): number {
+  return Math.min(...Object.values(ZONE_BASE_TOMAN));
+}
+
 function normalizeProvince(province: string): string {
   return province.trim().replace(/\s+/g, " ");
 }

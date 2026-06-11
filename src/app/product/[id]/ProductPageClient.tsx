@@ -362,6 +362,36 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   </h2>
                   <ProductAvailabilityPanel availability={product.availability} />
                 </section>
+                <section className="product-detail-side-section" aria-label="ضمانت و اعتماد">
+                  <ul className="space-y-2 text-xs leading-relaxed text-silver">
+                    <li className="flex items-start gap-2">
+                      <span className="text-gold-dark" aria-hidden>✓</span>
+                      <span>
+                        ضمانت اصالت کالا و کارت اصالت با کد قطعه برای هر اثر.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-gold-dark" aria-hidden>✓</span>
+                      <span>
+                        امکان مرجوعی طبق{" "}
+                        <Link href="/returns" className="text-turquoise-dark underline-offset-2 hover:underline">
+                          سیاست بازگشت کالا
+                        </Link>
+                        .
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-gold-dark" aria-hidden>✓</span>
+                      <span>
+                        پشتیبانی و مشاوره پیش از خرید از طریق{" "}
+                        <Link href="/contact" className="text-turquoise-dark underline-offset-2 hover:underline">
+                          راه‌های ارتباطی
+                        </Link>
+                        .
+                      </span>
+                    </li>
+                  </ul>
+                </section>
                 <section className="product-detail-side-section" aria-labelledby="product-ring-size-heading">
                   <h2 id="product-ring-size-heading" className="product-detail-section-title">
                     راهنمای سایز انگشتر

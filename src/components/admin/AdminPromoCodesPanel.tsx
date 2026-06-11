@@ -165,6 +165,10 @@ export function AdminPromoCodesPanel() {
                       : formatPrice(record.value)}{" "}
                     · حداقل {formatPrice(record.minSubtotal)}
                   </p>
+                  <p className="admin-order-date text-xs">
+                    {fa.admin.promoCodes.usedCount}: {record.usedCount ?? 0}
+                    {record.maxUses != null ? ` / ${record.maxUses}` : ""}
+                  </p>
                   {record.aliases.length > 0 ? (
                     <p className="text-xs text-silver" dir="ltr">
                       {record.aliases.join(" · ")}

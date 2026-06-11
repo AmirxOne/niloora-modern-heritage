@@ -14,6 +14,7 @@ import { trackAbEvent } from "@/lib/ab/tracker";
 import { useHomeDataContext } from "@/lib/context/HomeDataContext";
 import { Button } from "@/components/ui/Button";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
+import { displayDigits } from "@/lib/persian-digits";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import "swiper/css";
@@ -106,11 +107,8 @@ export function HeroSection() {
       aria-label={fa.home.heroGlamourTitle1}
     >
       <div className="relative z-10 mx-auto flex min-h-[clamp(520px,62vh,680px)] w-full max-w-site items-center px-5 py-10 md:px-8 md:py-12 lg:px-12 lg:py-14 xl:px-16">
-        <div
-          className="flex w-full flex-col items-center gap-8 lg:min-h-[clamp(420px,52vh,560px)] lg:flex-row lg:items-center lg:justify-center lg:gap-[clamp(2rem,3vw,3.5rem)]"
-          dir="rtl"
-        >
-          <div className="flex w-full max-w-none flex-col text-start max-lg:max-w-none lg:w-[min(30rem,28vw)] lg:max-w-[30rem] lg:shrink-0">
+        <div className="hero-showcase-shell">
+          <div className="flex w-full max-w-none flex-col text-start lg:max-w-[30rem] lg:shrink-0">
             <h1 className="font-display text-[clamp(2.25rem,4.5vw,3.5rem)] font-semibold leading-[1.08] text-ivory">
               <span className="block">{fa.home.heroGlamourTitle1}</span>
               <span className="block text-ivory">{fa.home.heroGlamourTitle2}</span>
@@ -124,7 +122,7 @@ export function HeroSection() {
               <Link href={ctaPrimaryHref} className="inline-flex w-full sm:w-auto">
                 <Button
                   size="md"
-                  className="w-full min-w-[8.5rem] shadow-luxury-gold sm:w-auto"
+                  className="w-full min-w-[11rem] shadow-luxury-gold sm:w-auto"
                   onClick={() => trackCtaConversion("primary")}
                 >
                   {ctaPrimaryLabel}
@@ -159,7 +157,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          <div className="flex w-full flex-col items-center gap-6 lg:w-auto lg:shrink-0 lg:flex-row lg:items-center lg:gap-[clamp(1.5rem,3vw,3rem)]">
+          <div className="hero-showcase-visual">
             <div
               className="relative flex shrink-0 items-center justify-center lg:z-[2]"
               aria-hidden={!activeSlide}
@@ -167,7 +165,7 @@ export function HeroSection() {
               {activeSlide ? (
                 <Link
                   href={slideHref(activeSlide.id)}
-                  className="relative block aspect-square w-[min(72vw,22rem)] overflow-hidden rounded-[1.25rem] bg-white shadow-[0_20px_44px_-28px_rgba(44,42,41,0.18)]"
+                  className="relative block aspect-square w-[min(72vw,22rem)] shrink-0 overflow-hidden rounded-[1.25rem] bg-white shadow-[0_20px_44px_-28px_rgba(44,42,41,0.18)] lg:w-[22rem]"
                 >
                   <Image
                     key={activeSlide.id}
@@ -183,7 +181,7 @@ export function HeroSection() {
             </div>
 
             <div
-              className="flex w-[min(100%,8.75rem)] flex-col items-center gap-3"
+              className="hero-showcase-rail flex flex-col items-center gap-3"
               style={HERO_RAIL_VARS}
               aria-roledescription="carousel"
               aria-label={fa.home.heroShowcaseTitle}
@@ -215,7 +213,9 @@ export function HeroSection() {
                   spaceBetween={14}
                   slideToClickedSlide
                   watchSlidesProgress
-                  className="h-full w-full !overflow-hidden [&_.swiper-wrapper]:items-stretch"
+                  observer={false}
+                  observeParents={false}
+                  className="hero-showcase-rail-swiper h-full w-full !overflow-hidden [&_.swiper-wrapper]:items-stretch"
                   onSwiper={(swiper) => {
                     swiperRef.current = swiper;
                     syncNavState(swiper);
@@ -239,10 +239,10 @@ export function HeroSection() {
                         aria-current={index === activeIndex ? "true" : undefined}
                       >
                         <span className="relative block aspect-square w-full max-w-[var(--hero-rail-thumb)] shrink-0 overflow-hidden rounded-[0.85rem] bg-white">
-                          <Image src={item.image} alt="" fill className="object-cover" sizes="120px" />
+                          <Image src={item.image} alt={item.name} fill className="object-cover" sizes="120px" />
                         </span>
                         <span className="line-clamp-1 w-full text-center text-[11px] font-medium text-ivory-light">
-                          {item.name}
+                          {displayDigits(item.name)}
                         </span>
                       </Link>
                     </SwiperSlide>

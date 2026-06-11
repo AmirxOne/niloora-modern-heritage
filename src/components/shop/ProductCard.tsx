@@ -14,6 +14,8 @@ import { PreOwnedBadge } from "@/components/pre-owned/PreOwnedBadge";
 import { isPreOwnedProduct } from "@/lib/pre-owned";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn, formatTomanAmount } from "@/lib/utils";
+import { BLUR_DATA_URL } from "@/lib/image-blur";
+import { displayDigits } from "@/lib/persian-digits";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 import { ENGRAVING_STYLES, METAL_OPTIONS, STONE_OPTIONS } from "@/lib/constants";
 
@@ -40,7 +42,7 @@ export function ProductCard({
   compact = false,
   abTest,
 }: ProductCardProps) {
-  const displayName = product.namePersian?.trim() || product.name;
+  const displayName = displayDigits(product.namePersian?.trim() || product.name);
   const listingDetails = product.listing?.details ?? [];
   const styleLabels: Record<Product["category"], string> = {
     solitaire: fa.shop.styles.solitaire,
@@ -125,6 +127,8 @@ export function ProductCard({
             fill
             className="shop-product-card-thumb"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            placeholder="blur"
+            blurDataURL={BLUR_DATA_URL}
           />
         </Link>
         <div className="shop-product-card-toolbar shop-product-card-floating-actions">
@@ -184,7 +188,7 @@ export function ProductCard({
                 <span className="shop-product-card-attribute-icon">{item.icon}</span>
                 <span className="sr-only">{item.label}</span>
               </dt>
-              <dd className="shop-product-card-attribute-value">{item.value}</dd>
+              <dd className="shop-product-card-attribute-value">{displayDigits(item.value)}</dd>
             </div>
           ))}
         </dl>
@@ -231,7 +235,11 @@ export function ProductCard({
   );
 
   if (variant === "carousel") {
-    return <article className="shop-product-card group">{content}</article>;
+    return (
+      <article className="shop-product-card group" data-persian-digits="react">
+        {content}
+      </article>
+    );
   }
 
   return (
@@ -241,6 +249,7 @@ export function ProductCard({
       viewport={{ once: true, margin: "-32px" }}
       transition={{ duration: 0.4, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
       className="shop-product-card group"
+      data-persian-digits="react"
     >
       {content}
     </motion.article>

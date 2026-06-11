@@ -30,6 +30,7 @@ export function AdminSettingsPanel() {
     seoTitle: "",
     seoDescription: "",
     seoOgImageUrl: "",
+    enamadHtml: "",
     paymentGatewayEnabled: true,
     zarinpalMerchantId: "",
     zarinpalSandbox: true,
@@ -60,6 +61,7 @@ export function AdminSettingsPanel() {
       seoTitle: s.seo.title,
       seoDescription: s.seo.description,
       seoOgImageUrl: s.seo.ogImageUrl,
+      enamadHtml: s.enamadHtml ?? "",
       paymentGatewayEnabled: s.payment.enabled,
       zarinpalMerchantId: s.payment.zarinpalMerchantId ?? "",
       zarinpalSandbox: s.payment.zarinpalSandbox,
@@ -87,6 +89,7 @@ export function AdminSettingsPanel() {
       seoTitle: form.seoTitle || null,
       seoDescription: form.seoDescription || null,
       seoOgImageUrl: form.seoOgImageUrl || null,
+      enamadHtml: form.enamadHtml || null,
       paymentGatewayEnabled: form.paymentGatewayEnabled,
       zarinpalMerchantId: form.zarinpalMerchantId || null,
       zarinpalSandbox: form.zarinpalSandbox,
@@ -138,6 +141,16 @@ export function AdminSettingsPanel() {
             <TextBox label={t.seoTitle} value={form.seoTitle} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} />
             <TextAreaBox label={t.seoDescription} id="settings-seo-desc" value={form.seoDescription} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} />
             <TextBox label={t.seoOgImage} value={form.seoOgImageUrl} onChange={(e) => setForm({ ...form, seoOgImageUrl: e.target.value })} inputClassName="auth-input-ltr" />
+          </section>
+
+          <section className="admin-finance-detail-section space-y-4">
+            <h2 className="admin-finance-section-title">{t.trustSection}</h2>
+            <TextAreaBox
+              label={t.enamadHtml}
+              id="settings-enamad"
+              value={form.enamadHtml}
+              onChange={(e) => setForm({ ...form, enamadHtml: e.target.value })}
+            />
           </section>
 
           <section className="admin-finance-detail-section space-y-4">

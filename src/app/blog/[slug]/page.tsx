@@ -37,7 +37,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: fa.blog.notFound };
   }
 
-  const title = post.metaTitle ?? `${post.title} | ${fa.brand.name}`;
+  // Brand name is appended by the root title template — keep this bare.
+  const title = post.metaTitle ?? post.title;
   const description = post.metaDescription ?? post.excerpt ?? post.title.slice(0, 160);
 
   return buildPageMetadata({
@@ -46,6 +47,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/blog/${post.slug}`,
     image: post.coverImage,
     ogType: "article",
+    article: {
+      publishedTime: post.publishedAt ?? undefined,
+      modifiedTime: post.updatedAt ?? undefined,
+      authors: post.authorName ? [post.authorName] : undefined,
+    },
   });
 }
 
@@ -60,6 +66,8 @@ export default async function BlogPostPage({ params }: PageProps) {
       <article className="blog-article pb-24 pt-20 md:pt-24">
         <div className="site-container max-w-3xl">
           <nav className="blog-breadcrumb" aria-label="مسیر">
+            <Link href="/">{fa.nav.home}</Link>
+            <span aria-hidden>/</span>
             <Link href="/blog">{fa.nav.blog}</Link>
             <span aria-hidden>/</span>
             <span>{post.title}</span>
@@ -78,7 +86,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <div className="blog-article-cover">
               <Image
                 src={post.coverImage}
-                alt=""
+                alt={post.title}
                 fill
                 priority
                 className="object-cover"

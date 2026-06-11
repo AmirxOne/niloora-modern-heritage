@@ -41,7 +41,9 @@ export function InstagramGallery() {
                     src={post.image}
                     alt="پست اینستاگرام"
                     fill
+                    loading="lazy"
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-stone-900/40 opacity-0 transition-opacity group-hover:opacity-100">
                     <span className="text-sm text-white">

@@ -75,6 +75,8 @@ export type PromoCodeUpsertInput = {
   replacesSiteWide: boolean;
   active: boolean;
   aliases: string[];
+  /** Null = unlimited uses. */
+  maxUses: number | null;
 };
 
 export async function createPromoCode(input: PromoCodeUpsertInput) {
@@ -90,6 +92,7 @@ export async function createPromoCode(input: PromoCodeUpsertInput) {
       minSubtotal: input.minSubtotal,
       replacesSiteWide: input.replacesSiteWide,
       active: input.active,
+      maxUses: input.maxUses,
       aliases,
     },
   });
@@ -109,6 +112,7 @@ export async function updatePromoCode(id: string, input: PromoCodeUpsertInput) {
       minSubtotal: input.minSubtotal,
       replacesSiteWide: input.replacesSiteWide,
       active: input.active,
+      maxUses: input.maxUses,
       aliases,
     },
   });

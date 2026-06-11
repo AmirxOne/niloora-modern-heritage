@@ -34,7 +34,7 @@ export function BrandMark({
     >
       <Image
         src={src}
-        alt=""
+        alt={`نشان ${site.brandName}`}
         width={intrinsicSize}
         height={intrinsicSize}
         quality={100}

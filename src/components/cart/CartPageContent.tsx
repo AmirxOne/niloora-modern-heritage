@@ -36,6 +36,7 @@ import { GiftCardInput } from "@/components/cart/GiftCardInput";
 import {
   INSTALLMENT_MONTH_OPTIONS,
   calculateInstallmentAmount,
+  isBnplEnabled,
   type InstallmentMonthOption,
 } from "@/lib/checkout/bnpl";
 import { trackFunnelEvent } from "@/lib/analytics/client";
@@ -52,6 +53,7 @@ export function CartPageContent() {
   const [step, setStep] = useState<CheckoutStep>("cart");
   const [paying, setPaying] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"zarinpal" | "bnpl">("zarinpal");
+  const bnplEnabled = isBnplEnabled();
   const [installmentMonths, setInstallmentMonths] = useState<InstallmentMonthOption>(3);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   const paymentHandled = useRef(false);
@@ -320,7 +322,7 @@ export function CartPageContent() {
                 />
                 <div className="mt-6 rounded-heritage border border-gold/15 bg-parchment/30 px-4 py-4 text-sm text-ivory-light">
                   <p className="font-medium text-ivory">روش پرداخت</p>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className={`mt-3 grid gap-2 ${bnplEnabled ? "sm:grid-cols-2" : ""}`}>
                     <button
                       type="button"
                       className={`checkout-shipping-method-card ${paymentMethod === "zarinpal" ? "checkout-shipping-method-card--selected" : ""}`}
@@ -329,16 +331,18 @@ export function CartPageContent() {
                       <span className="font-medium text-ivory">پرداخت آنلاین زرین‌پال</span>
                       <span className="mt-1 block text-xs text-silver">تسویه کامل در لحظه</span>
                     </button>
-                    <button
-                      type="button"
-                      className={`checkout-shipping-method-card ${paymentMethod === "bnpl" ? "checkout-shipping-method-card--selected" : ""}`}
-                      onClick={() => setPaymentMethod("bnpl")}
-                    >
-                      <span className="font-medium text-ivory">{fa.cart.installmentMethodTitle}</span>
-                      <span className="mt-1 block text-xs text-silver">بررسی اولیه و شروع قرارداد اقساطی</span>
-                    </button>
+                    {bnplEnabled ? (
+                      <button
+                        type="button"
+                        className={`checkout-shipping-method-card ${paymentMethod === "bnpl" ? "checkout-shipping-method-card--selected" : ""}`}
+                        onClick={() => setPaymentMethod("bnpl")}
+                      >
+                        <span className="font-medium text-ivory">{fa.cart.installmentMethodTitle}</span>
+                        <span className="mt-1 block text-xs text-silver">بررسی اولیه و شروع قرارداد اقساطی</span>
+                      </button>
+                    ) : null}
                   </div>
-                  {paymentMethod === "bnpl" ? (
+                  {bnplEnabled && paymentMethod === "bnpl" ? (
                     <div className="mt-4 rounded-heritage border border-gold/20 bg-white/60 p-3">
                       <p className="text-xs text-silver">شرایط اقساط</p>
                       <div className="mt-2 flex flex-wrap gap-2">

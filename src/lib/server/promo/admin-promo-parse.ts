@@ -29,6 +29,15 @@ export function parseAdminPromoBody(body: unknown): ParseResult {
   const minSubtotal = Number(b.minSubtotal ?? 0);
   const replacesSiteWide = Boolean(b.replacesSiteWide);
   const active = b.active !== false;
+  const maxUsesRaw = b.maxUses;
+  let maxUses: number | null = null;
+  if (maxUsesRaw !== null && maxUsesRaw !== undefined && maxUsesRaw !== "") {
+    const parsedMax = Number(maxUsesRaw);
+    if (!Number.isFinite(parsedMax) || parsedMax < 0) {
+      return { ok: false, message: "سقف استفاده نامعتبر است." };
+    }
+    maxUses = parsedMax > 0 ? Math.round(parsedMax) : null;
+  }
 
   if (!code.trim()) return { ok: false, message: "کد تخفیف الزامی است." };
   if (!label.trim()) return { ok: false, message: "عنوان کد الزامی است." };
@@ -55,6 +64,7 @@ export function parseAdminPromoBody(body: unknown): ParseResult {
       minSubtotal: Math.round(minSubtotal),
       replacesSiteWide,
       active,
+      maxUses,
       aliases: parseAliasesField(b.aliases),
     },
   };

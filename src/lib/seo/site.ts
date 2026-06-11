@@ -7,12 +7,19 @@ import { DEFAULT_LOCALE, localePath, type AppLocale } from "@/lib/i18n/locales";
 const DEFAULT_SITE_URL = "http://localhost:3000";
 const DEFAULT_OG_IMAGE = DEFAULT_OG_IMAGE_PATH;
 
+let warnedMissingSiteUrl = false;
+
 export function getSiteUrl(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    DEFAULT_SITE_URL;
-  return raw.replace(/\/$/, "");
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!configured && process.env.NODE_ENV === "production" && !warnedMissingSiteUrl) {
+    warnedMissingSiteUrl = true;
+    // Canonical/OG URLs would otherwise point at localhost in production.
+    console.warn(
+      "[seo] NEXT_PUBLIC_SITE_URL is not set — canonical and Open Graph URLs will fall back to localhost. Set it before deploying."
+    );
+  }
+  return (configured || DEFAULT_SITE_URL).replace(/\/$/, "");
 }
 
 export function absoluteUrl(path: string): string {
@@ -88,6 +95,12 @@ type PageMetaInput = {
   noIndex?: boolean;
   ogType?: "website" | "article";
   locale?: AppLocale;
+  article?: {
+    publishedTime?: string;
+    modifiedTime?: string;
+    authors?: string[];
+    tags?: string[];
+  };
 };
 
 export function buildPageMetadata(
@@ -116,6 +129,14 @@ export function buildPageMetadata(
       title: input.title,
       description: input.description,
       images: [{ url: image, alt: input.title }],
+      ...(input.ogType === "article" && input.article
+        ? {
+            publishedTime: input.article.publishedTime,
+            modifiedTime: input.article.modifiedTime,
+            authors: input.article.authors,
+            tags: input.article.tags,
+          }
+        : {}),
     },
     twitter: {
       card: "summary_large_image",

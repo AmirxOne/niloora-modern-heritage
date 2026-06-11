@@ -28,6 +28,7 @@ function buildFallbackSettings(): PublicSiteSettings {
       description: fa.footer.description,
       ogImageUrl: DEFAULT_OG_IMAGE_PATH,
     },
+    enamadHtml: null,
     services: {
       paymentGateway: { enabled: true, provider: "zarinpal", configured: false },
       sms: { enabled: true, provider: "kavenegar", configured: false },

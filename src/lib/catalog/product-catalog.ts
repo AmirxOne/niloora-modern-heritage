@@ -161,6 +161,40 @@ export function searchProductsFuzzy<T extends ProductSearchFields>(products: T[]
   return scored.map((item) => item.product);
 }
 
+/**
+ * Keyword (term) suggestions surfaced alongside product hits: matching
+ * collection names, stone labels, and style labels. Helps users refine a query
+ * even when the exact product isn't in the preview list.
+ */
+export function buildSearchSuggestions(
+  products: Array<Pick<Product, "collection" | "stone" | "category">>,
+  query: string,
+  limit = 5
+): string[] {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return [];
+
+  const candidates = new Set<string>();
+  for (const product of products) {
+    if (product.collection) candidates.add(product.collection);
+    const stoneLabel = fa.stones[product.stone];
+    if (stoneLabel) candidates.add(stoneLabel);
+    const styleLabel = fa.shop.styles[product.category];
+    if (styleLabel) candidates.add(styleLabel);
+  }
+
+  const matches: string[] = [];
+  for (const candidate of Array.from(candidates)) {
+    const normalizedCandidate = normalizeSearchText(candidate);
+    if (!normalizedCandidate || normalizedCandidate === normalizedQuery) continue;
+    if (normalizedCandidate.includes(normalizedQuery) || normalizedQuery.includes(normalizedCandidate)) {
+      matches.push(candidate);
+    }
+    if (matches.length >= limit) break;
+  }
+  return matches;
+}
+
 export function getCatalogMaxPrice(catalog: Pick<Product, "price">[]): number {
   if (catalog.length === 0) return 0;
   return Math.max(...catalog.map((p) => p.price));
