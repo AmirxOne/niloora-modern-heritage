@@ -16,6 +16,8 @@ const emptyHomeData = (): HomeResponse => ({
   instagramPosts: [],
   banner: defaultHomeBannerDto(),
   campaigns: [],
+  popularArtisans: [],
+  blogPosts: [],
 });
 
 export function useHomeData(initialData?: HomePageData) {
@@ -38,6 +40,8 @@ export function useHomeData(initialData?: HomePageData) {
         instagramPosts: payload.instagramPosts ?? [],
         banner: payload.banner ?? defaultHomeBannerDto(),
         campaigns: payload.campaigns ?? [],
+        popularArtisans: payload.popularArtisans ?? [],
+        blogPosts: payload.blogPosts ?? [],
       });
     } finally {
       setIsLoading(false);

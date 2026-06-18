@@ -7,10 +7,12 @@ import type { Swiper as SwiperType } from "swiper";
 import { ChevronLeft, ChevronRight } from "@/components/icons";
 import { useSwiperRtlControls } from "@/components/swiper/useSwiperRtlControls";
 import {
-  homeBannerSliderNav,
+  homeBannerSliderNavArrow,
+  homeBannerSliderNavArrowNext,
+  homeBannerSliderNavArrowPrev,
+  homeBannerSliderNavGroup,
   homeBannerSliderNavIcon,
-  homeBannerSliderNavNext,
-  homeBannerSliderNavPrev,
+  homeBannerSliderPagination,
 } from "@/lib/styles/home-banner-swiper";
 import {
   productRailNavBtn,
@@ -133,28 +135,28 @@ export function RtlSwiper({
           </button>
         </>
       ) : (
-        <>
-          <button
-            ref={prevRef}
-            type="button"
-            className={cn(homeBannerSliderNav, homeBannerSliderNavPrev)}
-            aria-label={prevLabel}
-            disabled={disableNavAtEnds && !canPrev}
-            onClick={() => swiperRef.current?.slidePrev()}
-          >
-            <ChevronLeft className={homeBannerSliderNavIcon} variant={ICON_VARIANT} aria-hidden />
-          </button>
+        <div className={homeBannerSliderNavGroup}>
           <button
             ref={nextRef}
             type="button"
-            className={cn(homeBannerSliderNav, homeBannerSliderNavNext)}
+            className={cn(homeBannerSliderNavArrow, homeBannerSliderNavArrowNext)}
             aria-label={nextLabel}
             disabled={disableNavAtEnds && !canNext}
             onClick={() => swiperRef.current?.slideNext()}
           >
             <ChevronRight className={homeBannerSliderNavIcon} variant={ICON_VARIANT} aria-hidden />
           </button>
-        </>
+          <button
+            ref={prevRef}
+            type="button"
+            className={cn(homeBannerSliderNavArrow, homeBannerSliderNavArrowPrev)}
+            aria-label={prevLabel}
+            disabled={disableNavAtEnds && !canPrev}
+            onClick={() => swiperRef.current?.slidePrev()}
+          >
+            <ChevronLeft className={homeBannerSliderNavIcon} variant={ICON_VARIANT} aria-hidden />
+          </button>
+        </div>
       )
     ) : null;
 
@@ -217,11 +219,19 @@ export function RtlSwiper({
   return (
     <div className={cn("relative", wrapperClassName)}>
       <div className={cn("flex min-w-0 flex-col", contentClassName)}>
-        <div className={isRail ? productRailTrack : "relative min-w-0"}>
+        <div className={isRail ? productRailTrack : "relative h-full min-w-0"}>
           {navButtons}
           {isRail ? <div className={productRailViewport}>{swiperEl}</div> : swiperEl}
+          {showPagination && !isRail ? (
+            <div
+              ref={paginationRef}
+              className={cn(homeBannerSliderPagination, paginationClassName)}
+              role="tablist"
+              aria-label={paginationLabel}
+            />
+          ) : null}
         </div>
-        {showPagination ? (
+        {showPagination && isRail ? (
           <div
             ref={paginationRef}
             className={cn(

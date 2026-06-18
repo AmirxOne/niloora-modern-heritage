@@ -1,5 +1,5 @@
-import type { Post } from "@prisma/client";
-import { prisma } from "@/lib/server/prisma";
+import { HOME_READINGS_SEED_POSTS } from "@/lib/home/home-readings-posts";
+import { ensureHomeReadingsPosts } from "./ensure-home-readings";
 import {
   isPostStatus,
   normalizePostSlug,
@@ -51,6 +51,19 @@ export async function listPublishedPosts(limit = 50): Promise<PostListItem[]> {
     take: limit,
   });
   return rows.map(mapListItem);
+}
+
+/** چهار مقالهٔ بخش «خواندنی‌ها» — همیشه با ترتیب ثابت و تصویر بنر. */
+export async function listHomeReadingsPosts(): Promise<PostListItem[]> {
+  await ensureHomeReadingsPosts();
+  const slugs = HOME_READINGS_SEED_POSTS.map((post) => post.slug);
+  const rows = await prisma.post.findMany({
+    where: { slug: { in: slugs }, ...publishedWhere() },
+  });
+  const bySlug = new Map(rows.map((row) => [row.slug, mapListItem(row)]));
+  return HOME_READINGS_SEED_POSTS.map((seed) => bySlug.get(seed.slug)).filter(
+    (post): post is PostListItem => post !== undefined
+  );
 }
 
 export async function getPublishedPostBySlug(slug: string): Promise<PostDetail | null> {

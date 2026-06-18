@@ -157,6 +157,8 @@ export interface Product {
   listPrice?: number;
   discountPercent?: number;
   image: string;
+  /** تصویر بنر اختصاصی اسلایدر خانه (از پنل ادمین) */
+  sliderBannerImageUrl?: string;
   images?: string[];
   category: RingStyle;
   metal: MetalType;

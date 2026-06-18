@@ -20,6 +20,8 @@ export async function GET() {
         instagramPosts: payload.instagramPosts,
         banner: payload.banner,
         campaigns: payload.campaigns,
+        popularArtisans: payload.popularArtisans,
+        blogPosts: payload.blogPosts,
       },
       {
         headers: {

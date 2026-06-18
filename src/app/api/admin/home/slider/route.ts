@@ -32,6 +32,8 @@ export async function POST(request: Request) {
     try {
       const row = await createSliderItem({
         productId,
+        bannerImageUrl:
+          typeof body.bannerImageUrl === "string" ? body.bannerImageUrl : undefined,
         sortOrder: Number(body.sortOrder ?? 0),
         active: body.active !== false,
       });
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
         item: {
           id: row.id,
           productId: row.productId,
+          bannerImageUrl: row.bannerImageUrl,
           sortOrder: row.sortOrder,
           active: row.active,
         },

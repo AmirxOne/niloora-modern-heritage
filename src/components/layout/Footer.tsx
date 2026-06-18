@@ -7,8 +7,11 @@ import { ArrowUpLeft } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { useSiteSettings } from "@/components/providers/SiteSettingsProvider";
 import { SalesTrustStrip } from "@/components/commerce/SalesTrustStrip";
-import { FooterSocialLinks } from "@/components/layout/FooterSocialLinks";
+import { FooterNewsletterColumn } from "@/components/layout/FooterNewsletterColumn";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
+
+const FOOTER_COL_TITLE =
+  "mb-4 text-xs font-semibold uppercase tracking-widest text-[#B8860B]";
 
 const COLS = [
   {
@@ -92,27 +95,10 @@ export function Footer() {
         {/* ── شبکه 4 ستونه ── */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
 
-          {/* ستون برند */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-2xl font-bold leading-none text-[#2C2A29] transition-colors hover:text-[#B8860B]"
-            >
-              <BrandMark size={brandMarkSizes.footerProminent} />
-              <span>{site.brandName}</span>
-            </Link>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#78716C]">
-              {site.shortDescription ?? fa.footer.description}
-            </p>
-            <p className="mt-2 text-sm font-medium text-[#B8860B]">{site.brandTagline}</p>
-
-            <FooterSocialLinks social={site.social} className="mt-6" />
-          </div>
-
           {/* ستون‌های لینک */}
           {COLS.map((col) => (
             <div key={col.title}>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#B8860B]">
+              <h3 className={FOOTER_COL_TITLE}>
                 {col.title}
               </h3>
               <ul className="space-y-2.5">
@@ -129,6 +115,14 @@ export function Footer() {
               </ul>
             </div>
           ))}
+
+          {/* همراه ما + خبرنامه — انتهای چپ در RTL */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <FooterNewsletterColumn
+              social={site.social}
+              headingClassName={FOOTER_COL_TITLE}
+            />
+          </div>
         </div>
 
         {/* ── خط جداکننده ── */}

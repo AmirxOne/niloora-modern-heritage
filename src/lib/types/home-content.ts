@@ -23,6 +23,7 @@ export type HomeBannerDto = {
 export type HomeSliderItemDto = {
   id: string;
   productId: string;
+  bannerImageUrl?: string | null;
   sortOrder: number;
   active: boolean;
   productName?: string;

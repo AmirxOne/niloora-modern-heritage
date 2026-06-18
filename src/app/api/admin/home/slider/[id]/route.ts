@@ -24,6 +24,12 @@ export async function PATCH(
     try {
       const row = await updateSliderItem(id, {
         productId: typeof body.productId === "string" ? body.productId.trim() : undefined,
+        bannerImageUrl:
+          body.bannerImageUrl === null
+            ? null
+            : typeof body.bannerImageUrl === "string"
+              ? body.bannerImageUrl
+              : undefined,
         sortOrder: body.sortOrder !== undefined ? Number(body.sortOrder) : undefined,
         active: typeof body.active === "boolean" ? body.active : undefined,
       });
@@ -31,6 +37,7 @@ export async function PATCH(
         item: {
           id: row.id,
           productId: row.productId,
+          bannerImageUrl: row.bannerImageUrl,
           sortOrder: row.sortOrder,
           active: row.active,
         },

@@ -217,6 +217,29 @@ export function getArtisanBySlugForCatalog(slug: string, products: Product[]): A
   return listArtisansForCatalog(products).find((artisan) => artisan.slug === slug) ?? null;
 }
 
+/** استادکاران با بیشترین حضور در کاتالوگ (و سابقهٔ بیشتر در صورت تساوی). */
+export function getPopularArtisans(products: Product[], limit = 8): ArtisanProfile[] {
+  const all = listArtisansForCatalog(products);
+  const counts = new Map<string, number>();
+
+  for (const product of products) {
+    for (const link of getProductArtisanLinks(product)) {
+      counts.set(link.artisan.slug, (counts.get(link.artisan.slug) ?? 0) + 1);
+    }
+  }
+
+  return all
+    .map((artisan) => ({ artisan, score: counts.get(artisan.slug) ?? 0 }))
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        b.artisan.yearsExperience - a.artisan.yearsExperience ||
+        a.artisan.name.localeCompare(b.artisan.name, "fa")
+    )
+    .slice(0, limit)
+    .map((row) => row.artisan);
+}
+
 export function getProductArtisanLinks(product: Product): ProductArtisanLink[] {
   const links: ProductArtisanLink[] = [];
   const assignments = product.artisanAssignments;

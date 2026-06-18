@@ -5,6 +5,12 @@ import { listHomeInstagramPosts } from "@/lib/server/home/home-instagram";
 import { listHomeTestimonials } from "@/lib/server/home/home-testimonials";
 import { readSessionUser } from "@/lib/server/auth/session";
 import { listActivePublicCampaigns } from "@/lib/server/campaigns/discount-campaign-service";
+import { listHomeReadingsPosts } from "@/lib/server/blog/post-service";
+import type { PostListItem } from "@/lib/server/blog/post";
+import type { HomeBannerDto } from "@/lib/types/home-content";
+import type { Product } from "@/lib/types";
+import type { ArtisanProfile } from "@/lib/artisans";
+import { getPopularArtisans } from "@/lib/artisans";
 import {
   getBestsellerProducts,
   getCatalogProducts,
@@ -12,8 +18,6 @@ import {
   getFeaturedRailProducts,
   getPreferenceRecommendations,
 } from "@/lib/server/products";
-import type { HomeBannerDto } from "@/lib/types/home-content";
-import type { Product } from "@/lib/types";
 
 type HomeCollection = {
   id: string;
@@ -45,6 +49,8 @@ export type HomePageData = {
   instagramPosts: HomeInstagramPost[];
   banner: HomeBannerDto;
   campaigns: Awaited<ReturnType<typeof listActivePublicCampaigns>>;
+  popularArtisans: ArtisanProfile[];
+  blogPosts: PostListItem[];
 };
 
 export async function getHomePageData(): Promise<HomePageData> {
@@ -87,13 +93,15 @@ export async function getHomePageData(): Promise<HomePageData> {
     },
     10
   );
-  const [collections, testimonials, instagramPosts, banner, sliders, campaigns] = await Promise.all([
+  const [collections, testimonials, instagramPosts, banner, sliders, campaigns, blogPosts] =
+    await Promise.all([
     getCollectionsFromDb(),
     listHomeTestimonials(),
     listHomeInstagramPosts(),
     getHomeBannerSettings(),
     resolveHomeSliderProducts(catalog, 6),
     listActivePublicCampaigns(),
+    listHomeReadingsPosts(),
   ]);
 
   return {
@@ -116,5 +124,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     })),
     banner: banner ?? defaultHomeBannerDto(),
     campaigns: campaigns.filter((c) => c.banner.enabled),
+    popularArtisans: getPopularArtisans(catalog, 8),
+    blogPosts,
   };
 }

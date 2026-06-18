@@ -22,6 +22,7 @@ export function AdminHomeContentPanel() {
   const [bannerForm, setBannerForm] = useState<HomeBannerDto | null>(null);
   const [sliderProductId, setSliderProductId] = useState("");
   const [sliderSort, setSliderSort] = useState("0");
+  const [sliderBannerUrl, setSliderBannerUrl] = useState("");
 
   const [testimonialForm, setTestimonialForm] = useState({
     id: "" as string | undefined,
@@ -274,29 +275,57 @@ export function AdminHomeContentPanel() {
       {/* Slider */}
       <section className="admin-order-card">
         <h2 className="admin-page-title text-lg">{fa.admin.home.sliderTitle}</h2>
-        <p className="mb-4 text-xs text-silver">{fa.admin.home.sliderHint}</p>
-        <div className="mb-4 flex flex-wrap gap-2">
-          <TextBox
-            label={fa.admin.home.productId}
-            value={sliderProductId}
-            onChange={(e) => setSliderProductId(e.target.value)}
-            inputClassName="auth-input-ltr min-w-[12rem]"
+        <p className="mb-2 text-xs text-silver">{fa.admin.home.sliderHint}</p>
+        <p className="mb-4 rounded-lg border border-gold/15 bg-parchment/40 px-3 py-2 text-xs leading-relaxed text-silver">
+          {fa.admin.home.sliderBannerHint}
+        </p>
+        <div className="mb-4 grid gap-4">
+          <div className="flex flex-wrap gap-2">
+            <TextBox
+              label={fa.admin.home.productId}
+              value={sliderProductId}
+              onChange={(e) => setSliderProductId(e.target.value)}
+              inputClassName="auth-input-ltr min-w-[12rem]"
+            />
+            <TextBox
+              label={fa.admin.home.sortOrder}
+              value={sliderSort}
+              onChange={(e) => setSliderSort(e.target.value)}
+              inputClassName="auth-input-ltr w-24"
+            />
+          </div>
+          <AdminMediaPicker
+            category="home"
+            label={fa.admin.home.sliderBannerImage}
+            value={sliderBannerUrl}
+            onPick={setSliderBannerUrl}
           />
-          <TextBox
-            label={fa.admin.home.sortOrder}
-            value={sliderSort}
-            onChange={(e) => setSliderSort(e.target.value)}
-            inputClassName="auth-input-ltr w-24"
-          />
+          {sliderBannerUrl ? (
+            <span className="relative block h-20 w-full max-w-md overflow-hidden rounded-md border border-gold/15">
+              <Image
+                src={sliderBannerUrl}
+                alt=""
+                fill
+                className="object-cover object-center"
+                sizes="400px"
+              />
+            </span>
+          ) : null}
           <Button
             type="button"
-            className="self-end"
             disabled={admin.isSaving || !sliderProductId.trim()}
             onClick={() =>
               void admin.addSliderItem({
                 productId: sliderProductId.trim(),
+                bannerImageUrl: sliderBannerUrl.trim() || null,
                 sortOrder: Number(sliderSort) || 0,
                 active: true,
+              }).then((ok) => {
+                if (ok) {
+                  setSliderProductId("");
+                  setSliderSort("0");
+                  setSliderBannerUrl("");
+                }
               })
             }
           >
@@ -310,50 +339,66 @@ export function AdminHomeContentPanel() {
             {admin.sliderItems.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center gap-3 rounded-lg border border-gold/15 p-3"
+                className="flex flex-col gap-3 rounded-lg border border-gold/15 p-3"
               >
-                {item.productImage ? (
-                  <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
-                    <Image src={item.productImage} alt="" fill className="object-cover" sizes="48px" />
-                  </span>
-                ) : null}
-                <div className="min-w-0 flex-1">
-                  <p className="font-mono text-xs" dir="ltr">
-                    {item.productId}
-                  </p>
-                  <p className="text-sm text-ivory">{item.productName}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {(item.bannerImageUrl || item.productImage) ? (
+                    <span className="relative h-14 w-28 shrink-0 overflow-hidden rounded-md border border-gold/10">
+                      <Image
+                        src={item.bannerImageUrl || item.productImage || ""}
+                        alt=""
+                        fill
+                        className="object-cover object-center"
+                        sizes="112px"
+                      />
+                    </span>
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-mono text-xs" dir="ltr">
+                      {item.productId}
+                    </p>
+                    <p className="text-sm text-ivory">{item.productName}</p>
+                  </div>
+                  <Badge variant={item.active ? "turquoise" : "default"}>
+                    {item.active ? fa.admin.promoCodes.active : fa.admin.promoCodes.inactive}
+                  </Badge>
+                  <TextBox
+                    label={fa.admin.home.sortOrder}
+                    value={String(item.sortOrder)}
+                    onChange={(e) =>
+                      void admin.updateSliderItem(item.id, {
+                        sortOrder: Number(e.target.value) || 0,
+                      })
+                    }
+                    inputClassName="auth-input-ltr w-20"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      void admin.updateSliderItem(item.id, { active: !item.active })
+                    }
+                  >
+                    {item.active ? fa.admin.home.deactivate : fa.admin.home.activate}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void admin.deleteSliderItem(item.id)}
+                  >
+                    {fa.admin.home.delete}
+                  </Button>
                 </div>
-                <Badge variant={item.active ? "turquoise" : "default"}>
-                  {item.active ? fa.admin.promoCodes.active : fa.admin.promoCodes.inactive}
-                </Badge>
-                <TextBox
-                  label={fa.admin.home.sortOrder}
-                  value={String(item.sortOrder)}
-                  onChange={(e) =>
-                    void admin.updateSliderItem(item.id, {
-                      sortOrder: Number(e.target.value) || 0,
-                    })
+                <AdminMediaPicker
+                  category="home"
+                  label={fa.admin.home.sliderBannerImage}
+                  value={item.bannerImageUrl ?? ""}
+                  onPick={(url) =>
+                    void admin.updateSliderItem(item.id, { bannerImageUrl: url || null })
                   }
-                  inputClassName="auth-input-ltr w-20"
                 />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    void admin.updateSliderItem(item.id, { active: !item.active })
-                  }
-                >
-                  {item.active ? fa.admin.home.deactivate : fa.admin.home.activate}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void admin.deleteSliderItem(item.id)}
-                >
-                  {fa.admin.home.delete}
-                </Button>
               </li>
             ))}
           </ul>

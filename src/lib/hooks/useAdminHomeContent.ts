@@ -93,7 +93,12 @@ export function useAdminHomeContent() {
   );
 
   const addSliderItem = useCallback(
-    async (payload: { productId: string; sortOrder: number; active: boolean }) => {
+    async (payload: {
+      productId: string;
+      bannerImageUrl?: string | null;
+      sortOrder: number;
+      active: boolean;
+    }) => {
       if (!isAdmin) return false;
       setIsSaving(true);
       try {
