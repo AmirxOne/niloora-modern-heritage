@@ -14,7 +14,7 @@ export function Testimonials() {
   return (
     <section className="heritage-section-alt">
       <div className="site-container">
-        <SectionHeading eyebrow={fa.home.testimonialsEyebrow} title={fa.home.testimonialsTitle} />
+        <SectionHeading title={fa.home.testimonialsTitle} />
         <div className="grid gap-3 md:grid-cols-3 md:gap-4">
           {isLoading
             ? Array.from({ length: 3 }).map((_, idx) => (

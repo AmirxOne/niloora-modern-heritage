@@ -13,7 +13,6 @@ export function HomeReadings() {
     <section className="heritage-section-alt" aria-label={fa.home.readingsTitle}>
       <div className="site-container">
         <SectionHeading
-          eyebrow={fa.home.readingsEyebrow}
           title={fa.home.readingsTitle}
           subtitle={fa.home.readingsSubtitle}
           className="!mb-6 md:!mb-8 [&_.mt-5]:!mt-4"
@@ -31,7 +30,7 @@ export function HomeReadings() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {posts.map((post) => (
-              <BlogPostCard key={post.id} post={post} />
+              <BlogPostCard key={post.id} post={post} priority />
             ))}
           </div>
         )}

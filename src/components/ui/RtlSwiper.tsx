@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "@/styles/swiper-preinit.css";
 
 export type RtlSwiperNavPlacement = "product-rail" | "banner";
 
@@ -76,7 +77,7 @@ export function RtlSwiper({
   bulletActiveClass,
   paginationClassName,
   navIconSize = "sm",
-  disableNavAtEnds = false,
+  disableNavAtEnds = true,
   extraModules = [],
   onSlideIndexChange,
   onBeforeInit,
@@ -109,6 +110,9 @@ export function RtlSwiper({
     [extraModules]
   );
 
+  const showPrevNav = !disableNavAtEnds || canPrev;
+  const showNextNav = !disableNavAtEnds || canNext;
+
   const navButtons =
     showNav ? (
       isRail ? (
@@ -116,9 +120,10 @@ export function RtlSwiper({
           <button
             ref={prevRef}
             type="button"
-            className={cn(productRailNavBtn, productRailNavLeft)}
+            className={cn(productRailNavBtn, productRailNavLeft, !showPrevNav && "hidden")}
             aria-label={prevLabel}
-            disabled={disableNavAtEnds && !canPrev}
+            aria-hidden={!showPrevNav}
+            tabIndex={showPrevNav ? 0 : -1}
             onClick={() => swiperRef.current?.slidePrev()}
           >
             <ChevronLeft className={railIconClass} variant={ICON_VARIANT} aria-hidden />
@@ -126,9 +131,10 @@ export function RtlSwiper({
           <button
             ref={nextRef}
             type="button"
-            className={cn(productRailNavBtn, productRailNavRight)}
+            className={cn(productRailNavBtn, productRailNavRight, !showNextNav && "hidden")}
             aria-label={nextLabel}
-            disabled={disableNavAtEnds && !canNext}
+            aria-hidden={!showNextNav}
+            tabIndex={showNextNav ? 0 : -1}
             onClick={() => swiperRef.current?.slideNext()}
           >
             <ChevronRight className={railIconClass} variant={ICON_VARIANT} aria-hidden />
@@ -139,9 +145,10 @@ export function RtlSwiper({
           <button
             ref={nextRef}
             type="button"
-            className={cn(homeBannerSliderNavArrow, homeBannerSliderNavArrowNext)}
+            className={cn(homeBannerSliderNavArrow, homeBannerSliderNavArrowNext, !showNextNav && "hidden")}
             aria-label={nextLabel}
-            disabled={disableNavAtEnds && !canNext}
+            aria-hidden={!showNextNav}
+            tabIndex={showNextNav ? 0 : -1}
             onClick={() => swiperRef.current?.slideNext()}
           >
             <ChevronRight className={homeBannerSliderNavIcon} variant={ICON_VARIANT} aria-hidden />
@@ -149,9 +156,10 @@ export function RtlSwiper({
           <button
             ref={prevRef}
             type="button"
-            className={cn(homeBannerSliderNavArrow, homeBannerSliderNavArrowPrev)}
+            className={cn(homeBannerSliderNavArrow, homeBannerSliderNavArrowPrev, !showPrevNav && "hidden")}
             aria-label={prevLabel}
-            disabled={disableNavAtEnds && !canPrev}
+            aria-hidden={!showPrevNav}
+            tabIndex={showPrevNav ? 0 : -1}
             onClick={() => swiperRef.current?.slidePrev()}
           >
             <ChevronLeft className={homeBannerSliderNavIcon} variant={ICON_VARIANT} aria-hidden />

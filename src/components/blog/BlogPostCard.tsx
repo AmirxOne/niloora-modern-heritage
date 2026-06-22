@@ -12,16 +12,25 @@ function formatDate(iso: string | null): string {
   });
 }
 
-export function BlogPostCard({ post }: { post: PostListItem }) {
+export function BlogPostCard({
+  post,
+  priority = false,
+}: {
+  post: PostListItem;
+  priority?: boolean;
+}) {
   return (
     <article className="blog-card">
       <Link href={`/blog/${post.slug}`} className="blog-card-link">
         {post.coverImage ? (
           <div className="blog-card-image">
             <Image
+              key={`${post.id}-${post.coverImage}`}
               src={post.coverImage}
               alt=""
               fill
+              unoptimized
+              priority={priority}
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 400px"
             />

@@ -34,6 +34,7 @@ import { ProductSpecs } from "@/components/product/ProductSpecs";
 import { ProductHighlights } from "@/components/product/ProductHighlights";
 import { MobileProductBuyBar } from "@/components/product/MobileProductBuyBar";
 import { PieceNumber } from "@/components/product/PieceNumber";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { resolvePieceCode } from "@/lib/products/piece-code";
 import { ProductIntroVideo } from "@/components/product/ProductIntroVideo";
 import { ProductArtisansPanel } from "@/components/product/ProductArtisansPanel";
@@ -182,8 +183,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   }
 
   const pieceCode = resolvePieceCode(product);
-  const rawDisplayName = product.namePersian?.trim() || product.name;
-  const displayName = /^[a-z0-9-]+$/i.test(rawDisplayName) ? `اثر ${pieceCode}` : rawDisplayName;
+  const displayName = getProductDisplayName(product);
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
   const status = getProductStatusConfig(product.availability);
   const canBuyByStockRules = isProductPurchasable(
@@ -269,7 +269,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                 {product.introVideoUrl ? (
                   <ProductIntroVideo
                     url={product.introVideoUrl}
-                    title={product.namePersian || product.name}
+                    title={displayName}
                     className="product-detail-intro-video"
                   />
                 ) : null}

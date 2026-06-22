@@ -8,7 +8,7 @@ function bindNavigation(swiper: SwiperType, prevEl: HTMLElement | null, nextEl: 
   const nav = swiper.params.navigation;
   if (!nav || typeof nav !== "object") return;
 
-  Object.assign(nav, { prevEl, nextEl });
+  Object.assign(nav, { prevEl, nextEl, disabledClass: "hidden" });
 
   const navigation = swiper.navigation;
   if (!navigation) return;
@@ -62,6 +62,7 @@ export function useSwiperRtlControls(showPagination: boolean) {
         Object.assign(nav, {
           prevEl: prevRef.current,
           nextEl: nextRef.current,
+          disabledClass: "hidden",
         });
       }
       if (showPagination) {

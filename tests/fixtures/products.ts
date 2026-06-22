@@ -50,7 +50,8 @@ export const haloProduct: Product = {
 export function defaultShopFilters(overrides?: Partial<ShopFilters>): ShopFilters {
   return {
     stones: [],
-    artisans: [],
+    shankArtisans: [],
+    stoneArtisans: [],
     priceRange: [0, 500_000_000],
     styles: [],
     engravingTypes: [],

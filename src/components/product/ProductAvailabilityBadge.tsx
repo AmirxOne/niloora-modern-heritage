@@ -1,15 +1,23 @@
 "use client";
 
+import { Crown, History, PenTool } from "@/components/icons";
+import { getProductStatusConfig, type ProductStatusTone } from "@/lib/product-status";
+import { ICON_VARIANT, iconSizes, type IconComponent } from "@/lib/icons";
 import type { ProductAvailability } from "@/lib/types";
-import { getProductStatusConfig } from "@/lib/product-status";
 import { cn } from "@/lib/utils";
 
-const toneClasses: Record<string, string> = {
+const toneClasses: Record<ProductStatusTone, string> = {
   ready: "product-status--ready",
   wait: "product-status--wait",
   sold: "product-status--sold",
   luxury: "product-status--luxury",
   custom: "product-status--custom",
+};
+
+const overlayIcons: Partial<Record<ProductStatusTone, IconComponent>> = {
+  luxury: Crown,
+  wait: History,
+  custom: PenTool,
 };
 
 interface ProductAvailabilityBadgeProps {
@@ -30,6 +38,7 @@ export function ProductAvailabilityBadge({
 }: ProductAvailabilityBadgeProps) {
   const config = getProductStatusConfig(availability);
   const tooltipText = `${config.description} — ${config.deliveryHint}`;
+  const OverlayIcon = short ? overlayIcons[config.tone] : null;
 
   return (
     <div className={cn("product-status-wrap", className)}>
@@ -38,11 +47,21 @@ export function ProductAvailabilityBadge({
           "product-status-badge",
           toneClasses[config.tone],
           size === "md" && "product-status-badge--md",
-          short && "product-status-badge--sm"
+          short && "product-status-badge--sm product-status-badge--overlay"
         )}
         title={tooltipText}
       >
-        {short ? config.shortLabel : config.label}
+        {OverlayIcon ? (
+          <OverlayIcon
+            size={iconSizes.xs}
+            variant={ICON_VARIANT}
+            className="product-status-badge__icon"
+            aria-hidden
+          />
+        ) : null}
+        <span className="product-status-badge__text">
+          {short ? config.shortLabel : config.label}
+        </span>
       </span>
       {showDelivery ? <p className="product-status-delivery">{config.deliveryHint}</p> : null}
     </div>

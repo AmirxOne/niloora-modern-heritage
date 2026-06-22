@@ -22,6 +22,7 @@ import { resolveHomeSliderBannerImage, isStaticPublicSliderBanner } from "@/lib/
 import { RtlSwiper } from "@/components/ui/RtlSwiper";
 import type { Product } from "@/lib/types";
 import "swiper/css/effect-fade";
+import "@/styles/swiper-preinit.css";
 
 const INTERVAL_MS = 6200;
 const SLIDER_IMAGE_QUALITY = 92;

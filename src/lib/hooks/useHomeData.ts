@@ -27,7 +27,7 @@ export function useHomeData(initialData?: HomePageData) {
   const loadData = useCallback(async () => {
     setIsLoading((current) => current || !initialData);
     try {
-      const response = await fetch("/api/home");
+      const response = await fetch("/api/home", { cache: "no-store" });
       if (!response.ok) return;
       const payload = (await response.json()) as HomeResponse;
       setData({

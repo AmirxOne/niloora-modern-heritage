@@ -18,8 +18,7 @@ import {
 const artisanRailBreakpoints = {
   0: { slidesPerView: 1.1, slidesPerGroup: 1, spaceBetween: 12 },
   640: { slidesPerView: 2, slidesPerGroup: 1, spaceBetween: 14 },
-  1024: { slidesPerView: 3, slidesPerGroup: 1, spaceBetween: 16 },
-  1280: { slidesPerView: 4, slidesPerGroup: 1, spaceBetween: 16 },
+  1024: { slidesPerView: 4, slidesPerGroup: 1, spaceBetween: 16 },
 } as const;
 
 export function PopularArtisans() {
@@ -37,7 +36,6 @@ export function PopularArtisans() {
     >
       <div className="site-container">
         <SectionHeading
-          eyebrow={fa.home.popularArtisansEyebrow}
           title={fa.home.popularArtisansTitle}
           subtitle={fa.home.popularArtisansSubtitle}
           className="!mb-6 md:!mb-8 [&_.mt-5]:!mt-4"
@@ -52,7 +50,7 @@ export function PopularArtisans() {
         ) : artisans.length > 1 ? (
           <RtlSwiper
             navPlacement="product-rail"
-            wrapperClassName={productRailWrap}
+            wrapperClassName={`${productRailWrap} product-rail-wrap--duo`}
             className={productRailSwiper}
             breakpoints={artisanRailBreakpoints}
             slidesPerView={1.1}
@@ -64,7 +62,7 @@ export function PopularArtisans() {
             prevLabel={fa.home.popularArtisansPrev}
             nextLabel={fa.home.popularArtisansNext}
             navIconSize="md"
-            disableNavAtEnds={false}
+            disableNavAtEnds
             onSlideIndexChange={(i) => setActiveIndex(i)}
           >
             {artisans.map((artisan) => (

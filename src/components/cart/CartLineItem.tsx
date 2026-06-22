@@ -12,6 +12,7 @@ import { getProductStatusConfig } from "@/lib/product-status";
 import type { CartItem, ProductAvailability } from "@/lib/types";
 import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabilityBadge";
 import { PieceNumber } from "@/components/product/PieceNumber";
+import { getDisplayNameFromString } from "@/lib/products/product-display-name";
 import { resolvePieceCode } from "@/lib/products/piece-code";
 
 interface CartLineItemProps {
@@ -27,8 +28,7 @@ export const CartLineItem = forwardRef<HTMLLIElement, CartLineItemProps>(functio
   ref
 ) {
   const pieceCode = item.productId ? resolvePieceCode({ id: item.productId }) : null;
-  const looksLikeTechnicalName = /^[a-z0-9-]+$/i.test(item.name.trim());
-  const displayTitle = looksLikeTechnicalName && pieceCode ? `اثر ${pieceCode}` : item.name;
+  const displayTitle = getDisplayNameFromString(item.name, item.productId);
   const lineList = (item.listPrice ?? item.price) * item.quantity;
   const lineTotal = item.price * item.quantity;
   const lineFurooh = Math.max(0, lineList - lineTotal);

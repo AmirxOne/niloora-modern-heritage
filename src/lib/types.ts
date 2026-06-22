@@ -566,7 +566,8 @@ export type ShopMetalStamp = "0.925" | "0.750" | "0.585";
 
 export interface ShopFilters {
   stones: string[];
-  artisans: string[];
+  shankArtisans: string[];
+  stoneArtisans: string[];
   priceRange: [number, number];
   styles: RingStyle[];
   engravingTypes: (EngravingStyle | "none")[];

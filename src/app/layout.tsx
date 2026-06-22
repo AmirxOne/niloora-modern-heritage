@@ -1,9 +1,17 @@
 import { Cormorant_Garamond, Vazirmatn } from "next/font/google";
 import "@/styles/globals.css";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/effect-fade";
+import "@/styles/swiper-preinit.css";
 import { rootSiteMetadata, rootSiteViewport } from "@/lib/seo/site";
 import { buildOrganizationJsonLd, buildWebSiteJsonLd } from "@/lib/seo/structured-data";
 import { getPublicSiteSettings } from "@/lib/server/site-settings/site-settings";
+import { getHomeBannerSettings } from "@/lib/server/home/home-banner";
+import { isHeaderStripVisible } from "@/lib/home-banner-header-strip";
 import { SiteSettingsProvider } from "@/components/providers/SiteSettingsProvider";
+import { HomeBannerProvider } from "@/components/providers/HomeBannerProvider";
 import { StoreProvider } from "@/lib/store/StoreProvider";
 import { AppProvider } from "@/lib/context/AppContext";
 import { ConditionalLayoutChrome } from "@/components/layout/ConditionalLayoutChrome";
@@ -12,6 +20,7 @@ import { PersianDigitsEnforcer } from "@/components/providers/PersianDigitsEnfor
 import { ClientObservability } from "@/components/providers/ClientObservability";
 import { DiscountCountdownProvider } from "@/components/providers/DiscountCountdownProvider";
 import { MotionOffProvider } from "@/components/providers/MotionOffProvider";
+import { cn } from "@/lib/utils";
 import iranYekanFont from "@/fonts/iranYekanFont";
 import iranYekanFontNum from "@/fonts/iranYekanFontNum";
 
@@ -19,12 +28,16 @@ const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   variable: "--font-display-latin",
   weight: ["300", "400", "500", "600"],
+  display: "swap",
+  adjustFontFallback: true,
 });
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
   variable: "--font-vazirmatn",
   weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  adjustFontFallback: true,
 });
 
 export const viewport = rootSiteViewport;
@@ -39,7 +52,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const siteSettings = await getPublicSiteSettings();
+  const [siteSettings, banner] = await Promise.all([
+    getPublicSiteSettings(),
+    getHomeBannerSettings(),
+  ]);
+  const hasPromo = isHeaderStripVisible(banner);
+  const promoIsImage = hasPromo && banner.headerStripMode === "image";
   const orgJsonLd = buildOrganizationJsonLd({
     brandName: siteSettings.brandName,
     logoUrl: siteSettings.logoUrl,
@@ -52,7 +70,14 @@ export default async function RootLayout({
     <html
       lang="fa"
       dir="rtl"
-      className={`${cormorant.variable} ${vazirmatn.variable} ${iranYekanFont.variable} ${iranYekanFontNum.variable}`}
+      className={cn(
+        cormorant.variable,
+        vazirmatn.variable,
+        iranYekanFont.variable,
+        iranYekanFontNum.variable,
+        hasPromo && "header-promo-active",
+        promoIsImage && "header-promo-active--image"
+      )}
     >
       <body className="font-IranYekanFontNum">
         <script
@@ -63,12 +88,14 @@ export default async function RootLayout({
           <StoreProvider>
             <AppProvider>
               <SiteSettingsProvider settings={siteSettings}>
-                <DiscountCountdownProvider>
-                  <ConditionalLayoutChrome>{children}</ConditionalLayoutChrome>
-                <AppToaster />
-                <PersianDigitsEnforcer />
-                <ClientObservability />
-                </DiscountCountdownProvider>
+                <HomeBannerProvider initialBanner={banner}>
+                  <DiscountCountdownProvider>
+                    <ConditionalLayoutChrome>{children}</ConditionalLayoutChrome>
+                    <AppToaster />
+                    <PersianDigitsEnforcer />
+                    <ClientObservability />
+                  </DiscountCountdownProvider>
+                </HomeBannerProvider>
               </SiteSettingsProvider>
             </AppProvider>
           </StoreProvider>

@@ -7,6 +7,7 @@ import type { Product } from "@/lib/types";
 import { getProductSpecEntries } from "@/components/product/ProductSpecs";
 import { ProductPriceDisplay } from "@/components/product/ProductPriceDisplay";
 import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabilityBadge";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { Button } from "@/components/ui/Button";
@@ -163,7 +164,7 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
         {recommended ? (
           <div className="compare-enhanced__recommendation-result">
             <p>
-              <strong>{fa.compare.recommendationResultLabel}:</strong> {recommended.namePersian || recommended.name}
+              <strong>{fa.compare.recommendationResultLabel}:</strong> {getProductDisplayName(recommended)}
             </p>
             <p>
               <strong>{fa.compare.recommendationReasonLabel}:</strong>{" "}
@@ -180,7 +181,7 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
             const summary = summarizeProduct(product);
             return (
               <article key={product.id} className="compare-enhanced__summary-card">
-                <h3 className="compare-enhanced__summary-title">{product.namePersian || product.name}</h3>
+                <h3 className="compare-enhanced__summary-title">{getProductDisplayName(product)}</h3>
                 <p className="compare-enhanced__summary-label">{fa.compare.prosTitle}</p>
                 <ul className="compare-enhanced__list">
                   {summary.pros.map((item) => (
@@ -213,14 +214,14 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
                       <Link href={`/product/${product.id}`} className="product-compare-table__thumb">
                         <Image
                           src={product.image}
-                          alt={product.namePersian || product.name}
+                          alt={getProductDisplayName(product)}
                           fill
                           sizes="160px"
                           className="object-cover"
                         />
                       </Link>
                       <Link href={`/product/${product.id}`} className="product-compare-table__name">
-                        {product.namePersian || product.name}
+                        {getProductDisplayName(product)}
                       </Link>
                       <ProductPriceDisplay product={product} size="sm" />
                       <div className="product-compare-table__actions">

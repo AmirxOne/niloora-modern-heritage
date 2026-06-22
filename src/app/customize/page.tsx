@@ -14,6 +14,7 @@ import { StatusAlert } from "@/components/ui/StatusAlert";
 import { listAllArtisans } from "@/lib/artisans";
 import { useApp } from "@/lib/context/AppContext";
 import { ImageChoiceGrid } from "@/components/customizer/wizard/ImageChoiceGrid";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { resolvePieceCode } from "@/lib/products/piece-code";
 import type { ProductAvailability } from "@/lib/types";
 import type {
@@ -261,12 +262,7 @@ export default function CustomizePage() {
 
   const unitBasePrice = product?.price ?? 0;
   const estimatedUnitPrice = unitBasePrice + (preview?.totalCustomizationDelta ?? 0);
-  const productPieceCode = product ? resolvePieceCode(product) : "";
-  const productDisplayName = product
-    ? /^[a-z0-9-]+$/i.test((product.namePersian || product.name || "").trim())
-      ? `اثر ${productPieceCode}`
-      : product.namePersian || product.name
-    : "";
+  const productDisplayName = product ? getProductDisplayName(product) : "";
   const selectedShankDesigner = shankDesignerOptions.find((item) => item.id === shankArtisanId);
   const selectedShankPattern = config?.catalog.shankPatterns.find((item) => item.id === shankPatternId);
   const selectedStoneArtisan = config?.catalog.stoneArtisans.find((item) => item.id === stoneArtisanId);
@@ -535,7 +531,7 @@ export default function CustomizePage() {
                   <div className="relative aspect-square w-full overflow-hidden rounded-heritage border border-gold/15 bg-parchment">
                     <Image
                       src={product.image || DEFAULT_PRODUCT_IMAGE}
-                      alt={product.namePersian || product.name || ""}
+                      alt={product ? getProductDisplayName(product) : ""}
                       fill
                       className="object-cover"
                       sizes="300px"

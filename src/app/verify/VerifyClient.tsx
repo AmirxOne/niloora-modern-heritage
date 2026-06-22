@@ -9,6 +9,7 @@ import { TextBox } from "@/components/inputs";
 import { Button } from "@/components/ui/Button";
 import { fa } from "@/lib/i18n/fa";
 import type { ProductAuthenticitySummary } from "@/lib/types";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { normalizePieceCode } from "@/lib/products/piece-code";
 
 function statusLabel(status: ProductAuthenticitySummary["status"]) {
@@ -138,13 +139,13 @@ export function VerifyClient() {
                   <div className="verify-product-card">
                     <Image
                       src={result.product.image}
-                      alt={result.product.name}
+                      alt={getProductDisplayName(result.product)}
                       className="verify-product-image"
                       width={80}
                       height={80}
                     />
                     <div className="verify-product-body">
-                      <p className="verify-product-name">{result.product.namePersian}</p>
+                      <p className="verify-product-name">{getProductDisplayName(result.product)}</p>
                       <p className="verify-product-sub">{fa.verify.verifiedHint}</p>
                       <Link href={`/product/${result.product.id}`} className="verify-product-link">
                         {fa.verify.openProduct}

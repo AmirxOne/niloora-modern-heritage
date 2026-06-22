@@ -15,7 +15,7 @@ export const homeBannerSliderNavGroup =
   "absolute bottom-10 right-3 z-20 flex items-center md:bottom-12 md:right-5";
 
 export const homeBannerSliderNavArrow =
-  "flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-ivory shadow-md transition-[background-color,color,opacity] hover:bg-parchment focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35 disabled:cursor-not-allowed disabled:opacity-50 md:h-11 md:w-11";
+  "home-banner-nav-btn flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-gold/30 bg-white text-ivory shadow-[0_2px_12px_rgba(44,42,41,0.14)] transition-[background-color,border-color,box-shadow,opacity] hover:border-gold/45 hover:bg-parchment hover:shadow-[0_4px_16px_rgba(44,42,41,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35 md:h-11 md:w-11";
 
 export const homeBannerSliderNavArrowNext = "ml-1 mr-2 sm:mr-4";
 

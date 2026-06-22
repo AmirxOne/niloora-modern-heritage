@@ -216,8 +216,6 @@ export function Header() {
               <HeaderSearch mode="inline" />
 
               <div className="header-main-actions">
-                <span className="header-main-actions__divider" aria-hidden />
-
                 <IconBtn
                   href="/compare"
                   label={fa.nav.compareItems(compareList.count)}
@@ -234,6 +232,8 @@ export function Header() {
                 >
                   <ShoppingBag size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
                 </IconBtn>
+
+                <span className="header-main-actions__divider" aria-hidden />
 
                 <HeaderAccountMenu />
               </div>

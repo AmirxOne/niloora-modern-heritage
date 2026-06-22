@@ -32,8 +32,6 @@ export function Pagination({
   totalPages,
   onPageChange,
   totalItems,
-  from,
-  to,
   pageSize = DEFAULT_PAGE_SIZE,
   pageSizeOptions = PAGE_SIZE_OPTIONS,
   onPageSizeChange,
@@ -103,23 +101,6 @@ export function Pagination({
       className={cn("pagination", className)}
       aria-label={fa.pagination.ariaLabel}
     >
-      <div className="pagination-meta">
-        <p className="pagination-summary">
-          {fa.pagination.showing(from, to, totalItems)}
-        </p>
-
-        {onPageSizeChange ? (
-          <label className="pagination-page-size">
-            <span>{fa.pagination.pageSizeLabel}</span>
-            <SelectBox
-              value={String(normalizedPageSize)}
-              options={pageSizeSelectOptions}
-              onValueChange={changePageSize}
-            />
-          </label>
-        ) : null}
-      </div>
-
       {totalPages > 1 ? (
         <div className="pagination-controls">
           <button
@@ -130,7 +111,6 @@ export function Pagination({
             aria-label={fa.pagination.prev}
           >
             <ChevronRight size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-            <span>{fa.pagination.prev}</span>
           </button>
 
           <ol className="pagination-pages" role="list">
@@ -165,9 +145,21 @@ export function Pagination({
             disabled={page >= totalPages}
             aria-label={fa.pagination.next}
           >
-            <span>{fa.pagination.next}</span>
             <ChevronLeft size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
           </button>
+        </div>
+      ) : null}
+
+      {onPageSizeChange ? (
+        <div className="pagination-meta">
+          <label className="pagination-page-size">
+            <span>{fa.pagination.pageSizeLabel}</span>
+            <SelectBox
+              value={String(normalizedPageSize)}
+              options={pageSizeSelectOptions}
+              onValueChange={changePageSize}
+            />
+          </label>
         </div>
       ) : null}
     </nav>

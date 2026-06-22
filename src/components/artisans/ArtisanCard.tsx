@@ -11,7 +11,7 @@ export function ArtisanCard({ artisan }: { artisan: ArtisanProfile }) {
             src={artisan.image}
             alt={artisan.name}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="artisan-card-image-el"
           />
         </div>

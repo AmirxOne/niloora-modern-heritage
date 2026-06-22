@@ -1,4 +1,6 @@
+import type { Post } from "@prisma/client";
 import { HOME_READINGS_SEED_POSTS } from "@/lib/home/home-readings-posts";
+import { prisma } from "@/lib/server/prisma";
 import { ensureHomeReadingsPosts } from "./ensure-home-readings";
 import {
   isPostStatus,
@@ -61,9 +63,11 @@ export async function listHomeReadingsPosts(): Promise<PostListItem[]> {
     where: { slug: { in: slugs }, ...publishedWhere() },
   });
   const bySlug = new Map(rows.map((row) => [row.slug, mapListItem(row)]));
-  return HOME_READINGS_SEED_POSTS.map((seed) => bySlug.get(seed.slug)).filter(
-    (post): post is PostListItem => post !== undefined
-  );
+  return HOME_READINGS_SEED_POSTS.flatMap((seed) => {
+    const post = bySlug.get(seed.slug);
+    if (!post) return [];
+    return [{ ...post, coverImage: seed.coverImage }];
+  });
 }
 
 export async function getPublishedPostBySlug(slug: string): Promise<PostDetail | null> {

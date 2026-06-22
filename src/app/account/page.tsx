@@ -14,6 +14,7 @@ import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useApp } from "@/lib/context/AppContext";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { fa } from "@/lib/i18n/fa";
 import { Button } from "@/components/ui/Button";
 import { OrderHistory } from "@/components/account/OrderHistory";
@@ -219,7 +220,7 @@ export default function AccountPage() {
                 <li key={p.id}>
                   <AccountResourceRow
                     href={`/product/${p.id}`}
-                    title={p.namePersian || p.name}
+                    title={getProductDisplayName(p)}
                     subtitle={p.collection}
                     price={p.price}
                     image={p.image}
@@ -265,7 +266,7 @@ export default function AccountPage() {
                   <li key={p.id}>
                     <AccountResourceRow
                       href={`/product/${p.id}`}
-                      title={p.namePersian || p.name}
+                      title={getProductDisplayName(p)}
                       subtitle={p.collection}
                       price={p.price}
                       image={p.image}
@@ -306,7 +307,7 @@ export default function AccountPage() {
                 <li key={p.id}>
                   <AccountResourceRow
                     href={`/product/${p.id}`}
-                    title={p.namePersian || p.name}
+                    title={getProductDisplayName(p)}
                     subtitle={p.collection}
                     price={p.price}
                     image={p.image}

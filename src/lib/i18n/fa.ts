@@ -264,6 +264,8 @@ export const fa = {
     activeFilters: (n: number) => `${n.toLocaleString("fa-IR")} فیلتر فعال`,
     stone: "نگین",
     artisan: "طراح و استاد",
+    shankArtisan: "طراح رکاب",
+    stoneArtisan: "طراح سنگ",
     style: "دستهٔ طرح",
     engraving: "خوشنویسی",
     weight: "وزن اثر",
@@ -2646,7 +2648,7 @@ export const fa = {
     emailSubmit: "ثبت",
     emailSignupSuccess: "ایمیل شما ثبت شد. از تخفیف‌ها و اخبار گالری باخبر می‌شوید.",
     copyright: (year: number) => `© ${year} ابراهیم آذری · تمامی حقوق محفوظ است`,
-    cities: "تهران · دبی · لندن",
+    cities: "تهران",
   },
   artisans: {
     eyebrow: "پرتفولیوی کارگاه",

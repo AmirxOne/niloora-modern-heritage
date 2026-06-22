@@ -12,6 +12,8 @@ const iranYekanFontNum = localFont({
   variable: "--font-iranYekanFontNum",
   style: "normal",
   display: "swap",
+  adjustFontFallback: "Arial",
+  fallback: ["Tahoma", "Arial", "sans-serif"],
 });
 
 export default iranYekanFontNum;

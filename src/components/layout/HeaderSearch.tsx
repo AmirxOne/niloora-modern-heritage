@@ -12,6 +12,7 @@ import type { Product } from "@/lib/types";
 import { TextBox } from "@/components/inputs";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { cn } from "@/lib/utils";
 
 const quickLinks = [
@@ -78,7 +79,7 @@ function SearchDropdown({
                       <span className="header-search-preview-thumb">
                         <Image
                           src={product.image}
-                          alt={product.namePersian || product.name}
+                          alt={getProductDisplayName(product)}
                           fill
                           className="object-cover"
                           sizes="48px"
@@ -86,7 +87,7 @@ function SearchDropdown({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-ivory">
-                          {product.namePersian || product.name}
+                          {getProductDisplayName(product)}
                         </span>
                         <span className="block truncate">
                           <TomanPrice amount={product.price} size="xs" />

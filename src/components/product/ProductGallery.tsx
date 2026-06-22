@@ -87,7 +87,7 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
 
           <button
             type="button"
-            className="product-gallery-zoom absolute bottom-3 left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-stone-950/55 text-white transition hover:bg-stone-950/75"
+            className="product-gallery-zoom absolute bottom-3 left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-gold/30 bg-white text-ivory shadow-[0_2px_12px_rgba(44,42,41,0.14)] transition hover:border-gold/45 hover:bg-parchment hover:shadow-[0_4px_16px_rgba(44,42,41,0.18)]"
             onClick={() => setLightboxOpen(true)}
             aria-label={fa.product.galleryZoomOpen}
             title={fa.product.galleryZoomHint}

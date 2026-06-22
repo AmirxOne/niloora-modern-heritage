@@ -113,7 +113,8 @@ export function parseShopFiltersFromParams(
 
   return {
     stones: parseFreeCsv(params.get("stones")),
-    artisans: parseFreeCsv(params.get("artisans")),
+    shankArtisans: parseFreeCsv(params.get("shankArtisans") ?? params.get("artisans")),
+    stoneArtisans: parseFreeCsv(params.get("stoneArtisans")),
     styles: parseCsv(params.get("styles"), STYLE_VALUES),
     engravingTypes: parseCsv(params.get("engraving"), ENGRAVING_VALUES),
     weightBands: parseCsv(params.get("weight"), WEIGHT_VALUES),
@@ -158,7 +159,9 @@ export function buildShopSearchParams(
   };
 
   setOrDelete("stones", serializeCsv(filters.stones));
-  setOrDelete("artisans", serializeCsv(filters.artisans));
+  setOrDelete("shankArtisans", serializeCsv(filters.shankArtisans));
+  setOrDelete("stoneArtisans", serializeCsv(filters.stoneArtisans));
+  params.delete("artisans");
   setOrDelete("styles", serializeCsv(filters.styles));
   setOrDelete("engraving", serializeCsv(filters.engravingTypes));
   setOrDelete("weight", serializeCsv(filters.weightBands));

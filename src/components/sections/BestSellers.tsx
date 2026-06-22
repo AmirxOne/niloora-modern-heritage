@@ -5,13 +5,13 @@ import { fa } from "@/lib/i18n/fa";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ProductSwiper } from "@/components/ui/ProductSwiper";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { ProductCardSkeleton } from "@/components/shop/ProductCardSkeleton";
 import { cn } from "@/lib/utils";
 import { SwiperSlide } from "swiper/react";
 import {
   productBestsellerBreakpoints,
   productRailSlide,
   productRailSlideInner,
+  productRailWrap,
 } from "@/lib/styles/product-rail-swiper";
 import { useHomeDataContext } from "@/lib/context/HomeDataContext";
 
@@ -30,16 +30,18 @@ export function BestSellers() {
     >
       <div className="site-container">
         <SectionHeading
-          eyebrow={fa.home.bestsellersEyebrow}
           title={fa.home.bestsellersTitle}
           subtitle={fa.home.bestsellersSubtitle}
           className="!mb-6 md:!mb-8 [&_.mt-5]:!mt-4"
         />
 
         {isLoading ? (
-          <div className="shop-product-grid" aria-busy="true">
+          <div className={`${productRailWrap} flex gap-3 overflow-hidden px-8 md:px-10`} aria-busy="true">
             {Array.from({ length: 5 }).map((_, idx) => (
-              <ProductCardSkeleton key={idx} />
+              <div
+                key={idx}
+                className="sk h-72 min-w-[calc(100%/1.15)] shrink-0 rounded-heritage-lg sm:min-w-[calc((100%-12px)/2)] md:min-w-[calc((100%-28px)/3)] lg:min-w-[calc((100%-42px)/4)] xl:min-w-[calc((100%-64px)/5)]"
+              />
             ))}
           </div>
         ) : products.length > 1 ? (
@@ -50,7 +52,6 @@ export function BestSellers() {
             navIconSize="md"
             showNav
             showPagination={false}
-            disableNavAtEnds={false}
             onSlideIndexChange={(i) => setActiveIndex(i)}
           >
             {products.map((product, i) => (

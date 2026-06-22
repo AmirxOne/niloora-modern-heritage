@@ -2,12 +2,12 @@
 
 export const productRailWrap = "product-rail-wrap relative overflow-visible px-12 md:px-14";
 
-export const productRailViewport = "relative w-full min-w-0 px-1 sm:px-0";
+export const productRailViewport = "product-rail-viewport relative w-full min-w-0 overflow-hidden px-1 sm:px-0";
 
 export const productRailTrack = "relative isolate w-full min-w-0";
 
 export const productRailSwiper =
-  "w-full max-w-full overflow-hidden [&_.swiper-button-next]:!hidden [&_.swiper-button-prev]:!hidden [&_.swiper-slide]:box-border [&_.swiper-slide]:!h-auto [&_.swiper-slide]:h-auto [&_.swiper-wrapper]:!h-auto [&_.shop-product-card]:h-auto [&_.shop-product-card]:max-w-full";
+  "product-rail-swiper w-full max-w-full overflow-hidden [&_.swiper-button-next]:!hidden [&_.swiper-button-prev]:!hidden [&_.swiper-slide]:box-border [&_.swiper-slide]:!h-auto [&_.swiper-slide]:h-auto [&_.swiper-wrapper]:!h-auto [&_.shop-product-card]:h-auto [&_.shop-product-card]:max-w-full [&_.artisan-card]:max-w-full";
 
 export const productRailSlide = "swiper-slide !h-auto shrink-0";
 
@@ -15,7 +15,7 @@ export const productRailSlideInner =
   "w-full min-w-0 px-0.5 [&_.shop-product-card]:h-auto [&_.shop-product-card]:w-full";
 
 export const productRailNavBtn =
-  "product-rail-nav-btn pointer-events-auto absolute top-1/2 z-50 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/35 bg-stone-950 text-white shadow-[0_2px_14px_rgba(12,10,8,0.28)] backdrop-blur-[2px] transition-[background-color,border-color,box-shadow,transform,opacity] duration-200 hover:border-white/55 hover:bg-stone-900 hover:shadow-[0_4px_18px_rgba(12,10,8,0.35)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45 focus-visible:ring-offset-2 focus-visible:ring-offset-matte disabled:cursor-not-allowed disabled:opacity-40 md:h-12 md:w-12";
+  "product-rail-nav-btn pointer-events-auto absolute top-1/2 z-50 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gold/30 bg-white text-ivory shadow-[0_2px_12px_rgba(44,42,41,0.14)] transition-[background-color,border-color,box-shadow,transform,opacity] duration-200 hover:border-gold/45 hover:bg-parchment hover:shadow-[0_4px_16px_rgba(44,42,41,0.18)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35 focus-visible:ring-offset-2 focus-visible:ring-offset-matte md:h-12 md:w-12";
 
 export const productRailNavIcon =
   "h-5 w-5 shrink-0 stroke-[2.25] md:h-[1.35rem] md:w-[1.35rem]";

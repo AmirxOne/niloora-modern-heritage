@@ -7,7 +7,8 @@ import type { Product, ShopFilters as Filters } from "@/lib/types";
 import { fa } from "@/lib/i18n/fa";
 import {
   availabilityFilterOptions,
-  buildCatalogArtisanFilterOptions,
+  buildCatalogShankArtisanFilterOptions,
+  buildCatalogStoneArtisanFilterOptions,
   buildCatalogStoneFilterOptions,
   budgetFilterOptions,
   collectionFilterOptions,
@@ -51,7 +52,14 @@ export function ShopFiltersPanel({
   const showReset = onReset && hasActiveFilters(filters, maxPrice);
   const activeCount = countActiveFilters(filters, maxPrice);
   const stoneOptions = useMemo(() => buildCatalogStoneFilterOptions(products), [products]);
-  const artisanOptions = useMemo(() => buildCatalogArtisanFilterOptions(products), [products]);
+  const shankArtisanOptions = useMemo(
+    () => buildCatalogShankArtisanFilterOptions(products),
+    [products]
+  );
+  const stoneArtisanOptions = useMemo(
+    () => buildCatalogStoneArtisanFilterOptions(products),
+    [products]
+  );
 
   const patch = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     onChange({ ...filters, [key]: value });
@@ -149,10 +157,17 @@ export function ShopFiltersPanel({
         />
 
         <FilterMultiSelect
-          label={fa.shop.artisan}
-          options={artisanOptions}
-          value={filters.artisans}
-          onChange={(artisans) => patch("artisans", artisans)}
+          label={fa.shop.shankArtisan}
+          options={shankArtisanOptions}
+          value={filters.shankArtisans}
+          onChange={(shankArtisans) => patch("shankArtisans", shankArtisans)}
+        />
+
+        <FilterMultiSelect
+          label={fa.shop.stoneArtisan}
+          options={stoneArtisanOptions}
+          value={filters.stoneArtisans}
+          onChange={(stoneArtisans) => patch("stoneArtisans", stoneArtisans)}
         />
 
         <FilterMultiSelect

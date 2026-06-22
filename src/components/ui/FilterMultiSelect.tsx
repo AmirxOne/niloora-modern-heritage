@@ -10,6 +10,7 @@ export interface FilterMultiSelectOption<T extends string> {
   value: T;
   label: string;
   swatch?: string;
+  image?: string;
 }
 
 function normalizeFilterText(value: string): string {
@@ -158,7 +159,11 @@ export function FilterMultiSelect<T extends string>({
                         )}
                         aria-hidden
                       />
-                      {opt.swatch ? (
+                      {opt.image ? (
+                        <span className="filter-multi-avatar-wrap" aria-hidden>
+                          <img src={opt.image} alt="" className="filter-multi-avatar" loading="lazy" />
+                        </span>
+                      ) : opt.swatch ? (
                         <span
                           className="filter-multi-swatch"
                           style={{ backgroundColor: opt.swatch }}

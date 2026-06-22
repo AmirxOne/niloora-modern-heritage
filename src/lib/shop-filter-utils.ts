@@ -25,6 +25,7 @@ type CatalogFilterOption = {
   value: string;
   label: string;
   swatch?: string;
+  image?: string;
 };
 
 function fallbackStoneLabel(stone: Product["stone"]): string {
@@ -51,8 +52,16 @@ function primaryProductStoneFilterValue(product: Product): string {
   return guide?.coreStone ?? guide?.id ?? product.stone;
 }
 
-function productArtisanFilterKeys(product: Product): string[] {
-  return getProductArtisanLinks(product).map((link) => link.artisan.slug);
+function productShankArtisanFilterKeys(product: Product): string[] {
+  return getProductArtisanLinks(product)
+    .filter((link) => link.role === "shank-designer")
+    .map((link) => link.artisan.slug);
+}
+
+function productStoneArtisanFilterKeys(product: Product): string[] {
+  return getProductArtisanLinks(product)
+    .filter((link) => link.role === "stone-engraver")
+    .map((link) => link.artisan.slug);
 }
 
 export function productMatchesStoneFilter(product: Product, selected: readonly string[]): boolean {
@@ -61,9 +70,21 @@ export function productMatchesStoneFilter(product: Product, selected: readonly s
   return selected.some((value) => keys.includes(value));
 }
 
-export function productMatchesArtisanFilter(product: Product, selected: readonly string[]): boolean {
+export function productMatchesShankArtisanFilter(
+  product: Product,
+  selected: readonly string[]
+): boolean {
   if (selected.length === 0) return true;
-  const keys = productArtisanFilterKeys(product);
+  const keys = productShankArtisanFilterKeys(product);
+  return selected.some((value) => keys.includes(value));
+}
+
+export function productMatchesStoneArtisanFilter(
+  product: Product,
+  selected: readonly string[]
+): boolean {
+  if (selected.length === 0) return true;
+  const keys = productStoneArtisanFilterKeys(product);
   return selected.some((value) => keys.includes(value));
 }
 
@@ -76,7 +97,8 @@ export function applyShopFilters(
   return catalog.filter((p) => {
     if (q && !matchesProductSearchQuery(p, q)) return false;
     if (!productMatchesStoneFilter(p, filters.stones)) return false;
-    if (!productMatchesArtisanFilter(p, filters.artisans)) return false;
+    if (!productMatchesShankArtisanFilter(p, filters.shankArtisans)) return false;
+    if (!productMatchesStoneArtisanFilter(p, filters.stoneArtisans)) return false;
     if (filters.styles.length > 0 && !filters.styles.includes(p.category)) return false;
     if (filters.engravingTypes.length > 0) {
       const matches = filters.engravingTypes.some((et) => {
@@ -162,7 +184,8 @@ const defaultOccasionsByStyle: Record<RingStyle, ProductOccasion[]> = {
 export function createDefaultShopFilters(maxPrice: number): ShopFilters {
   return {
     stones: [],
-    artisans: [],
+    shankArtisans: [],
+    stoneArtisans: [],
     priceRange: [0, maxPrice],
     styles: [],
     engravingTypes: [],
@@ -224,7 +247,8 @@ const occasionLabels: Record<ProductOccasion, string> = {
 export function countActiveFilters(filters: ShopFilters, maxPrice: number): number {
   let n = 0;
   n += filters.stones.length;
-  n += filters.artisans.length;
+  n += filters.shankArtisans.length;
+  n += filters.stoneArtisans.length;
   n += filters.styles.length;
   n += filters.engravingTypes.length;
   n += filters.weightBands.length;
@@ -262,8 +286,11 @@ export function buildFilterChips(
 ): FilterChip[] {
   const chips: FilterChip[] = [];
   const stoneLabels = new Map(buildCatalogStoneFilterOptions(catalog).map((option) => [option.value, option.label]));
-  const artisanLabels = new Map(
-    buildCatalogArtisanFilterOptions(catalog).map((option) => [option.value, option.label])
+  const shankArtisanLabels = new Map(
+    buildCatalogShankArtisanFilterOptions(catalog).map((option) => [option.value, option.label])
+  );
+  const stoneArtisanLabels = new Map(
+    buildCatalogStoneArtisanFilterOptions(catalog).map((option) => [option.value, option.label])
   );
 
   for (const stone of filters.stones) {
@@ -275,12 +302,29 @@ export function buildFilterChips(
     });
   }
 
-  for (const artisan of filters.artisans) {
-    const label = artisanLabels.get(artisan) ?? artisan;
+  for (const artisan of filters.shankArtisans) {
+    const label = shankArtisanLabels.get(artisan) ?? artisan;
     chips.push({
-      id: `artisan-${artisan}`,
-      label: `${fa.shop.artisan}: ${label}`,
-      onRemove: () => onChange({ ...filters, artisans: removeFromArray(filters.artisans, artisan) }),
+      id: `shank-artisan-${artisan}`,
+      label: `${fa.shop.shankArtisan}: ${label}`,
+      onRemove: () =>
+        onChange({
+          ...filters,
+          shankArtisans: removeFromArray(filters.shankArtisans, artisan),
+        }),
+    });
+  }
+
+  for (const artisan of filters.stoneArtisans) {
+    const label = stoneArtisanLabels.get(artisan) ?? artisan;
+    chips.push({
+      id: `stone-artisan-${artisan}`,
+      label: `${fa.shop.stoneArtisan}: ${label}`,
+      onRemove: () =>
+        onChange({
+          ...filters,
+          stoneArtisans: removeFromArray(filters.stoneArtisans, artisan),
+        }),
     });
   }
 
@@ -493,14 +537,35 @@ export function buildCatalogStoneFilterOptions(catalog: Product[]): CatalogFilte
   return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label, "fa"));
 }
 
-export function buildCatalogArtisanFilterOptions(catalog: Product[]): CatalogFilterOption[] {
+export function buildCatalogShankArtisanFilterOptions(catalog: Product[]): CatalogFilterOption[] {
   const map = new Map<string, CatalogFilterOption>();
 
   for (const product of catalog) {
     for (const link of getProductArtisanLinks(product)) {
+      if (link.role !== "shank-designer") continue;
+      if (map.has(link.artisan.slug)) continue;
       map.set(link.artisan.slug, {
         value: link.artisan.slug,
-        label: `${link.artisan.name} - ${link.roleLabel}`,
+        label: link.artisan.name,
+        image: link.artisan.image,
+      });
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label, "fa"));
+}
+
+export function buildCatalogStoneArtisanFilterOptions(catalog: Product[]): CatalogFilterOption[] {
+  const map = new Map<string, CatalogFilterOption>();
+
+  for (const product of catalog) {
+    for (const link of getProductArtisanLinks(product)) {
+      if (link.role !== "stone-engraver") continue;
+      if (map.has(link.artisan.slug)) continue;
+      map.set(link.artisan.slug, {
+        value: link.artisan.slug,
+        label: link.artisan.name,
+        image: link.artisan.image,
       });
     }
   }

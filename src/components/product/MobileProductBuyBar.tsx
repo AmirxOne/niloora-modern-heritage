@@ -8,6 +8,7 @@ import { useApp } from "@/lib/context/AppContext";
 import { fa } from "@/lib/i18n/fa";
 import { isProductPurchasable } from "@/lib/products/purchasability";
 import { getProductStatusConfig } from "@/lib/product-status";
+import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { formatTomanAmount } from "@/lib/utils";
 import { getProductPricing } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ const buyBarCtaClassName =
  *  - شامل تصویر کوچک، قیمت تخفیف‌خورده و دکمهٔ افزودن به سبد است
  */
 export function MobileProductBuyBar({ product }: MobileProductBuyBarProps) {
-  const displayName = product.namePersian?.trim() || product.name;
+  const displayName = getProductDisplayName(product);
   const router = useRouter();
   const { cart } = useApp();
   const [visible, setVisible] = useState(false);

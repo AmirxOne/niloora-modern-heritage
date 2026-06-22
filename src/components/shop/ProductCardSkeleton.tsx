@@ -9,15 +9,16 @@ interface ProductCardSkeletonProps {
 export function ProductCardSkeleton({ className }: ProductCardSkeletonProps) {
   return (
     <article className={cn("shop-product-card", className)} aria-busy="true">
-      {/* تصویر */}
-      <div className="sk aspect-[4/5] w-full rounded-none" style={{ borderRadius: "1rem 1rem 0 0" }} />
+      <div className="shop-product-card-thumbnail-stack sk" />
 
-      <div className="shop-product-card-body">
-        <div className="sk h-4 w-3/4" />
-        <div className="sk mt-1 h-3 w-1/2" />
-        <div className="shop-product-card-footer-compact mt-2">
-          <div className="sk h-5 w-24" />
-          <div className="sk h-8 w-8 rounded-full" />
+      <div className="shop-product-card-footer">
+        <div className="sk h-4 w-4/5 rounded-sm" />
+        <div className="shop-product-card-footer-bottomline">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <div className="sk h-[1.375rem] w-[1.375rem] shrink-0 rounded-full" />
+            <div className="sk h-3 w-14 rounded-sm" />
+          </div>
+          <div className="sk h-5 w-20 rounded-sm" />
         </div>
       </div>
     </article>

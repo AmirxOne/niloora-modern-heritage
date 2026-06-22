@@ -10,6 +10,7 @@ import type {
   SanitizeCartResult,
 } from "@/lib/cart/sanitize-types";
 import type { CartItem, ProductAvailability } from "@/lib/types";
+import { stripProductTypePrefix } from "@/lib/products/product-display-name";
 import { prisma } from "@/lib/server/prisma";
 
 export type { AdjustedCartLine, CartRemovalReason, RemovedCartLine, SanitizeCartResult };
@@ -28,7 +29,8 @@ type DbProduct = {
 };
 
 function displayName(product: DbProduct | undefined, fallback: string): string {
-  return product?.namePersian || product?.name || fallback;
+  const raw = product?.namePersian || product?.name || fallback;
+  return stripProductTypePrefix(raw);
 }
 
 function refreshCatalogLine(item: CartItem, product: DbProduct): CartItem {
