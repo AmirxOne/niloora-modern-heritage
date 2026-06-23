@@ -1,14 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { ChevronDown } from "@/components/icons";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
-export type FaqItem = { readonly question: string; readonly answer: string };
+export type FaqItem = {
+  readonly category?: string;
+  readonly question: string;
+  readonly answer: string;
+};
 
-export function FaqAccordion({ items }: { items: readonly FaqItem[] }) {
+const panelTransition = {
+  duration: 0.38,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+
+export function FaqAccordion({
+  items,
+  emptyMessage,
+}: {
+  items: readonly FaqItem[];
+  emptyMessage?: string;
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  useEffect(() => {
+    setOpenIndex((prev) => {
+      if (items.length === 0) return null;
+      if (prev !== null && prev < items.length) return prev;
+      return 0;
+    });
+  }, [items]);
+
+  if (items.length === 0) {
+    return emptyMessage ? <p className="faq-empty">{emptyMessage}</p> : null;
+  }
 
   return (
     <div className="faq-accordion">
@@ -26,23 +54,23 @@ export function FaqAccordion({ items }: { items: readonly FaqItem[] }) {
               <ChevronDown
                 size={iconSizes.sm}
                 variant={ICON_VARIANT}
-                className={`faq-accordion-chevron shrink-0 transition-transform duration-200 ${isOpen ? "faq-accordion-chevron--open" : ""}`}
+                className={cn(
+                  "faq-accordion-chevron shrink-0",
+                  isOpen && "faq-accordion-chevron--open"
+                )}
                 aria-hidden
               />
             </button>
-            <AnimatePresence initial={false}>
-              {isOpen ? (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="faq-accordion-panel"
-                >
-                  <p>{item.answer}</p>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+            <motion.div
+              initial={false}
+              animate={{ height: isOpen ? "auto" : 0 }}
+              transition={panelTransition}
+              className="faq-accordion-panel-wrap"
+            >
+              <div className="faq-accordion-panel" aria-hidden={!isOpen}>
+                <p>{item.answer}</p>
+              </div>
+            </motion.div>
           </div>
         );
       })}

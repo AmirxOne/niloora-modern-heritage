@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { FaqAccordion } from "@/components/legal/FaqAccordion";
-import { InfoPageShell } from "@/components/legal/InfoPageShell";
+import { FaqPageContent } from "@/components/legal/FaqPageContent";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { fa } from "@/lib/i18n/fa";
 import { buildPageMetadata } from "@/lib/seo/site";
 import { buildBreadcrumbJsonLd, buildFaqJsonLd } from "@/lib/seo/structured-data";
@@ -29,20 +29,35 @@ export default function FaqPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify([faqJsonLd, breadcrumbJsonLd]) }}
       />
-      <InfoPageShell
-        eyebrow={f.eyebrow}
-        title={f.title}
-        subtitle={f.subtitle}
-        breadcrumb={[
-          { label: fa.nav.home, href: "/" },
-          { label: f.title },
-        ]}
-      >
-        <FaqAccordion items={f.items} />
-        <p className="info-page-footer-link">
-          <Link href="/contact">{fa.footer.contact}</Link>
-        </p>
-      </InfoPageShell>
+      <PageTransition>
+        <div className="faq-page">
+          <div className="site-container">
+            <div className="faq-page-shell">
+              <Breadcrumb
+                items={[
+                  { label: fa.nav.home, href: "/" },
+                  { label: f.title },
+                ]}
+              />
+              <FaqPageContent
+                heroTitle={f.heroTitle}
+                heroSubtitle={f.heroSubtitle}
+                searchLabel={f.searchLabel}
+                searchPlaceholder={f.searchPlaceholder}
+                sidebarLabel={f.sidebarLabel}
+                contactPrompt={f.contactPrompt}
+                contactEyebrow={f.contactEyebrow}
+                contactSubtitle={f.contactSubtitle}
+                noResults={f.noResults}
+                contactLabel={fa.footer.contact}
+                supportLabel={fa.footer.supportRequest}
+                categories={f.categories}
+                items={f.items}
+              />
+            </div>
+          </div>
+        </div>
+      </PageTransition>
     </>
   );
 }

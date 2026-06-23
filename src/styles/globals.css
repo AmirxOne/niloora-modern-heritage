@@ -1642,24 +1642,141 @@
     @apply mt-2 block text-sm text-ivory;
   }
 
+  .faq-page {
+    @apply min-h-screen bg-matte py-6 md:py-8 lg:py-10;
+  }
+
+  .faq-page-shell {
+    @apply mx-auto w-full max-w-6xl rounded-heritage-xl border border-gold/15 bg-matte-elevated/90 px-5 py-7 shadow-heritage md:px-10 md:py-9 lg:px-12 lg:py-11;
+  }
+
+  .faq-page-content {
+    @apply mt-4 md:mt-6;
+  }
+
+  .faq-hero {
+    @apply flex flex-col items-center border-b border-gold/10 pb-8 text-center md:pb-10;
+  }
+
+  .faq-hero-icon {
+    @apply mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-gold/15 bg-white/90 text-silver shadow-sm md:h-16 md:w-16;
+  }
+
+  .faq-hero-title {
+    @apply font-display text-xl font-semibold text-ivory md:text-2xl lg:text-3xl;
+  }
+
+  .faq-hero-subtitle {
+    @apply mt-2 max-w-2xl text-xs leading-relaxed text-silver md:text-sm;
+  }
+
+  .faq-search-field {
+    @apply mt-6 w-full max-w-md md:mt-8;
+  }
+
+  .faq-search-field > label {
+    @apply bg-matte-elevated/90;
+  }
+
+  .faq-layout {
+    @apply mt-8 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(11rem,14rem)_minmax(0,1fr)] lg:gap-x-10 xl:grid-cols-[minmax(12rem,16rem)_minmax(0,1fr)] xl:gap-x-12;
+  }
+
+  .faq-sidebar {
+    @apply lg:sticky lg:top-[calc(var(--header-height)+1.5rem)] lg:self-start;
+  }
+
+  .faq-sidebar-label {
+    @apply mb-3 hidden text-xs font-medium text-silver lg:block;
+  }
+
+  .faq-categories {
+    @apply flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-col lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden;
+  }
+
+  .faq-category-chip {
+    @apply flex shrink-0 items-center gap-2.5 rounded-full border border-gold/15 bg-white/70 px-3 py-2 text-xs font-medium text-ivory transition hover:border-turquoise/35 hover:bg-parchment/10 md:text-sm lg:w-full lg:rounded-heritage lg:px-3 lg:py-2.5 lg:text-start;
+  }
+
+  .faq-category-chip-icon {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gold/10 bg-white/90 text-silver transition-colors lg:h-9 lg:w-9;
+  }
+
+  .faq-category-chip-icon--active {
+    @apply border-turquoise/30 bg-turquoise/10 text-turquoise-dark;
+  }
+
+  .faq-category-chip-label {
+    @apply min-w-0 flex-1 truncate text-start;
+  }
+
+  .faq-category-chip-count {
+    @apply hidden shrink-0 rounded-full bg-parchment/15 px-2 py-0.5 text-[11px] font-medium tabular-nums text-silver lg:inline-flex;
+  }
+
+  .faq-category-chip--active {
+    @apply border-turquoise/45 bg-turquoise/10 text-ivory ring-1 ring-turquoise/20;
+  }
+
+  .faq-category-chip--active .faq-category-chip-count {
+    @apply bg-turquoise/15 text-turquoise-dark;
+  }
+
+  .faq-main {
+    @apply min-w-0;
+  }
+
+  .faq-empty {
+    @apply rounded-heritage border border-gold/10 bg-white/70 px-5 py-10 text-center text-sm leading-relaxed text-silver md:px-8 md:py-12 md:text-[15px];
+  }
+
+  .faq-empty a {
+    @apply mt-3 inline-block text-turquoise-dark hover:text-turquoise;
+  }
+
   .faq-accordion {
-    @apply space-y-3;
+    @apply space-y-3 md:space-y-4;
   }
 
   .faq-accordion-item {
-    @apply overflow-hidden rounded-heritage border border-gold/15 bg-white/80 shadow-sm;
+    @apply overflow-hidden rounded-heritage border border-gold/15 bg-white/80 shadow-sm transition-shadow hover:shadow-md;
   }
 
   .faq-accordion-trigger {
-    @apply flex w-full items-center justify-between gap-4 px-4 py-4 text-start text-sm font-medium text-ivory transition-colors hover:bg-parchment/5 md:px-5;
+    @apply flex w-full items-center justify-between gap-4 px-4 py-4 text-start text-sm font-medium text-ivory transition-colors hover:bg-parchment/5 md:px-6 md:py-5 md:text-[15px];
+  }
+
+  .faq-accordion-chevron {
+    @apply transition-transform duration-[380ms];
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .faq-accordion-chevron--open {
     @apply rotate-180;
   }
 
+  .faq-accordion-panel-wrap {
+    @apply overflow-hidden;
+  }
+
   .faq-accordion-panel {
-    @apply overflow-hidden border-t border-gold/10 px-4 pb-4 pt-2 text-sm leading-relaxed text-silver md:px-5;
+    @apply border-t border-gold/10 px-4 pb-5 pt-2 text-sm leading-[1.9] text-silver md:px-6 md:pb-6 md:text-[15px];
+  }
+
+  .faq-help-panel {
+    @apply mt-10 md:mt-12;
+  }
+
+  .faq-help-panel-head {
+    @apply flex items-start gap-4 md:gap-5;
+  }
+
+  .faq-help-panel-icon {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-heritage-lg border border-gold/15 bg-white text-turquoise-dark shadow-sm md:h-14 md:w-14;
+  }
+
+  .faq-help-panel .info-contact-actions {
+    @apply mt-6;
   }
 
   /* ——— بلاگ ——— */

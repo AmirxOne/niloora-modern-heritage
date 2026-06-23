@@ -13,7 +13,7 @@ type InfoPageShellProps = {
 export function InfoPageShell({ eyebrow, title, subtitle, breadcrumb, children }: InfoPageShellProps) {
   return (
     <PageTransition>
-      <div className="info-page pb-24 pt-20 md:pt-24">
+      <div className="info-page">
         <div className="site-container">
           <div className="info-page-shell">
             {breadcrumb && breadcrumb.length > 0 ? <Breadcrumb items={breadcrumb} /> : null}

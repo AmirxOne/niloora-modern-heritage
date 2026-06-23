@@ -29,6 +29,7 @@ export {
   Menu,
   Message,
   MessageCircle,
+  MessageQuestion,
   MessageSquare,
   Minus,
   PenTool,
