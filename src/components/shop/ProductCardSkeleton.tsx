@@ -12,13 +12,23 @@ export function ProductCardSkeleton({ className }: ProductCardSkeletonProps) {
       <div className="shop-product-card-thumbnail-stack sk" />
 
       <div className="shop-product-card-footer">
-        <div className="sk h-4 w-4/5 rounded-sm" />
-        <div className="shop-product-card-footer-bottomline">
-          <div className="flex min-w-0 items-center gap-1.5">
+        <div className="shop-product-card-footer-topline">
+          <div className="sk h-4 w-4/5 rounded-sm" />
+        </div>
+        <div className="shop-product-card-footer-meta-row">
+          <div className="shop-product-card-footer-author">
             <div className="sk h-[1.375rem] w-[1.375rem] shrink-0 rounded-full" />
             <div className="sk h-3 w-14 rounded-sm" />
           </div>
-          <div className="sk h-5 w-20 rounded-sm" />
+        </div>
+        <div className="shop-product-card-footer-bottomline">
+          <div className="sk h-[18px] w-10 shrink-0 rounded-sm" />
+          <div className="shop-product-card-footer-price">
+            <div className="shop-product-card-footer-price-meta">
+              <div className="sk h-[18px] w-16 rounded-sm" />
+            </div>
+            <div className="sk h-5 w-20 rounded-sm" />
+          </div>
         </div>
       </div>
     </article>

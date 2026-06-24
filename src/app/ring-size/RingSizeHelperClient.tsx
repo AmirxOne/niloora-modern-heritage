@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { fa } from "@/lib/i18n/fa";
 import { RING_SIZES } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 
@@ -70,13 +69,22 @@ export function RingSizeHelperClient() {
   return (
     <div className="ring-size-shell">
       <header className="ring-size-header">
-        <span className="heritage-eyebrow">Ring Size Helper</span>
-        <h1 className="ring-size-title">راهنمای کامل تعیین سایز انگشتر</h1>
+        <h1 className="ring-size-title">راهنمای تعیین سایز انگشتر</h1>
         <p className="ring-size-subtitle">
-          سایز پیشنهادی خود را با ابزار تعاملی پیدا کنید، جدول تبدیل را ببینید و نسخه چاپی را برای اندازه‌گیری دقیق
-          نگه دارید.
+          سایز پیشنهادی خود را با ابزار تعاملی پیدا کنید و جدول تبدیل را برای انتخاب دقیق‌تر ببینید.
         </p>
       </header>
+
+      <section className="ring-size-measurement-tips" aria-labelledby="ring-size-measurement-tips-title">
+        <h2 id="ring-size-measurement-tips-title" className="ring-size-section-title">
+          نکات اندازه‌گیری
+        </h2>
+        <ul className="ring-size-measurement-tips-list">
+          <li>برای بهترین دقت، عصرها اندازه‌گیری کنید (انگشت‌ها در حالت طبیعی‌تر هستند).</li>
+          <li>اندازه را از بند انگشت رد کنید؛ حلقه باید راحت رد شود ولی لق نباشد.</li>
+          <li>اگر بین دو سایز مردد هستید، نیم سایز بزرگ‌تر انتخاب بهتری است.</li>
+        </ul>
+      </section>
 
       <section className="ring-size-tool" aria-label="ابزار تعاملی سایز انگشتر">
         <h2 className="ring-size-section-title">ابزار تعاملی</h2>
@@ -95,6 +103,12 @@ export function RingSizeHelperClient() {
             step={0.1}
             value={circumferenceInput}
             onChange={(event) => setCircumferenceInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                handleCalculate();
+              }
+            }}
             className="ring-size-tool-input"
           />
           <Button type="button" onClick={handleCalculate} className="ring-size-tool-btn">
@@ -132,12 +146,6 @@ export function RingSizeHelperClient() {
           <Link href={applySizeToCustomizeLink} className="ring-size-action ring-size-action--primary">
             اعمال این سایز در سفارشی‌سازی
           </Link>
-          <Link href="/shop" className="ring-size-action">
-            {fa.blog.backToShop}
-          </Link>
-          <button type="button" onClick={() => window.print()} className="ring-size-action">
-            نسخه چاپی
-          </button>
         </div>
       </section>
 
@@ -169,16 +177,6 @@ export function RingSizeHelperClient() {
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section className="ring-size-print-note">
-        <h2 className="ring-size-section-title">نسخه چاپی و نکات اندازه‌گیری</h2>
-        <ul>
-          <li>برای بهترین دقت، عصرها اندازه‌گیری کنید (انگشت‌ها در حالت طبیعی‌تر هستند).</li>
-          <li>اندازه را از بند انگشت رد کنید؛ حلقه باید راحت رد شود ولی لق نباشد.</li>
-          <li>اگر بین دو سایز مردد هستید، نیم سایز بزرگ‌تر انتخاب بهتری است.</li>
-          <li>دکمه «نسخه چاپی» را بزنید تا این راهنما بدون عناصر اضافی چاپ شود.</li>
-        </ul>
       </section>
     </div>
   );

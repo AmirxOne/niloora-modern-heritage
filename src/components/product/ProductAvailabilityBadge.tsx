@@ -26,6 +26,8 @@ interface ProductAvailabilityBadgeProps {
   showDelivery?: boolean;
   /** برچسب کوتاه برای کارت گالری */
   short?: boolean;
+  /** استایل شیشه‌ای روی تصویر؛ برای فوتر کارت false بگذارید */
+  overlay?: boolean;
   className?: string;
 }
 
@@ -34,11 +36,12 @@ export function ProductAvailabilityBadge({
   size = "sm",
   showDelivery = false,
   short = false,
+  overlay = true,
   className,
 }: ProductAvailabilityBadgeProps) {
   const config = getProductStatusConfig(availability);
   const tooltipText = `${config.description} — ${config.deliveryHint}`;
-  const OverlayIcon = short ? overlayIcons[config.tone] : null;
+  const OverlayIcon = short && overlay ? overlayIcons[config.tone] : null;
 
   return (
     <div className={cn("product-status-wrap", className)}>
@@ -47,7 +50,8 @@ export function ProductAvailabilityBadge({
           "product-status-badge",
           toneClasses[config.tone],
           size === "md" && "product-status-badge--md",
-          short && "product-status-badge--sm product-status-badge--overlay"
+          short && "product-status-badge--sm",
+          overlay && "product-status-badge--overlay"
         )}
         title={tooltipText}
       >

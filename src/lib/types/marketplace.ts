@@ -26,6 +26,7 @@ export interface ProductVendorSummary {
   id: string;
   slug: string;
   displayName: string;
+  displayNameFa?: string;
   status: VendorStatus;
   /** Computed 0–100; shown in UI when above badge threshold. */
   trustScore?: number;

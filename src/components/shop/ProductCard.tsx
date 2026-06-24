@@ -8,7 +8,7 @@ import { getProductPricing } from "@/lib/pricing";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { ProductAvailabilityBadge } from "@/components/product/ProductAvailabilityBadge";
-import { Heart, Share } from "@/components/icons";
+import { Heart } from "@/components/icons";
 import { ProductCompareButton } from "@/components/product/ProductCompareButton";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn, formatTomanAmount } from "@/lib/utils";
@@ -16,8 +16,7 @@ import { BLUR_DATA_URL } from "@/lib/image-blur";
 import { getProductDisplayName } from "@/lib/products/product-display-name";
 import { displayDigits } from "@/lib/persian-digits";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
-import { getProductArtisanLinks } from "@/lib/artisans";
-import { ENGRAVING_STYLES, METAL_OPTIONS, STONE_OPTIONS } from "@/lib/constants";
+import { getProductCardSupplier } from "@/lib/marketplace/product-card-supplier";
 
 interface ProductCardProps {
   product: Product;
@@ -42,69 +41,17 @@ export function ProductCard({
   compact = false,
 }: ProductCardProps) {
   const displayName = displayDigits(getProductDisplayName(product));
-  const listingDetails = product.listing?.details ?? [];
-  const styleLabels: Record<Product["category"], string> = {
-    solitaire: fa.shop.styles.solitaire,
-    halo: fa.shop.styles.halo,
-    vintage: fa.shop.styles.vintage,
-    signet: fa.shop.styles.signet,
-    eternity: fa.shop.styles.eternity,
-    stackable: fa.shop.styles.stackable,
-  };
-  const metalLabelByValue = new Map(METAL_OPTIONS.map((item) => [item.value, item.label]));
-  const stoneLabelByValue = new Map(STONE_OPTIONS.map((item) => [item.value, item.label]));
-  const engravingLabelByValue = new Map(ENGRAVING_STYLES.map((item) => [item.value, item.label]));
+  const supplier = getProductCardSupplier(product);
+  const supplierDisplayName = displayDigits(supplier.name);
   const { wishlist } = useApp();
   const wished = wishlist.isWishlisted(product.id);
   const isSold = product.availability === "sold";
   const pricing = getProductPricing(product);
   const showTimer = timerOverride ?? pricing.hasProductFurooh;
 
-  const getDetailValue = (label: string): string | undefined => {
-    const row = listingDetails.find((item) => new RegExp(`^${label}\\s*:`).test(item.trim()));
-    if (!row) return undefined;
-    return row.replace(new RegExp(`^${label}\\s*:\\s*`), "").trim() || undefined;
-  };
-
-  const detailStone = getDetailValue("نگین");
-  const detailMetal = getDetailValue("جنس");
-  const detailShankMaker = getDetailValue("رکاب");
-  const detailEngraver = getDetailValue("حکاک");
-
-  const footerMeta =
-    detailShankMaker ??
-    product.craftedBy ??
-    detailEngraver ??
-    (product.engravingType === "none"
-      ? undefined
-      : engravingLabelByValue.get(product.engravingType)) ??
-    detailStone ??
-    product.stoneColorLabel ??
-    stoneLabelByValue.get(product.stone) ??
-    detailMetal ??
-    metalLabelByValue.get(product.metal) ??
-    styleLabels[product.category];
-
-  const primaryArtisan = getProductArtisanLinks(product)[0]?.artisan;
-
   const overlayActions = (
     <div className="shop-product-card-overlay-actions">
       <ProductCompareButton productId={product.id} variant="card" />
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (typeof window !== "undefined") {
-            void navigator.clipboard?.writeText(`${window.location.origin}/product/${product.id}`);
-          }
-        }}
-        className="shop-product-card-share"
-        aria-label="اشتراک‌گذاری محصول"
-        title="اشتراک‌گذاری محصول"
-      >
-        <Share size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-      </button>
       <button
         type="button"
         onClick={(e) => {
@@ -155,21 +102,6 @@ export function ProductCard({
           </div>
         </div>
 
-        {pricing.hasProductFurooh ? (
-          <span
-            className="shop-product-card-discount-tag shop-product-card-discount-tag--overlay"
-            aria-label={fa.bahakahi.percentOff(pricing.furoohPercent)}
-          >
-            {fa.bahakahi.cardTag(pricing.furoohPercent)}
-          </span>
-        ) : null}
-
-        {!isSold && product.availability !== "ready" ? (
-          <div className="shop-product-card-status-badge">
-            <ProductAvailabilityBadge availability={product.availability} short />
-          </div>
-        ) : null}
-
         {product.vendor ? (
           <span className="shop-product-card-vendor-badge">{fa.shop.vendorBadge(product.vendor.displayName)}</span>
         ) : null}
@@ -178,38 +110,53 @@ export function ProductCard({
       </div>
 
       <div className={cn("shop-product-card-footer", compact && "shop-product-card-footer--compact")}>
-        <Link href={`/product/${product.id}`} className="shop-product-card-footer-title">
-          {displayName}
-        </Link>
+        <div className="shop-product-card-footer-topline">
+          <Link href={`/product/${product.id}`} className="shop-product-card-footer-title">
+            {displayName}
+          </Link>
+          {!isSold && product.availability !== "ready" ? (
+            <div className="shop-product-card-footer-status-badge">
+              <ProductAvailabilityBadge availability={product.availability} short overlay={false} />
+            </div>
+          ) : null}
+        </div>
+
+        <div className="shop-product-card-footer-meta-row">
+          <Link
+            href={supplier.href}
+            className="shop-product-card-footer-author shop-product-card-footer-vendor"
+            aria-label={
+              supplier.isPlatform ? fa.shop.platformGallerySupplier : fa.product.vendorViewStore
+            }
+          >
+            <span
+              className="shop-product-card-footer-avatar-wrap shop-product-card-footer-vendor-avatar"
+              aria-hidden
+            >
+              {supplier.initial}
+            </span>
+            <span className="shop-product-card-footer-author-name">{supplierDisplayName}</span>
+          </Link>
+        </div>
 
         <div className="shop-product-card-footer-bottomline">
-          <div className="shop-product-card-footer-author">
-            {primaryArtisan ? (
-              <>
-                <span className="shop-product-card-footer-avatar-wrap">
-                  <Image
-                    src={primaryArtisan.image}
-                    alt=""
-                    width={22}
-                    height={22}
-                    className="shop-product-card-footer-avatar"
-                  />
-                </span>
-                <span className="shop-product-card-footer-author-name">
-                  {displayDigits(primaryArtisan.name)}
-                </span>
-              </>
-            ) : footerMeta ? (
-              <span className="shop-product-card-footer-author-name">{displayDigits(footerMeta)}</span>
-            ) : null}
-          </div>
+          {pricing.hasProductFurooh ? (
+            <span
+              className="shop-product-card-discount-tag shop-product-card-discount-tag--footer"
+              aria-label={fa.bahakahi.percentOff(pricing.furoohPercent)}
+            >
+              {fa.bahakahi.cardTag(pricing.furoohPercent)}
+            </span>
+          ) : null}
 
           <div className="shop-product-card-footer-price">
-            {pricing.hasProductFurooh ? (
-              <span className="shop-product-card-price-old">
-                {formatTomanAmount(pricing.listPrice)}
-              </span>
-            ) : null}
+            <div className="shop-product-card-footer-price-meta">
+              {pricing.hasProductFurooh ? (
+                <span className="shop-product-card-price-old">
+                  {formatTomanAmount(pricing.listPrice)}
+                </span>
+              ) : null}
+            </div>
             <span className="shop-product-card-price-main">
               <span className="shop-product-card-price-currency">تومان</span>
               <span className="shop-product-card-price-amount">

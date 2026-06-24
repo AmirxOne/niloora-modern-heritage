@@ -30,7 +30,7 @@ const sliderProductInclude = {
   preOwnedInfo: true,
   images: { orderBy: { sortOrder: "asc" as const } },
   collection: true,
-  vendor: { select: { id: true, slug: true, displayName: true, status: true } },
+  vendor: { select: { id: true, slug: true, displayName: true, displayNameFa: true, status: true } },
 } satisfies Prisma.ProductInclude;
 
 function normalizeBannerImageUrl(value: unknown): string | null | undefined {

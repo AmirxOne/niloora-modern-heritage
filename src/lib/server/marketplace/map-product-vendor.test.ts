@@ -15,12 +15,14 @@ describe("mapProductVendorSummary", () => {
         id: "v1",
         slug: "atelier-ali",
         displayName: "Atelier Ali",
+        displayNameFa: "آتلیه علی",
         status: "active",
       })
     ).toEqual({
       id: "v1",
       slug: "atelier-ali",
       displayName: "Atelier Ali",
+      displayNameFa: "آتلیه علی",
       status: "active",
     });
   });

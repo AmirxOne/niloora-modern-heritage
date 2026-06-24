@@ -315,6 +315,7 @@ export const fa = {
     /** Client-side filter — shown always; useful once marketplace products exist. */
     vendorOnlyFilter: "فقط محصولات فروشندگان",
     vendorBadge: (name: string) => `فروشنده: ${name}`,
+    platformGallerySupplier: "گالری ابراهیم آذری",
     sortOptions: {
       bestselling: "پرفروش‌ترین",
       relevant: "مرتبط‌ترین",

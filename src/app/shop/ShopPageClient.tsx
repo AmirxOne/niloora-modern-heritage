@@ -249,7 +249,6 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
     from,
     to,
     totalItems,
-    showPagination,
     setPage: setPaginationPage,
   } = usePagination(displayProducts, pageSize, `${filterResetKey}|${sort}|${cardUiQaMode}|${pageSize}`, {
     page,
@@ -421,11 +420,6 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                   </motion.div>
                 ) : (
                   <>
-                    {showPagination ? (
-                      <p className="shop-product-range">
-                        {fa.shop.pageResults(from, to, totalItems)}
-                      </p>
-                    ) : null}
                     <ShopProductGrid
                       products={pagedProducts}
                       cardVariant={cardVariant}

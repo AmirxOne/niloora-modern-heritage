@@ -5,6 +5,7 @@ type DbVendorSummary = {
   id: string;
   slug: string;
   displayName: string;
+  displayNameFa?: string | null;
   status: string;
 };
 
@@ -16,6 +17,9 @@ export function mapProductVendorSummary(
     id: vendor.id,
     slug: vendor.slug,
     displayName: vendor.displayName,
+    ...(vendor.displayNameFa?.trim()
+      ? { displayNameFa: vendor.displayNameFa.trim() }
+      : {}),
     status: vendor.status as VendorStatus,
   };
 }
