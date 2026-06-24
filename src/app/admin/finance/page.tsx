@@ -1,5 +1,6 @@
 import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminFinancePanel } from "@/components/admin/AdminFinancePanel";
+import { AdminMarketplaceFinanceSection } from "@/components/admin/AdminMarketplaceFinanceSection";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { fa } from "@/lib/i18n/fa";
 
@@ -14,6 +15,7 @@ export default function AdminFinancePage() {
               subtitle={fa.admin.finance.subtitle}
             />
             <AdminFinancePanel />
+            <AdminMarketplaceFinanceSection />
           </div>
       </AdminGuard>
   );

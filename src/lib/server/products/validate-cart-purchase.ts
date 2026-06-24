@@ -19,6 +19,7 @@ export class CartPurchaseError extends Error {
 
 export async function validateCartPurchase(items: CartItem[]): Promise<void> {
   const totals = aggregateQuantityByProductId(items);
+  // Bespoke customizer-only lines have no productId — stock is not tracked at catalog level.
   if (totals.size === 0) return;
 
   const productIds = Array.from(totals.keys());

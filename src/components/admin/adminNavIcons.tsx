@@ -17,6 +17,7 @@ import {
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 
 export const adminNavIconById: Record<string, React.ReactNode> = {
+  dashboard: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   users: <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   finance: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   orders: <ShoppingCart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,

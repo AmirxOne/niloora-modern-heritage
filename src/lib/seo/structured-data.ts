@@ -51,6 +51,27 @@ export function buildWebSiteJsonLd(input: { brandName: string }) {
   };
 }
 
+export function buildWebPageJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+  brandName?: string;
+}) {
+  const brandName = input.brandName ?? fa.brand.name;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    isPartOf: {
+      "@type": "WebSite",
+      name: brandName,
+      url: getSiteUrl(),
+    },
+  };
+}
+
 export function buildLocalBusinessJsonLd(input: {
   brandName: string;
   logoUrl: string | null;

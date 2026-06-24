@@ -30,11 +30,7 @@ const sliderProductInclude = {
   preOwnedInfo: true,
   images: { orderBy: { sortOrder: "asc" as const } },
   collection: true,
-  ugcMedia: {
-    where: { status: "approved" },
-    orderBy: { createdAt: "desc" as const },
-    take: 20,
-  },
+  vendor: { select: { id: true, slug: true, displayName: true, status: true } },
 } satisfies Prisma.ProductInclude;
 
 function normalizeBannerImageUrl(value: unknown): string | null | undefined {

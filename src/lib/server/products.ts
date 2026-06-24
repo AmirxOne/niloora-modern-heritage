@@ -1,10 +1,14 @@
 import type { Prisma } from "@prisma/client";
-import type { PreOwnedInfo, Product, ProductUgcMediaStatus, ProductUgcMediaType } from "@/lib/types";
+import type { PreOwnedInfo, Product } from "@/lib/types";
 import {
   getCatalogMaxPrice as resolveCatalogMaxPrice,
   normalizeCatalogProductPricing,
 } from "@/lib/catalog/product-catalog";
 import { DEFAULT_PRODUCT_IMAGE, resolvePublicImagePath } from "@/lib/images";
+import { mapProductMarketplaceFields } from "@/lib/server/marketplace/map-product-marketplace-fields";
+import { mapProductVendorSummary } from "@/lib/server/marketplace/map-product-vendor";
+import { mergePublicCatalogWhere } from "@/lib/server/marketplace/catalog-filter";
+import { rankCatalogRows } from "@/lib/server/marketplace/product-rank";
 import { prisma } from "@/lib/server/prisma";
 const preOwnedGrades = new Set(["excellent", "very-good", "good"]);
 
@@ -15,26 +19,10 @@ const productInclude = {
     orderBy: { sortOrder: "asc" as const },
   },
   collection: true,
-  ugcMedia: {
-    where: { status: "approved" },
-    orderBy: { createdAt: "desc" as const },
-    take: 20,
-  },
-} satisfies Prisma.ProductInclude;
-
-const productIncludeWithoutUgc = {
-  listing: true,
-  preOwnedInfo: true,
-  images: {
-    orderBy: { sortOrder: "asc" as const },
-  },
-  collection: true,
+  vendor: { select: { id: true, slug: true, displayName: true, status: true } },
 } satisfies Prisma.ProductInclude;
 
 type DbProduct = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
-type DbProductWithoutUgc = Prisma.ProductGetPayload<{ include: typeof productIncludeWithoutUgc }>;
-let hasCheckedUgcTable = false;
-let hasProductUgcTable = true;
 
 export type CollectionDto = {
   id: string;
@@ -126,6 +114,8 @@ export function mapDbProduct(product: DbProduct): Product {
     name: product.name,
     namePersian: product.namePersian,
     introVideoUrl: product.introVideoUrl ?? undefined,
+    ...mapProductMarketplaceFields(product),
+    ...(product.vendorId ? { vendor: mapProductVendorSummary(product.vendor) } : {}),
     listing: {
       tier: product.listing?.tier === "economy" ? "economy" : "premium",
       headline: product.listing?.headline ?? "",
@@ -168,182 +158,150 @@ export function mapDbProduct(product: DbProduct): Product {
           story: product.preOwnedInfo.story ?? undefined,
         }
       : undefined,
-    ugcMedia: product.ugcMedia.map((item) => ({
-      id: item.id,
-      productId: item.productId,
-      userId: item.userId,
-      orderId: item.orderId ?? undefined,
-      mediaUrl: item.mediaUrl,
-      mediaType: item.mediaType as ProductUgcMediaType,
-      caption: item.caption ?? undefined,
-      status: item.status as ProductUgcMediaStatus,
-      approvedAt: item.approvedAt?.toISOString(),
-      rejectedAt: item.rejectedAt?.toISOString(),
-      createdAt: item.createdAt.toISOString(),
-      updatedAt: item.updatedAt.toISOString(),
-    })),
   };
 }
 
-function isMissingProductUgcTable(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const message = error.message ?? "";
-  return message.includes("ProductUgcMedia") && message.includes("does not exist");
+export type CatalogProductsOptions = {
+  limit?: number;
+  offset?: number;
+  cursor?: string;
+};
+
+export type CatalogProductsPage = {
+  products: Product[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+};
+
+const catalogListOrderBy = [
+  { featured: "desc" as const },
+  { updatedAt: "desc" as const },
+  { id: "asc" as const },
+];
+
+async function fetchCatalogRows(query: {
+  where: Prisma.ProductWhereInput;
+  skip?: number;
+  take?: number;
+  cursor?: { id: string };
+}) {
+  const base = {
+    where: query.where,
+    orderBy: catalogListOrderBy,
+    ...(query.cursor
+      ? { cursor: query.cursor, skip: 1, take: query.take }
+      : { skip: query.skip, take: query.take }),
+  };
+
+  return prisma.product.findMany({ ...base, include: productInclude });
 }
 
-async function canUseProductUgcTable(): Promise<boolean> {
-  if (hasCheckedUgcTable) return hasProductUgcTable;
-  hasCheckedUgcTable = true;
-  try {
-    const rows = await prisma.$queryRaw<Array<{ exists: boolean }>>`
-      SELECT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = 'ProductUgcMedia'
-      ) AS "exists";
-    `;
-    hasProductUgcTable = Boolean(rows[0]?.exists);
-  } catch {
-    hasProductUgcTable = true;
-  }
-  return hasProductUgcTable;
-}
+async function getCatalogProductsPage(
+  options: CatalogProductsOptions
+): Promise<CatalogProductsPage> {
+  const catalogWhere = mergePublicCatalogWhere();
+  const limit = Math.min(100, Math.max(1, options.limit ?? 24));
+  const offset = Math.max(0, options.offset ?? 0);
 
-function mapDbProductWithoutUgc(product: DbProductWithoutUgc): Product {
-  const preOwnedGrade = product.preOwnedInfo?.grade ?? "good";
-  const pricing = normalizeCatalogProductPricing({
-    price: product.price,
-    listPrice: product.listPrice ?? undefined,
-    discountPercent: product.discountPercent ?? undefined,
-  });
-  const listingDetails = Array.isArray(product.listing?.details) ? (product.listing.details as string[]) : [];
-  const derived = deriveListingMetadata(listingDetails);
+  const [total, rows] = await Promise.all([
+    prisma.product.count({ where: catalogWhere }),
+    fetchCatalogRows({
+      where: catalogWhere,
+      ...(options.cursor
+        ? { cursor: { id: options.cursor }, take: limit }
+        : { skip: offset, take: limit }),
+    }),
+  ]);
+
+  const products = rows.map(mapDbProduct);
+
+  const lastId = products.at(-1)?.id ?? null;
+  const hasMore = options.cursor
+    ? products.length === limit
+    : offset + products.length < total;
 
   return {
-    id: product.id,
-    name: product.name,
-    namePersian: product.namePersian,
-    introVideoUrl: product.introVideoUrl ?? undefined,
-    listing: {
-      tier: product.listing?.tier === "economy" ? "economy" : "premium",
-      headline: product.listing?.headline ?? "",
-      details: listingDetails,
-      extraTags: Array.isArray(product.listing?.extraTags)
-        ? (product.listing?.extraTags as ("pre-owned")[])
-        : undefined,
-    },
-    ...pricing,
-    image: resolvePublicImagePath(product.image, DEFAULT_PRODUCT_IMAGE),
-    images: product.images.map((item) => resolvePublicImagePath(item.url, "")).filter(Boolean),
-    category: product.category as Product["category"],
-    metal: product.metal as Product["metal"],
-    stone: product.stone as Product["stone"],
-    stoneShape: product.stoneShape as Product["stoneShape"],
-    engravingType: product.engravingType as Product["engravingType"],
-    availability: product.availability as Product["availability"],
-    stock: product.stock,
-    featured: product.featured,
-    bestseller: product.bestseller,
-    collection: product.collection?.name,
-    collectionId: product.collectionId ?? undefined,
-    initialSalesCount: product.initialSalesCount ?? 0,
-    condition: product.condition as Product["condition"],
-    discountEndsAt: product.discountEndsAt?.toISOString(),
-    craftedBy: derived.craftedBy,
-    stoneColorLabel: derived.stoneColorLabel,
-    ringSize: derived.ringSize,
-    artisanAssignments: derived.artisanAssignments,
-    preOwned: product.preOwnedInfo
-      ? {
-          originalPrice: product.preOwnedInfo.originalPrice,
-          depreciationPercent: product.preOwnedInfo.depreciationPercent,
-          grade: preOwnedGrades.has(preOwnedGrade)
-            ? (preOwnedGrade as PreOwnedInfo["grade"])
-            : "good",
-          certifiedRefurbished: product.preOwnedInfo.certifiedRefurbished,
-          canRemake: product.preOwnedInfo.canRemake,
-          buybackRatePercent: product.preOwnedInfo.buybackRatePercent,
-          story: product.preOwnedInfo.story ?? undefined,
-        }
-      : undefined,
-    ugcMedia: [],
+    products,
+    total,
+    limit,
+    offset,
+    hasMore,
+    nextCursor: hasMore ? lastId : null,
   };
 }
 
-export async function getCatalogProducts(): Promise<Product[]> {
-  // FLOW: read full catalog with include graph, then map to shared Product type.
-  const includeUgc = await canUseProductUgcTable();
-  if (!includeUgc) {
-    const rows = await prisma.product.findMany({
-      include: productIncludeWithoutUgc,
-    });
-    return rows.map(mapDbProductWithoutUgc);
+export async function getCatalogProducts(): Promise<Product[]>;
+export async function getCatalogProducts(
+  options: CatalogProductsOptions
+): Promise<Product[] | CatalogProductsPage>;
+export async function getCatalogProducts(
+  options?: CatalogProductsOptions
+): Promise<Product[] | CatalogProductsPage> {
+  if (options?.limit != null || options?.cursor) {
+    return getCatalogProductsPage(options);
   }
-  try {
-    const rows = await prisma.product.findMany({
+  return fetchFullCatalogProducts();
+}
+
+export async function getCatalogMaxPriceFromDb(): Promise<number> {
+  const catalogWhere = mergePublicCatalogWhere();
+  const agg = await prisma.product.aggregate({
+    where: catalogWhere,
+    _max: { price: true },
+  });
+  return agg._max.price ?? 0;
+}
+
+async function fetchFullCatalogProducts(): Promise<Product[]> {
+  const catalogWhere = mergePublicCatalogWhere();
+  const rows = await rankCatalogRows(
+    await prisma.product.findMany({
+      where: catalogWhere,
       include: productInclude,
-    });
-    return rows.map(mapDbProduct);
-  } catch (error) {
-    if (!isMissingProductUgcTable(error)) throw error;
-    const rows = await prisma.product.findMany({
-      include: productIncludeWithoutUgc,
-    });
-    return rows.map(mapDbProductWithoutUgc);
-  }
+    })
+  );
+  return rows.map(mapDbProduct);
 }
 
 export async function getProductByIdFromDb(id: string): Promise<Product | null> {
-  const includeUgc = await canUseProductUgcTable();
-  if (!includeUgc) {
-    const row = await prisma.product.findUnique({
-      where: { id },
-      include: productIncludeWithoutUgc,
-    });
-    return row ? mapDbProductWithoutUgc(row) : null;
-  }
-  try {
-    const row = await prisma.product.findUnique({
-      where: { id },
-      include: productInclude,
-    });
-    return row ? mapDbProduct(row) : null;
-  } catch (error) {
-    if (!isMissingProductUgcTable(error)) throw error;
-    const row = await prisma.product.findUnique({
-      where: { id },
-      include: productIncludeWithoutUgc,
-    });
-    return row ? mapDbProductWithoutUgc(row) : null;
-  }
+  const catalogWhere = mergePublicCatalogWhere({ id });
+  const row = await prisma.product.findFirst({
+    where: catalogWhere,
+    include: productInclude,
+  });
+  return row ? mapDbProduct(row) : null;
 }
 
 export async function getPreOwnedProductsFromDb(): Promise<Product[]> {
-  const includeUgc = await canUseProductUgcTable();
-  if (!includeUgc) {
-    const rows = await prisma.product.findMany({
-      where: { condition: "pre-owned" },
-      include: productIncludeWithoutUgc,
-      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-    });
-    return rows.map(mapDbProductWithoutUgc);
-  }
-  try {
-    const rows = await prisma.product.findMany({
-      where: { condition: "pre-owned" },
-      include: productInclude,
-      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-    });
-    return rows.map(mapDbProduct);
-  } catch (error) {
-    if (!isMissingProductUgcTable(error)) throw error;
-    const rows = await prisma.product.findMany({
-      where: { condition: "pre-owned" },
-      include: productIncludeWithoutUgc,
-      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-    });
-    return rows.map(mapDbProductWithoutUgc);
-  }
+  const catalogWhere = mergePublicCatalogWhere({ condition: "pre-owned" });
+  const rows = await prisma.product.findMany({
+    where: catalogWhere,
+    include: productInclude,
+    orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+  });
+  return rows.map(mapDbProduct);
+}
+
+export async function getSameVendorProductsFromDb(
+  vendorId: string,
+  excludeProductId: string,
+  limit = 8
+): Promise<Product[]> {
+  const catalogWhere = mergePublicCatalogWhere({
+    vendorId,
+    id: { not: excludeProductId },
+  });
+  const take = Math.min(8, Math.max(1, limit));
+  const rows = await prisma.product.findMany({
+    where: catalogWhere,
+    orderBy: [{ featured: "desc" as const }, { updatedAt: "desc" as const }],
+    take,
+    include: productInclude,
+  });
+  return rows.map(mapDbProduct);
 }
 
 export async function getCollectionsFromDb(): Promise<CollectionDto[]> {

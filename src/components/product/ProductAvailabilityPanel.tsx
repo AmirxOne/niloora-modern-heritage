@@ -5,7 +5,6 @@ import { getProductStatusConfig, isImmediateDelivery } from "@/lib/product-statu
 import { fa } from "@/lib/i18n/fa";
 import { getMinStandardShippingCost } from "@/lib/orders/shipping-cost";
 import { formatTomanAmount } from "@/lib/utils";
-import { ProductAvailabilityBadge } from "./ProductAvailabilityBadge";
 
 interface ProductAvailabilityPanelProps {
   availability: ProductAvailability;
@@ -18,8 +17,7 @@ export function ProductAvailabilityPanel({ availability }: ProductAvailabilityPa
 
   return (
     <div className="product-availability-panel" role="status">
-      <ProductAvailabilityBadge availability={availability} size="md" />
-      <p className="mt-3 text-sm leading-relaxed text-silver">{config.description}</p>
+      <p className="text-sm leading-relaxed text-silver">{config.description}</p>
       <div className="product-availability-delivery-row">
         <span className="product-availability-delivery-icon" aria-hidden>
           {immediate ? "◆" : "◇"}

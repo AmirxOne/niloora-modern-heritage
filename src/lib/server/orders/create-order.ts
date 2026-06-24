@@ -14,6 +14,7 @@ import {
 } from "@/lib/server/gift-card/gift-card-service";
 import type { CartItem } from "@/lib/types";
 import { normalizeLoyaltyTier } from "@/lib/loyalty/program";
+import { resolveOrderItemVendorId } from "@/lib/server/marketplace/map-product-vendor";
 
 export { CartPurchaseError };
 
@@ -71,6 +72,22 @@ export async function createOrderFromCart(input: {
   let order;
   try {
     order = await prisma.$transaction(async (tx) => {
+      const productIds = Array.from(
+        new Set(
+          priced.items.map((item) => item.productId).filter((id): id is string => Boolean(id))
+        )
+      );
+      const vendorByProductId = new Map<string, string | null>();
+      if (productIds.length > 0) {
+        const products = await tx.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, vendorId: true },
+        });
+        for (const product of products) {
+          vendorByProductId.set(product.id, resolveOrderItemVendorId(product.vendorId));
+        }
+      }
+
       const created = await tx.order.create({
         data: {
           id: createOrderId(),
@@ -104,6 +121,9 @@ export async function createOrderFromCart(input: {
           items: {
             create: priced.items.map((item) => ({
               productId: item.productId ?? null,
+              vendorId: item.productId
+                ? (vendorByProductId.get(item.productId) ?? null)
+                : null,
               name: item.name,
               price: item.price,
               listPrice: item.listPrice ?? null,
@@ -128,6 +148,17 @@ export async function createOrderFromCart(input: {
         });
       }
 
+      if (priced.campaignId && priced.campaignDiscountAmount > 0) {
+        await recordCampaignUsage({
+          campaignId: priced.campaignId,
+          orderId: created.id,
+          userId: input.userId,
+          discountAmount: priced.campaignDiscountAmount,
+          orderSubtotal: priced.subtotalSale,
+          tx,
+        });
+      }
+
       return created;
     });
   } catch (error) {
@@ -135,16 +166,6 @@ export async function createOrderFromCart(input: {
       throw new CartPurchaseError(error.message);
     }
     throw error;
-  }
-
-  if (priced.campaignId && priced.campaignDiscountAmount > 0) {
-    await recordCampaignUsage({
-      campaignId: priced.campaignId,
-      orderId: order.id,
-      userId: input.userId,
-      discountAmount: priced.campaignDiscountAmount,
-      orderSubtotal: priced.subtotalSale,
-    });
   }
 
   return { order, priced, shippingCost, orderTotal, giftCardApplied, giftCardCode: normalizedGiftCardCode };

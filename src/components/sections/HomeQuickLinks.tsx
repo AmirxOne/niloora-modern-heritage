@@ -16,9 +16,18 @@ const ICON_PX = 16;
 function getScrollRatio(el: HTMLDivElement): number {
   const max = el.scrollWidth - el.clientWidth;
   if (max <= 0) return 0;
-  const raw = el.scrollLeft;
-  const normalized = raw < 0 ? -raw : raw;
-  return Math.min(1, Math.max(0, normalized / max));
+
+  const isRtl = getComputedStyle(el).direction === "rtl";
+  const { scrollLeft } = el;
+
+  if (isRtl) {
+    if (scrollLeft <= 0) {
+      return Math.min(1, Math.max(0, -scrollLeft / max));
+    }
+    return Math.min(1, Math.max(0, (max - scrollLeft) / max));
+  }
+
+  return Math.min(1, Math.max(0, scrollLeft / max));
 }
 
 function QuickLinkItem({ item, more }: { item: HomeQuickLink; more?: boolean }) {
@@ -73,7 +82,11 @@ export function HomeQuickLinks() {
       <div className="home-quick-links__container">
         <div
           ref={trackRef}
-          className="home-quick-links__track"
+          dir="rtl"
+          className={cn(
+            "home-quick-links__track",
+            !canScroll && "home-quick-links__track--fit"
+          )}
           onScroll={syncScroll}
         >
           {HOME_QUICK_LINKS.map((item) => (
@@ -88,7 +101,7 @@ export function HomeQuickLinks() {
               className="home-quick-links__scroll-thumb"
               style={{
                 width: `${thumb.width}%`,
-                right: `${thumb.offset}%`,
+                insetInlineStart: `${thumb.offset}%`,
               }}
             />
           </div>

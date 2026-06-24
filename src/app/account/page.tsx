@@ -30,7 +30,6 @@ import { AccountOverviewPanel } from "@/components/account/AccountOverviewPanel"
 import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { AccountResourceRow } from "@/components/account/AccountResourceRow";
 import { AccountReferralPanel } from "@/components/account/AccountReferralPanel";
-import { AccountUgcPanel } from "@/components/account/AccountUgcPanel";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -96,7 +95,6 @@ export default function AccountPage() {
         label: fa.dashboard.workshopQuotes,
         badge: quoteRequests.quotes.length,
       },
-      { id: "ugc", label: fa.product.ugc.navLabel },
       { id: "wishlist", label: fa.dashboard.wishlist, badge: wishlistedProducts.length },
       { id: "compare", label: fa.dashboard.compareList, badge: compareBadge },
       {
@@ -184,17 +182,6 @@ export default function AccountPage() {
             quotes={quoteRequests.quotes}
             isLoading={quoteRequests.isLoading}
           />
-        </AccountSectionContainer>
-      );
-    }
-
-    if (activeSection === "ugc") {
-      return (
-        <AccountSectionContainer
-          title={fa.product.ugc.accountTitle}
-          subtitle={fa.product.ugc.accountSubtitle}
-        >
-          <AccountUgcPanel />
         </AccountSectionContainer>
       );
     }

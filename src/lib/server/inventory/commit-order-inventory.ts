@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { aggregateQuantityByProductId } from "@/lib/products/purchasability";
+import { INVENTORY_LOG_REASON } from "@/lib/server/commerce/statuses";
 
 type PrismaTx = Omit<
   PrismaClient,
@@ -20,12 +21,29 @@ export class InventoryCommitError extends Error {
 
 export async function commitInventoryForPaidOrder(
   tx: PrismaTx,
-  items: Array<{ productId?: string | null; quantity: number }>
+  items: Array<{ productId?: string | null; quantity: number }>,
+  orderId?: string
 ): Promise<void> {
-  const totals = aggregateQuantityByProductId(items);
+  const totals = aggregateQuantityByProductId(
+    items.flatMap((item) =>
+      item.productId ? [{ productId: item.productId, quantity: item.quantity }] : []
+    )
+  );
   if (totals.size === 0) return;
 
   for (const [productId, quantity] of Array.from(totals.entries())) {
+    if (orderId) {
+      const existing = await tx.inventoryLog.findFirst({
+        where: {
+          orderId,
+          productId,
+          reason: INVENTORY_LOG_REASON.orderPaid,
+        },
+        select: { id: true },
+      });
+      if (existing) continue;
+    }
+
     const product = await tx.product.findUnique({
       where: { id: productId },
       select: { id: true, name: true, stock: true, availability: true },
@@ -61,7 +79,12 @@ export async function commitInventoryForPaidOrder(
     }
 
     await tx.inventoryLog.create({
-      data: { productId, change: -quantity, reason: "order_paid" },
+      data: {
+        productId,
+        change: -quantity,
+        reason: INVENTORY_LOG_REASON.orderPaid,
+        orderId: orderId ?? null,
+      },
     });
   }
 }

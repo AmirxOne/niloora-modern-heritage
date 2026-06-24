@@ -6,8 +6,6 @@ import { cn } from "@/lib/utils";
 import { fa } from "@/lib/i18n/fa";
 import {
   formatPieceCode,
-  parsePieceCode,
-  PRODUCT_TYPE_CODES,
 } from "@/lib/products/piece-code";
 import { Check, Copy } from "@/components/icons";
 import { ICON_VARIANT } from "@/lib/icons";
@@ -21,8 +19,6 @@ export interface PieceNumberProps {
   variant?: PieceNumberVariant;
   /** نمایش دکمهٔ کپی (در variantهای compact به‌طور پیش‌فرض فعال) */
   copyable?: boolean;
-  /** نمایش برچسب نوع اثر (انگشتر مردانه / گردنبند …) */
-  showTypeLabel?: boolean;
   className?: string;
 }
 
@@ -45,12 +41,10 @@ export function PieceNumber({
   code,
   variant = "inline",
   copyable,
-  showTypeLabel = false,
   className,
 }: PieceNumberProps) {
   const [copied, setCopied] = useState(false);
   const normalized = formatPieceCode(code);
-  const parsed = parsePieceCode(normalized);
 
   const isCopyable = copyable ?? variant !== "compact";
 
@@ -74,11 +68,6 @@ export function PieceNumber({
     }
   }, [normalized]);
 
-  const typeLabel =
-    parsed?.productType !== undefined && parsed.productType !== null
-      ? PRODUCT_TYPE_CODES[parsed.productType].faLabel
-      : null;
-
   if (variant === "card") {
     return (
       <div
@@ -89,17 +78,6 @@ export function PieceNumber({
         )}
         dir="ltr"
       >
-        <div className="flex items-center justify-between gap-2" dir="rtl">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#8b6914]">
-            {fa.product.pieceCode.label}
-          </span>
-          {showTypeLabel && typeLabel ? (
-            <span className="rounded-full border border-[rgba(184,134,11,0.15)] bg-[rgba(184,134,11,0.08)] px-1.5 py-0.5 text-[10px] font-medium text-[#78716c]">
-              {typeLabel}
-            </span>
-          ) : null}
-        </div>
-
         <div className="flex items-center justify-between gap-2.5">
           <span
             className={cn(

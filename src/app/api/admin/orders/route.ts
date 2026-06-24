@@ -18,9 +18,19 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const statusFilter = parseAdminOrderFilter(searchParams.get("status"));
+    const vendorId = searchParams.get("vendorId")?.trim() || undefined;
 
     const orders = await prisma.order.findMany({
-      where: statusFilter === "all" ? undefined : { status: statusFilter },
+      where: {
+        ...(statusFilter === "all" ? {} : { status: statusFilter }),
+        ...(vendorId
+          ? {
+              items: {
+                some: { vendorId },
+              },
+            }
+          : {}),
+      },
       include: {
         ...orderInclude,
         user: { select: { name: true, phone: true, email: true } },

@@ -28,6 +28,7 @@ const COLS = [
     links: [
       { href: "/about",                      label: fa.footer.ourStory },
       { href: "/artisans",                   label: fa.footer.artisans },
+      { href: "/sell",                       label: fa.footer.sellOnMarketplace },
       { href: "/about#craftsmanship",        label: fa.footer.craftsmanship },
       { href: "/blog",                       label: fa.nav.blog },
       { href: "/account",                    label: fa.footer.myAccount },

@@ -33,6 +33,8 @@ describe("admin navigation", () => {
       "gift-cards",
       "customizer-quotes",
       "moderation",
+      "vendors",
+      "products-pending",
     ] as const;
 
     const adminItems = getAdminNavItemsForRole("admin");

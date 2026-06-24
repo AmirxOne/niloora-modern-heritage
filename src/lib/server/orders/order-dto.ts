@@ -47,6 +47,8 @@ type OrderWithItems = {
     availability: string | null;
     customizerState: Prisma.JsonValue;
     ringPurchaseCustomization: Prisma.JsonValue;
+    vendorId?: string | null;
+    vendor?: { id: string; displayName: string } | null;
   }>;
   payment?: {
     status: string;
@@ -131,12 +133,18 @@ export function toOrderDto(order: OrderWithItems) {
       ringPurchaseCustomization:
         (item.ringPurchaseCustomization as unknown as CartItem["ringPurchaseCustomization"]) ??
         undefined,
+      vendorId: item.vendorId ?? undefined,
+      vendorDisplayName: item.vendor?.displayName ?? undefined,
     })),
   };
 }
 
 export const orderInclude = {
-  items: true,
+  items: {
+    include: {
+      vendor: { select: { id: true, displayName: true } },
+    },
+  },
   campaign: {
     select: {
       title: true,

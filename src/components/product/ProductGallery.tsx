@@ -115,49 +115,45 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
               >
                 <ChevronRight size={iconSizes.lg} variant={ICON_VARIANT} aria-hidden />
               </button>
-              <p className="product-gallery-counter" aria-live="polite">
-                {fa.product.galleryCounter(activeIndex + 1, total)}
-              </p>
             </>
           ) : null}
+          <p className="product-gallery-counter" aria-live="polite">
+            {fa.product.galleryCounter(activeIndex + 1, total)}
+          </p>
         </div>
 
-        {total > 1 ? (
-          <div className="product-gallery-dots" role="tablist" aria-label={fa.product.galleryDotsAria}>
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                role="tab"
-                aria-selected={i === activeIndex}
-                aria-label={fa.product.galleryDot(i + 1, total)}
-                className={cn("product-gallery-dot", i === activeIndex && "product-gallery-dot--active")}
-                onClick={() => goTo(i)}
-              />
-            ))}
-          </div>
-        ) : null}
-      </div>
-
-      {total > 1 ? (
-        <div className="product-gallery-thumbs" aria-label={fa.product.galleryThumbsAria}>
-          {slides.map((src, i) => (
+        <div className="product-gallery-dots" role="tablist" aria-label={fa.product.galleryDotsAria}>
+          {slides.map((_, i) => (
             <button
-              key={`thumb-${src}-${i}`}
+              key={i}
               type="button"
-              className={cn(
-                "product-gallery-thumb",
-                i === activeIndex && "product-gallery-thumb--active"
-              )}
-              onClick={() => goTo(i)}
+              role="tab"
+              aria-selected={i === activeIndex}
               aria-label={fa.product.galleryDot(i + 1, total)}
-              aria-current={i === activeIndex}
-            >
-              <Image src={src} alt="" fill className="object-cover" sizes="80px" />
-            </button>
+              className={cn("product-gallery-dot", i === activeIndex && "product-gallery-dot--active")}
+              onClick={() => goTo(i)}
+            />
           ))}
         </div>
-      ) : null}
+      </div>
+
+      <div className="product-gallery-thumbs" aria-label={fa.product.galleryThumbsAria}>
+        {slides.map((src, i) => (
+          <button
+            key={`thumb-${src}-${i}`}
+            type="button"
+            className={cn(
+              "product-gallery-thumb",
+              i === activeIndex && "product-gallery-thumb--active"
+            )}
+            onClick={() => goTo(i)}
+            aria-label={fa.product.galleryDot(i + 1, total)}
+            aria-current={i === activeIndex}
+          >
+            <Image src={src} alt="" fill className="object-cover" sizes="80px" />
+          </button>
+        ))}
+      </div>
 
       {lightboxOpen ? (
         <ProductGalleryLightbox

@@ -229,9 +229,11 @@ export async function recordCampaignUsage(input: {
   userId: string;
   discountAmount: number;
   orderSubtotal: number;
+  tx?: import("@prisma/client").Prisma.TransactionClient;
 }) {
   if (input.discountAmount <= 0) return;
-  await prisma.discountCampaignUsage.upsert({
+  const client = input.tx ?? prisma;
+  await client.discountCampaignUsage.upsert({
     where: {
       orderId_campaignId: {
         orderId: input.orderId,

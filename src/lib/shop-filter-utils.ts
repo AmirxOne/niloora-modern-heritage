@@ -151,6 +151,7 @@ export function applyShopFilters(
       if (!filters.conditions.includes(condition)) return false;
     }
     if (p.price < filters.priceRange[0] || p.price > filters.priceRange[1]) return false;
+    if (filters.vendorOnly && !p.vendorId) return false;
     return true;
   });
 }
@@ -198,6 +199,7 @@ export function createDefaultShopFilters(maxPrice: number): ShopFilters {
     collectionIds: [],
     conditions: [],
     query: "",
+    vendorOnly: false,
   };
 }
 
@@ -260,6 +262,7 @@ export function countActiveFilters(filters: ShopFilters, maxPrice: number): numb
   n += filters.collectionIds.length;
   n += filters.conditions.length;
   if (filters.query.trim()) n += 1;
+  if (filters.vendorOnly) n += 1;
   if (filters.priceRange[0] > 0 || filters.priceRange[1] < maxPrice) n += 1;
   return n;
 }

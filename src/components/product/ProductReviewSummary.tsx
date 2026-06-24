@@ -89,31 +89,33 @@ export function ProductReviewSummary({ productId, className }: ProductReviewSumm
         </div>
       ) : null}
 
-      <div
-        className="product-review-summary-bars"
-        role="group"
-        aria-label={fa.product.ratingDistributionAria}
-      >
-        {STAR_LEVELS.map((star) => {
-          const starCount = distribution[star];
-          const percent = count > 0 ? Math.round((starCount / count) * 100) : 0;
-          return (
-            <div key={star} className="product-review-summary-bar-row">
-              <span className="product-review-summary-bar-label">{fa.product.starsRowLabel(star)}</span>
-              <div className="product-review-summary-bar-track">
-                <div
-                  className="product-review-summary-bar-fill"
-                  style={{ width: `${percent}%` }}
-                  role="presentation"
-                />
+      {count > 0 ? (
+        <div
+          className="product-review-summary-bars"
+          role="group"
+          aria-label={fa.product.ratingDistributionAria}
+        >
+          {STAR_LEVELS.map((star) => {
+            const starCount = distribution[star];
+            const percent = count > 0 ? Math.round((starCount / count) * 100) : 0;
+            return (
+              <div key={star} className="product-review-summary-bar-row">
+                <span className="product-review-summary-bar-label">{fa.product.starsRowLabel(star)}</span>
+                <div className="product-review-summary-bar-track">
+                  <div
+                    className="product-review-summary-bar-fill"
+                    style={{ width: `${percent}%` }}
+                    role="presentation"
+                  />
+                </div>
+                <span className="product-review-summary-bar-count">
+                  {starCount.toLocaleString("fa-IR")}
+                </span>
               </div>
-              <span className="product-review-summary-bar-count">
-                {starCount.toLocaleString("fa-IR")}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }

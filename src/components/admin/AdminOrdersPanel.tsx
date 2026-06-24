@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/api/client-fetch";
 import {
   ADMIN_ORDER_FILTER_STATUSES,
   ADMIN_ORDER_STATUSES,
@@ -18,6 +19,8 @@ import { Button } from "@/components/ui/Button";
 import { SelectBox, TextBox } from "@/components/inputs";
 import { AdminOrderReturnsSnippet } from "@/components/admin/AdminOrderReturnsSnippet";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
+import type { VendorProfileDto } from "@/lib/types/vendor";
+import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
 
 const statusLabels: Record<Order["status"], string> = {
   pending_payment: fa.dashboard.orderStatus.pending_payment,
@@ -93,6 +96,7 @@ function AdminOrderCard({
   }, [order.id, order.status, order.trackingCode]);
 
   const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
+  const [itemsOpen, setItemsOpen] = useState(false);
   const dirty =
     (canEditStatus && status !== order.status) ||
     (trackingCode.trim() || "") !== (order.trackingCode ?? "");
@@ -119,6 +123,13 @@ function AdminOrderCard({
         <span>
           {fa.admin.orders.itemsCount(itemCount)} · {formatPrice(order.total)}
         </span>
+        <button
+          type="button"
+          className="text-xs text-gold underline-offset-2 hover:underline"
+          onClick={() => setItemsOpen((open) => !open)}
+        >
+          {itemsOpen ? "بستن اقلام" : fa.admin.orders.lineItemsTitle}
+        </button>
         {order.payment?.refId ? (
           <span className="text-xs text-silver" dir="ltr">
             {fa.receipt.paymentRef}: {order.payment.refId}
@@ -135,6 +146,21 @@ function AdminOrderCard({
           </Link>
         </div>
       </div>
+
+      {itemsOpen ? (
+        <ul className="space-y-2 border-t border-parchment px-5 py-3 text-sm">
+          {order.items.map((item) => (
+            <li key={item.id} className="flex flex-wrap items-center justify-between gap-2">
+              <span>
+                {item.name} × {item.quantity.toLocaleString("fa-IR")}
+              </span>
+              <Badge variant="default">
+                {item.vendorDisplayName ?? fa.admin.orders.vendorBadgePlatform}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {order.shipping ? (
         <p className="admin-order-shipping text-xs text-silver">
@@ -184,14 +210,36 @@ function AdminOrderCard({
 
 export function AdminOrdersPanel() {
   const admin = useAdminOrders();
-  const { isAdmin, loadOrders, statusFilter } = admin;
+  const { isAdmin, loadOrders, statusFilter, vendorIdFilter } = admin;
   const [importReport, setImportReport] = useState<string[]>([]);
+  const [activeVendors, setActiveVendors] = useState<VendorProfileDto[]>([]);
 
   useEffect(() => {
     if (isAdmin) {
-      void loadOrders(statusFilter);
+      void loadOrders(statusFilter, vendorIdFilter);
     }
-  }, [isAdmin, loadOrders, statusFilter]);
+  }, [isAdmin, loadOrders, statusFilter, vendorIdFilter]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    void (async () => {
+      const response = await apiFetch("/api/admin/vendors?status=active");
+      if (!response.ok) return;
+      const data = await parseJsonResponse<{ vendors: VendorProfileDto[] }>(response);
+      setActiveVendors(data?.vendors ?? []);
+    })();
+  }, [isAdmin]);
+
+  const vendorFilterOptions = useMemo(
+    () => [
+      { value: "", label: fa.admin.orders.vendorFilterAll },
+      ...activeVendors.map((vendor) => ({
+        value: vendor.id,
+        label: vendor.displayName,
+      })),
+    ],
+    [activeVendors]
+  );
 
   const sortedOrders = useMemo(
     () => [...admin.orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
@@ -211,11 +259,17 @@ export function AdminOrdersPanel() {
             admin.setStatusFilter(value as typeof admin.statusFilter);
           }}
         />
+        <SelectBox
+          label={fa.admin.orders.vendorFilterLabel}
+          value={admin.vendorIdFilter}
+          options={vendorFilterOptions}
+          onValueChange={admin.setVendorIdFilter}
+        />
         <Button
           type="button"
           variant="outline"
           disabled={admin.isLoading}
-          onClick={() => void admin.loadOrders(admin.statusFilter)}
+          onClick={() => void admin.loadOrders(admin.statusFilter, admin.vendorIdFilter)}
         >
           {fa.admin.orders.refresh}
         </Button>

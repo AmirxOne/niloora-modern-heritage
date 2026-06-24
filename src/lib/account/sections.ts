@@ -4,7 +4,6 @@ export const ACCOUNT_SECTION_IDS = [
   "profile",
   "orders",
   "quotes",
-  "ugc",
   "wishlist",
   "compare",
   "recently-viewed",
@@ -16,6 +15,7 @@ export type AccountNavSectionId = AccountSectionId;
 
 const LEGACY_ALIASES: Record<string, AccountSectionId> = {
   dashboard: "overview",
+  ugc: "overview",
 };
 
 export function isAccountSectionId(value: string): value is AccountSectionId {

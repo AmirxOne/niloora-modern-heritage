@@ -5,6 +5,7 @@ import type { SessionRole } from "@/lib/server/auth/session-constants";
 import { applySecurityHeaders } from "@/lib/server/security-headers";
 import { stripLocalePrefix } from "@/lib/i18n/locales";
 import { canAccessContentWorkflow } from "@/lib/auth/content-workflow";
+import { isVendorPortalPath } from "@/lib/vendor/portal-paths";
 
 async function resolvePrivilegedSession(
   request: NextRequest,
@@ -111,14 +112,16 @@ export async function middleware(request: NextRequest) {
   const needsAuth =
     path === "/account" ||
     path.startsWith("/account/") ||
-    path.startsWith("/admin/");
+    path.startsWith("/admin/") ||
+    (path.startsWith("/vendor/") && isVendorPortalPath(path));
 
   const needsPostsWorkflowPage = path === "/admin/posts" || path.startsWith("/admin/posts/");
   const needsAdminPage = path.startsWith("/admin/") && !needsPostsWorkflowPage;
   const needsAdminApi = path.startsWith("/api/admin/");
+  const needsVendorApi = path.startsWith("/api/vendor/");
   const needsPostsWorkflowApi = path === "/api/admin/posts" || path.startsWith("/api/admin/posts/");
 
-  if (!needsAuth && !needsAdminApi) {
+  if (!needsAuth && !needsAdminApi && !needsVendorApi) {
     return applySecurityHeaders(NextResponse.next(), request);
   }
 
@@ -129,6 +132,13 @@ export async function middleware(request: NextRequest) {
     jwtSession && needsDbRoleCheck
       ? await resolvePrivilegedSession(request, jwtSession)
       : jwtSession;
+
+  if (needsVendorApi) {
+    if (!jwtSession) {
+      return applySecurityHeaders(jsonUnauthorized(), request);
+    }
+    return applySecurityHeaders(NextResponse.next(), request);
+  }
 
   if (needsAdminApi) {
     if (!session) {
@@ -166,9 +176,11 @@ export const config = {
     "/account",
     "/account/:path*",
     "/admin/:path*",
+    "/vendor/:path*",
     "/dashboard",
     "/dashboard/:path*",
     "/api/admin/:path*",
+    "/api/vendor/:path*",
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)",
   ],
 };

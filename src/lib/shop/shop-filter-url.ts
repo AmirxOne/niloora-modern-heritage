@@ -127,6 +127,7 @@ export function parseShopFiltersFromParams(
     conditions: parseCsv(params.get("condition"), CONDITION_VALUES),
     priceRange: [min, max],
     query: params.get("q")?.trim() ?? "",
+    vendorOnly: params.get("vendorOnly") === "1",
   };
 }
 
@@ -173,6 +174,8 @@ export function buildShopSearchParams(
   setOrDelete("collectionId", serializeCsv(filters.collectionIds));
   setOrDelete("condition", serializeCsv(filters.conditions));
   setOrDelete("q", filters.query.trim() || null);
+  if (filters.vendorOnly) setOrDelete("vendorOnly", "1");
+  else params.delete("vendorOnly");
 
   const defaults = createDefaultShopFilters(maxPrice);
   if (filters.priceRange[0] > defaults.priceRange[0]) {

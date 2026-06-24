@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
+import { syncProductSearchIndexSafe, removeProductFromSearchIndex } from "@/lib/search/sync-product-search";
 import { resolveProductPricing, type AdminProductBulkPayload, type AdminProductPayload } from "@/lib/server/products/admin-product";
 import {
   adminProductInclude,
@@ -125,7 +126,9 @@ export async function createAdminProduct(data: AdminProductPayload) {
     });
   });
 
-  return toAdminProductDto(row);
+  const dto = toAdminProductDto(row);
+  await syncProductSearchIndexSafe(dto.id);
+  return dto;
 }
 
 export async function updateAdminProduct(id: string, data: AdminProductPayload) {
@@ -171,11 +174,14 @@ export async function updateAdminProduct(id: string, data: AdminProductPayload) 
     });
   });
 
-  return toAdminProductDto(row);
+  const dto = toAdminProductDto(row);
+  await syncProductSearchIndexSafe(id);
+  return dto;
 }
 
 export async function deleteAdminProduct(id: string) {
   await prisma.product.delete({ where: { id } });
+  await removeProductFromSearchIndex(id);
 }
 
 export async function bulkUpdateAdminProducts(data: AdminProductBulkPayload) {

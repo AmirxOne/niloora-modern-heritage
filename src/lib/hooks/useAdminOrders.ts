@@ -16,16 +16,23 @@ export function useAdminOrders() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState<AdminOrderFilterStatus>("all");
+  const [vendorIdFilter, setVendorIdFilter] = useState<string>("");
 
   const isAdmin = auth.user?.role === "admin";
   const allowed = useAdminAccess(isAdmin);
 
   const loadOrders = useCallback(
-    async (filter: AdminOrderFilterStatus = statusFilter) => {
+    async (
+      filter: AdminOrderFilterStatus = statusFilter,
+      vendorId: string = vendorIdFilter
+    ) => {
       if (!isAdmin) return;
       setIsLoading(true);
       try {
-        const query = filter === "all" ? "" : `?status=${encodeURIComponent(filter)}`;
+        const params = new URLSearchParams();
+        if (filter !== "all") params.set("status", filter);
+        if (vendorId.trim()) params.set("vendorId", vendorId.trim());
+        const query = params.toString() ? `?${params.toString()}` : "";
         const response = await apiFetch(`/api/admin/orders${query}`);
         if (isAuthDenied(response)) {
           toast.error(getAuthDeniedMessage(response.status, "admin"));
@@ -42,7 +49,7 @@ export function useAdminOrders() {
         setIsLoading(false);
       }
     },
-    [isAdmin, statusFilter]
+    [isAdmin, statusFilter, vendorIdFilter]
   );
 
   const updateOrder = useCallback(
@@ -97,7 +104,7 @@ export function useAdminOrders() {
           toast.error(data?.message ?? "ورود Excel سفارش‌ها انجام نشد.");
           return null;
         }
-        await loadOrders(statusFilter);
+        await loadOrders(statusFilter, vendorIdFilter);
         toast.success(
           `Excel سفارش‌ها پردازش شد: بروزرسانی ${data.updated ?? 0} · خطا ${data.failed ?? 0}`
         );
@@ -106,7 +113,7 @@ export function useAdminOrders() {
         setIsSaving(false);
       }
     },
-    [isAdmin, loadOrders, statusFilter]
+    [isAdmin, loadOrders, statusFilter, vendorIdFilter]
   );
 
   return {
@@ -117,6 +124,8 @@ export function useAdminOrders() {
     isSaving,
     statusFilter,
     setStatusFilter,
+    vendorIdFilter,
+    setVendorIdFilter,
     loadOrders,
     updateOrder,
     exportExcel,

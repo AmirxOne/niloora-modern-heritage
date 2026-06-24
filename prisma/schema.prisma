@@ -59,6 +59,8 @@ model User {
   purchasedGiftCards     GiftCard[]         @relation("GiftCardPurchaser")
   campaignUsages         DiscountCampaignUsage[]
   preferences   UserPreference?
+  vendorMemberships      VendorMember[]
+  createdVendorCommissionRules VendorCommissionRule[]
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 }
@@ -105,6 +107,152 @@ model Collection {
   products    Product[]
 }
 
+enum ProductPublicationStatus {
+  draft
+  pending_review
+  approved
+  published
+  rejected
+  archived
+}
+
+enum VendorStatus {
+  draft
+  pending_review
+  active
+  suspended
+  rejected
+  archived
+}
+
+enum VendorMemberRole {
+  owner
+  staff
+}
+
+enum CommissionType {
+  percentage
+  fixed
+}
+
+enum VendorPayoutLedgerStatus {
+  pending
+  eligible
+  paid
+  reversed
+}
+
+model Vendor {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  displayName     String
+  displayNameFa   String?
+  description     String?
+  contactPhone    String?
+  contactEmail    String?
+  status          VendorStatus @default(draft)
+  rejectionReason String?
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  settings        VendorSettings?
+  members         VendorMember[]
+  products        Product[]
+  orderItems      OrderItem[]
+  moderationEvents ProductModerationEvent[]
+  commissionRules VendorCommissionRule[]
+  payoutLedgers   VendorPayoutLedger[]
+
+  @@index([status])
+}
+
+model VendorSettings {
+  vendorId              String @id
+  maxActiveProducts     Int    @default(3)
+  maxPendingSubmissions Int    @default(5)
+  quotaMode             String @default("fixed")
+  updatedAt             DateTime @updatedAt
+  vendor                Vendor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+}
+
+model VendorMember {
+  id        String           @id @default(cuid())
+  vendorId  String
+  userId    String
+  role      VendorMemberRole @default(owner)
+  active    Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  vendor    Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorId, userId])
+  @@unique([userId])
+  @@index([vendorId])
+}
+
+model VendorCommissionRule {
+  id             String         @id @default(cuid())
+  vendorId       String?
+  commissionType CommissionType
+  value          Int
+  effectiveFrom  DateTime
+  effectiveTo    DateTime?
+  label          String?
+  createdById    String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  vendor         Vendor?        @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  createdBy      User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  payoutLedgers  VendorPayoutLedger[]
+
+  @@index([vendorId, effectiveFrom])
+}
+
+model VendorPayoutLedger {
+  id                String                   @id @default(cuid())
+  orderId           String
+  orderItemId       String                   @unique
+  vendorId          String?
+  grossAmount       Int
+  commissionAmount  Int
+  netAmount         Int
+  commissionRuleId  String?
+  commissionType    CommissionType?
+  commissionRateBps Int?
+  status            VendorPayoutLedgerStatus @default(pending)
+  createdAt         DateTime                 @default(now())
+  paidAt            DateTime?
+  reversedAt        DateTime?
+  note              String?
+  order             Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem         OrderItem                @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  vendor            Vendor?                  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  commissionRule    VendorCommissionRule?    @relation(fields: [commissionRuleId], references: [id], onDelete: SetNull)
+
+  @@index([vendorId, status])
+  @@index([orderId])
+}
+
+model ProductModerationEvent {
+  id          String                    @id @default(cuid())
+  productId   String
+  vendorId    String?
+  actorUserId String?
+  actorRole   String
+  fromStatus  ProductPublicationStatus?
+  toStatus    ProductPublicationStatus
+  action      String
+  note        String?
+  createdAt   DateTime                  @default(now())
+  product     Product                   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  vendor      Vendor?                   @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+  @@index([productId, createdAt])
+  @@index([toStatus, createdAt])
+  @@index([vendorId, createdAt])
+}
+
 model Product {
   id                String          @id
   name              String
@@ -127,7 +275,10 @@ model Product {
   bestseller        Boolean         @default(false)
   initialSalesCount Int?
   collectionId      String?
+  vendorId          String?
+  publicationStatus ProductPublicationStatus @default(published)
   collection        Collection?     @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  vendor            Vendor?         @relation(fields: [vendorId], references: [id], onDelete: Restrict)
   listing           ProductListing?
   preOwnedInfo      PreOwnedInfo?
   images            ProductImage[]
@@ -139,6 +290,7 @@ model Product {
   backInStockAlerts BackInStockAlert[]
   homeSliderItems   HomeSliderItem[]
   ringCustomizationConfig ProductRingCustomizationConfig?
+  moderationEvents      ProductModerationEvent[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
@@ -146,6 +298,8 @@ model Product {
   @@index([condition])
   @@index([bestseller])
   @@index([featured])
+  @@index([vendorId])
+  @@index([publicationStatus])
 }
 
 model ProductUgcMedia {
@@ -336,6 +490,8 @@ model Order {
   shippingMethod     String?
   shippingCost       Int         @default(0)
   trackingCode       String?
+  inventoryCommittedAt DateTime?
+  finalizedAt        DateTime?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -353,9 +509,11 @@ model Order {
   campaignDiscountAmount Int?
   campaign               DiscountCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   campaignUsages         DiscountCampaignUsage[]
+  vendorPayoutLedgers    VendorPayoutLedger[]
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([status, inventoryCommittedAt])
   @@index([campaignId])
 }
 
@@ -591,6 +749,7 @@ model OrderItem {
   id              String   @id @default(cuid())
   orderId         String
   productId       String?
+  vendorId        String?
   name            String
   price           Int
   listPrice       Int?
@@ -601,10 +760,13 @@ model OrderItem {
   ringPurchaseCustomization Json?
   order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  vendor          Vendor?  @relation(fields: [vendorId], references: [id], onDelete: SetNull)
   returnItems     OrderReturnItem[]
+  vendorPayoutLedger VendorPayoutLedger?
 
   @@index([orderId])
   @@index([productId])
+  @@index([vendorId])
 }
 
 model ProductComment {
@@ -666,13 +828,17 @@ model ProductQuestionAnswer {
 }
 
 model InventoryLog {
-  id        String   @id @default(cuid())
-  productId String
-  change    Int
-  reason    String
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  productId     String
+  change        Int
+  reason        String
+  orderId       String?
+  orderReturnId String?
+  createdAt     DateTime @default(now())
 
+  @@unique([orderReturnId, productId])
   @@index([productId, createdAt])
+  @@index([orderId])
 }
 
 model PromoCode {

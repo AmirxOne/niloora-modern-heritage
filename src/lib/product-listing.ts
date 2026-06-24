@@ -12,6 +12,17 @@ export function getProductListingTags(listing: ProductListing): string[] {
   return tags;
 }
 
+const HIDDEN_LISTING_DETAIL_LABELS = ["تاریخ ثبت", "تگ‌ها"] as const;
+
+export function getVisibleListingDetails(details: string[]): string[] {
+  return details.filter((line) => {
+    const trimmed = line.trim();
+    return !HIDDEN_LISTING_DETAIL_LABELS.some((label) =>
+      new RegExp(`^${label}\\s*:`).test(trimmed)
+    );
+  });
+}
+
 /** پیش‌نمایش یک‌خطی برای اسلایدر و کارت */
 export function getProductListingPreview(product: Product, lineCount = 2): string {
   const lines = [product.listing.headline, ...product.listing.details];

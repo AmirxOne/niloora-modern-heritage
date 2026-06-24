@@ -170,6 +170,10 @@ export function ProductCard({
           </div>
         ) : null}
 
+        {product.vendor ? (
+          <span className="shop-product-card-vendor-badge">{fa.shop.vendorBadge(product.vendor.displayName)}</span>
+        ) : null}
+
         {isSold ? <div className="shop-product-card-sold-veil" aria-hidden /> : null}
       </div>
 

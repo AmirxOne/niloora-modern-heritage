@@ -219,6 +219,18 @@ export function ShopFiltersPanel({
           onChange={(availabilities) => patch("availabilities", availabilities)}
         />
 
+        <div className="shop-filter-field">
+          <label className="shop-filter-checkbox flex cursor-pointer items-center gap-2 text-sm text-silver">
+            <input
+              type="checkbox"
+              checked={filters.vendorOnly}
+              onChange={(e) => patch("vendorOnly", e.target.checked)}
+              className="h-4 w-4 rounded border-subtle"
+            />
+            {fa.shop.vendorOnlyFilter}
+          </label>
+        </div>
+
         <div className="shop-filter-field shop-filter-field--price">
           <h3 className="shop-filter-section-title">{fa.shop.priceRange}</h3>
           {priceRangeReady && maxPrice > 0 ? (

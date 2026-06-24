@@ -64,6 +64,7 @@ export function defaultShopFilters(overrides?: Partial<ShopFilters>): ShopFilter
     collectionIds: [],
     conditions: [],
     query: "",
+    vendorOnly: false,
     ...overrides,
   };
 }

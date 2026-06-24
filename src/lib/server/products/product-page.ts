@@ -1,8 +1,10 @@
 import type { Product } from "@/lib/types";
 import { prisma } from "@/lib/server/prisma";
+import { getVendorTrustScore } from "@/lib/server/marketplace/vendor-trust-service";
 import {
   getCatalogProducts,
   getProductByIdFromDb,
+  getSameVendorProductsFromDb,
   getSmartRecommendations,
   getRelatedProducts,
   type SmartRecommendationGroups,
@@ -11,6 +13,7 @@ import { listActiveBundleOffers } from "@/lib/server/bundle/bundle-offer-service
 export type ProductPagePayload = {
   product: Product;
   related: Product[];
+  vendorProducts: Product[];
   smartRecommendations: SmartRecommendationGroups;
   activeBundles: import("@/lib/types").BundleOfferDefinition[];
   approvedComments: Array<{
@@ -33,8 +36,19 @@ export type ProductPagePayload = {
 };
 
 export async function getProductPagePayload(id: string): Promise<ProductPagePayload | null> {
-  const product = await getProductByIdFromDb(id);
-  if (!product) return null;
+  const baseProduct = await getProductByIdFromDb(id);
+  if (!baseProduct) return null;
+
+  const product =
+    baseProduct.vendor?.id != null
+      ? {
+          ...baseProduct,
+          vendor: {
+            ...baseProduct.vendor,
+            trustScore: await getVendorTrustScore(baseProduct.vendor.id),
+          },
+        }
+      : baseProduct;
 
   const [catalog, approvedComments, approvedQuestions] = await Promise.all([
     getCatalogProducts(),
@@ -62,11 +76,16 @@ export async function getProductPagePayload(id: string): Promise<ProductPagePayl
   ]);
   const related = getRelatedProducts(catalog, product.id, 4);
   const smartRecommendations = getSmartRecommendations(catalog, product.id, 5);
+  const vendorProducts =
+    product.vendor?.id != null
+      ? await getSameVendorProductsFromDb(product.vendor.id, product.id, 8)
+      : [];
   const allBundles = await listActiveBundleOffers();
   const activeBundles = allBundles.filter((bundle) => bundle.requiredProductIds.includes(product.id));
   return {
     product,
     related,
+    vendorProducts,
     smartRecommendations,
     activeBundles,
     approvedComments,

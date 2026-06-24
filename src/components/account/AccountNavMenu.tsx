@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   LayoutDashboard,
-  ScanEye,
   ShoppingBag,
   Heart,
   Compare,
@@ -34,7 +33,6 @@ const iconById: Record<string, React.ReactNode> = {
   referrals: <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   orders: <ShoppingBag size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   quotes: <Receipt size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-  ugc: <ScanEye size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   wishlist: <Heart size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   compare: <Compare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   "recently-viewed": <History size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,

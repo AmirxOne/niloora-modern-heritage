@@ -15,6 +15,12 @@ const SECTIONS: { id: ProductSectionId; label: string }[] = [
   { id: "product-section-questions", label: fa.product.sectionQuestions },
 ];
 
+export function scrollToProductSection(id: ProductSectionId) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 interface ProductSectionNavProps {
   className?: string;
 }
@@ -44,9 +50,7 @@ export function ProductSectionNav({ className }: ProductSectionNavProps) {
   }, []);
 
   const scrollTo = useCallback((id: ProductSectionId) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToProductSection(id);
     setActiveId(id);
   }, []);
 

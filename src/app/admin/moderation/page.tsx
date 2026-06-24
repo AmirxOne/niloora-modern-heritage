@@ -2,7 +2,6 @@ import { AdminGuard } from "@/components/admin/AdminGuard";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { CommentModeration } from "@/components/moderation/CommentModeration";
 import { ProductQuestionsModeration } from "@/components/moderation/ProductQuestionsModeration";
-import { UgcModeration } from "@/components/moderation/UgcModeration";
 import { fa } from "@/lib/i18n/fa";
 
 export default function AdminModerationPage() {
@@ -22,10 +21,6 @@ export default function AdminModerationPage() {
 
             <section>
               <ProductQuestionsModeration />
-            </section>
-
-            <section>
-              <UgcModeration />
             </section>
           </div>
       </AdminGuard>

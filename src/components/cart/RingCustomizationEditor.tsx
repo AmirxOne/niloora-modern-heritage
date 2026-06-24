@@ -40,14 +40,14 @@ export function RingCustomizationEditor({ item, onClear, className }: RingCustom
         ) : null}
       </div>
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        <Link href={href}>
-          <Button size="sm" variant="outline">
+      <div className="mt-2.5 flex flex-col gap-2">
+        <Link href={href} className="block w-full">
+          <Button size="sm" variant="outline" className="w-full">
             {hasCustomization ? "ویرایش شخصی‌سازی خرید" : "شخصی‌سازی خرید"}
           </Button>
         </Link>
         {hasCustomization ? (
-          <Button size="sm" variant="ghost" onClick={onClear}>
+          <Button size="sm" variant="ghost" className="w-full" onClick={onClear}>
             <Trash2 size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
             حذف شخصی‌سازی
           </Button>

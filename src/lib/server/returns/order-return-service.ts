@@ -13,6 +13,7 @@ import {
   toAdminOrderReturnDetailDto,
 } from "@/lib/server/returns/admin-order-return-dto";
 import { syncSupportRequestFromReturnStatus } from "@/lib/server/returns/return-status-sync";
+import { restockInventoryForApprovedReturn } from "@/lib/server/inventory/restock-return-inventory";
 
 import type { OrderReturnItemInput } from "@/lib/types";
 
@@ -219,6 +220,9 @@ export async function updateOrderReturn(returnId: string, input: UpdateOrderRetu
       });
       if (existing.supportRequestId) {
         await syncSupportRequestFromReturnStatus(tx, existing.supportRequestId, nextStatus);
+      }
+      if (nextStatus === "approved") {
+        await restockInventoryForApprovedReturn(tx, returnId);
       }
     }
 

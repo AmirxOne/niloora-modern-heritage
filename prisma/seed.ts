@@ -176,6 +176,29 @@ async function seedHomeBannerCountdown() {
   });
 }
 
+const PLATFORM_DEFAULT_COMMISSION_RULE_ID = "platform-default-commission";
+
+async function seedVendorFinance() {
+  const effectiveFrom = new Date("2026-01-01T00:00:00.000Z");
+  await prisma.vendorCommissionRule.upsert({
+    where: { id: PLATFORM_DEFAULT_COMMISSION_RULE_ID },
+    create: {
+      id: PLATFORM_DEFAULT_COMMISSION_RULE_ID,
+      vendorId: null,
+      commissionType: "percentage",
+      value: 1000,
+      effectiveFrom,
+      label: "Platform default 10%",
+    },
+    update: {
+      commissionType: "percentage",
+      value: 1000,
+      effectiveFrom,
+      label: "Platform default 10%",
+    },
+  });
+}
+
 async function main() {
   const adminPhone = process.env.ADMIN_PHONE ?? "";
   if (adminPhone) {
@@ -197,6 +220,7 @@ async function main() {
   await seedCollections();
   await seedProducts();
   await seedHomeBannerCountdown();
+  await seedVendorFinance();
   await prisma.homeTestimonial.deleteMany();
   await prisma.homeInstagramPost.deleteMany();
   if (testimonials.length > 0) {

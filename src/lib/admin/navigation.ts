@@ -13,6 +13,12 @@ export type AdminNavItemDef = {
 };
 
 export const ADMIN_NAV_ITEMS: AdminNavItemDef[] = [
+  {
+    id: "dashboard",
+    href: "/admin",
+    label: fa.admin.dashboard.navLabel,
+    access: "admin",
+  },
   { id: "users", href: "/admin/users", label: fa.admin.users.navLabel, access: "admin" },
   { id: "finance", href: "/admin/finance", label: fa.admin.finance.navLabel, access: "admin" },
   {
@@ -29,6 +35,18 @@ export const ADMIN_NAV_ITEMS: AdminNavItemDef[] = [
     label: fa.admin.products.navLabel,
     access: "admin",
     legacyHash: "admin-products",
+  },
+  {
+    id: "products-pending",
+    href: "/admin/products/pending",
+    label: fa.admin.productsPending.navLabel,
+    access: "admin",
+  },
+  {
+    id: "vendors",
+    href: "/admin/vendors",
+    label: fa.admin.vendors.navLabel,
+    access: "admin",
   },
   {
     id: "trade-in",
@@ -142,6 +160,9 @@ export function resolveLegacyAdminRedirect(
 }
 
 export function isAdminNavActive(itemHref: string, pathname: string): boolean {
+  if (itemHref === "/admin") {
+    return pathname === "/admin";
+  }
   if (pathname === itemHref) return true;
   return pathname.startsWith(`${itemHref}/`);
 }

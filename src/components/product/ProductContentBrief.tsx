@@ -1,4 +1,4 @@
-import { getProductListingTags } from "@/lib/product-listing";
+import { getProductListingTags, getVisibleListingDetails } from "@/lib/product-listing";
 import type { ProductListing } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ interface ProductContentBriefProps {
 
 export function ProductContentBrief({ listing, className, compact }: ProductContentBriefProps) {
   const tags = getProductListingTags(listing);
+  const details = getVisibleListingDetails(listing.details);
 
   return (
     <div className={cn("product-content-brief", compact && "product-content-brief--compact", className)}>
@@ -23,7 +24,7 @@ export function ProductContentBrief({ listing, className, compact }: ProductCont
       </div>
       <p className="product-content-brief-headline">{listing.headline}</p>
       <div className="product-content-brief-details">
-        {listing.details.map((line, index) => (
+        {details.map((line, index) => (
           <p key={index}>{line}</p>
         ))}
       </div>

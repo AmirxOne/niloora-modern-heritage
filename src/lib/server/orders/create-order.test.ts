@@ -2,16 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CheckoutShippingInput } from "@/lib/checkout/shipping";
 import type { CartItem } from "@/lib/types";
 
+const { orderCreate, recordCampaignUsageMock, productFindMany } = vi.hoisted(() => ({
+  orderCreate: vi.fn(),
+  recordCampaignUsageMock: vi.fn(),
+  productFindMany: vi.fn(),
+}));
+
 vi.mock("@/lib/server/order-pricing", () => ({
   repriceOrderItems: vi.fn(),
 }));
 
 vi.mock("@/lib/server/campaigns/discount-campaign-service", () => ({
-  recordCampaignUsage: vi.fn(),
-}));
-
-const { orderCreate } = vi.hoisted(() => ({
-  orderCreate: vi.fn(),
+  recordCampaignUsage: recordCampaignUsageMock,
 }));
 
 vi.mock("@/lib/server/prisma", () => ({
@@ -19,8 +21,17 @@ vi.mock("@/lib/server/prisma", () => ({
     order: {
       create: orderCreate,
     },
-    $transaction: vi.fn(async (callback: (tx: { order: { create: typeof orderCreate } }) => unknown) =>
-      callback({ order: { create: orderCreate } })
+    $transaction: vi.fn(
+      async (
+        callback: (tx: {
+          order: { create: typeof orderCreate };
+          product: { findMany: typeof productFindMany };
+        }) => unknown
+      ) =>
+        callback({
+          order: { create: orderCreate },
+          product: { findMany: productFindMany },
+        })
     ),
   },
 }));
@@ -60,6 +71,9 @@ describe("createOrderId", () => {
 
 describe("createOrderFromCart", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    productFindMany.mockResolvedValue([{ id: "prod-1", vendorId: null }]);
+
     vi.mocked(repriceOrderItems).mockResolvedValue({
       items: [cartItem],
       subtotalList: 1_100_000,
@@ -122,6 +136,113 @@ describe("createOrderFromCart", () => {
 
     expect(result.orderTotal).toBe(expectedTotal);
     expect(result.shippingCost).toBe(shippingCost);
+  });
+
+  it("copies product vendorId onto order items", async () => {
+    productFindMany.mockImplementationOnce(async () => [
+      { id: "prod-1", vendorId: "vendor-99" },
+    ]);
+
+    await createOrderFromCart({
+      userId: "user-1",
+      items: [cartItem],
+      promoCode: null,
+      status: "pending_payment",
+      shipping,
+    });
+
+    const createArg = vi.mocked(orderCreate).mock.calls[0][0];
+    expect(createArg.data.items?.create?.[0]?.vendorId).toBe("vendor-99");
+  });
+
+  it("persists mixed vendor and platform lines in one order with correct vendorIds", async () => {
+    const platformLine: CartItem = {
+      ...cartItem,
+      id: "line-platform",
+      productId: "prod-platform",
+      name: "اثر پلتفرم",
+    };
+    const vendorLine: CartItem = {
+      ...cartItem,
+      id: "line-vendor",
+      productId: "prod-vendor",
+      name: "اثر فروشنده",
+    };
+
+    productFindMany.mockResolvedValueOnce([
+      { id: "prod-platform", vendorId: null },
+      { id: "prod-vendor", vendorId: "vendor-a" },
+    ]);
+
+    vi.mocked(repriceOrderItems).mockResolvedValueOnce({
+      items: [platformLine, vendorLine],
+      subtotalList: 2_200_000,
+      subtotalSale: 2_000_000,
+      totalFurooh: 200_000,
+      payable: 2_000_000,
+      promoCode: null,
+      loyaltyTier: "bronze",
+      loyaltyDiscountAmount: 0,
+      loyaltyPointsEarned: 20,
+      bundleDiscount: 0,
+      appliedBundles: [],
+      campaignId: null,
+      campaignSlug: null,
+      campaignTitle: null,
+      campaignDiscountAmount: 0,
+    });
+
+    await createOrderFromCart({
+      userId: "user-1",
+      items: [platformLine, vendorLine],
+      promoCode: null,
+      status: "pending_payment",
+      shipping,
+    });
+
+    const createdItems = vi.mocked(orderCreate).mock.calls[0][0].data.items?.create;
+    expect(createdItems).toHaveLength(2);
+    expect(createdItems?.find((item) => item.productId === "prod-platform")?.vendorId).toBeNull();
+    expect(createdItems?.find((item) => item.productId === "prod-vendor")?.vendorId).toBe(
+      "vendor-a"
+    );
+  });
+
+  it("records campaign usage inside the order transaction", async () => {
+    vi.mocked(repriceOrderItems).mockResolvedValueOnce({
+      items: [cartItem],
+      subtotalList: 1_100_000,
+      subtotalSale: 1_000_000,
+      totalFurooh: 100_000,
+      payable: 1_000_000,
+      promoCode: null,
+      loyaltyTier: "bronze",
+      loyaltyDiscountAmount: 0,
+      loyaltyPointsEarned: 10,
+      bundleDiscount: 0,
+      appliedBundles: [],
+      campaignId: "camp-1",
+      campaignSlug: "sale",
+      campaignTitle: "Sale",
+      campaignDiscountAmount: 50_000,
+    });
+
+    await createOrderFromCart({
+      userId: "user-1",
+      items: [cartItem],
+      promoCode: null,
+      status: "pending_payment",
+      shipping,
+    });
+
+    expect(recordCampaignUsageMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        campaignId: "camp-1",
+        userId: "user-1",
+        discountAmount: 50_000,
+        tx: expect.anything(),
+      })
+    );
   });
 
   it("rejects empty payable cart", async () => {

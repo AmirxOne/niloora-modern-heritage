@@ -39,4 +39,10 @@ export const serverEnv = {
   abandonedCartEnabled: process.env.ABANDONED_CART_ENABLED !== "false",
   abandonedCartReminderDelayMinutes: readNumber("ABANDONED_CART_REMINDER_DELAY_MINUTES", 120),
   abandonedCartCronSecret: process.env.ABANDONED_CART_CRON_SECRET?.trim() ?? "",
+  inventoryRetryCronSecret:
+    process.env.INVENTORY_RETRY_CRON_SECRET?.trim() ??
+    process.env.CRON_SECRET?.trim() ??
+    process.env.ABANDONED_CART_CRON_SECRET?.trim() ??
+    "",
+  marketplaceCatalogFilterEnabled: process.env.ENABLE_MARKETPLACE_FILTER === "true",
 };

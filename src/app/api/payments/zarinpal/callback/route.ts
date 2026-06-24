@@ -11,6 +11,7 @@ import { prisma } from "@/lib/server/prisma";
 import { releaseGiftCardReservation } from "@/lib/server/gift-card/gift-card-service";
 import { writeFunnelEvent } from "@/lib/server/analytics/funnel-log";
 import { finalizePaidOrder } from "@/lib/server/orders/finalize-paid-order";
+import { PAYMENT_STATUS } from "@/lib/server/commerce/statuses";
 
 type CallbackPayment = {
   id: string;
@@ -200,10 +201,10 @@ export async function GET(request: Request) {
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.payment.update({
-        where: { id: payment.id },
+      const paymentClaim = await tx.payment.updateMany({
+        where: { id: payment.id, status: PAYMENT_STATUS.pending },
         data: {
-          status: "paid",
+          status: PAYMENT_STATUS.paid,
           refId: verified.refId ?? null,
           cardPan: verified.cardPan ?? null,
           fee: verified.fee ?? null,
@@ -212,6 +213,17 @@ export async function GET(request: Request) {
           errorMessage: null,
         },
       });
+
+      if (paymentClaim.count === 0) {
+        const freshPayment = await tx.payment.findUnique({
+          where: { id: payment.id },
+          select: { status: true },
+        });
+        if (freshPayment?.status !== PAYMENT_STATUS.paid) {
+          throw new Error("payment_transition_failed");
+        }
+      }
+
       await finalizePaidOrder(tx, payment.order);
     });
 

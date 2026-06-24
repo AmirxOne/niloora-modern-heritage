@@ -24,6 +24,7 @@ import type { Product } from "@/lib/types";
 import { SliderHorizontal } from "@/components/icons";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 import { useApp } from "@/lib/context/AppContext";
 import type { ProductOccasion, RingStyle, StoneType } from "@/lib/types";
@@ -115,7 +116,8 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
   const { campaign: shopCampaign } = useCampaignBySlug(campaignSlug);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sort, setSort] = useState<ShopSortKey>("bestselling");
-  const { products, maxPrice, isLoading: isCatalogLoading } = useCatalogProducts();
+  const { products, maxPrice, isLoading: isCatalogLoading, hasMore, isLoadingMore, loadMore } =
+    useCatalogProducts();
   const { filters, setFilters, page, pageSize, setPage, setPageSize, resetFilters } = useShopFiltersUrl(maxPrice);
   const search = useProductSearch(filters.query);
   const { auth } = useApp();
@@ -447,6 +449,18 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                       scrollTargetId="shop-products"
                       className="shop-product-pagination"
                     />
+                    {hasMore && !isSearchMode ? (
+                      <div className="mt-6 flex justify-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          isLoading={isLoadingMore}
+                          onClick={() => void loadMore()}
+                        >
+                          {fa.shop.loadMore}
+                        </Button>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </section>

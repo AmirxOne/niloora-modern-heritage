@@ -1,4 +1,5 @@
 import type { RingPurchaseCustomization } from "@/lib/types/ring-customization";
+import type { ProductPublicationStatus, ProductVendorSummary } from "@/lib/types/marketplace";
 
 export type MetalType = "sterling" | "oxidized" | "rhodium" | "matte-silver";
 
@@ -174,6 +175,12 @@ export interface Product {
   initialSalesCount?: number;
   condition: ProductCondition;
   preOwned?: PreOwnedInfo;
+  /** Phase 1 — nullable FK; omitted when platform-owned (vendorId null in DB). */
+  vendorId?: string;
+  /** Phase 1 — defaults to published; not used for catalog filtering until Phase 2. */
+  publicationStatus?: ProductPublicationStatus;
+  /** Populated when product is vendor-owned (vendorId set). */
+  vendor?: ProductVendorSummary;
   /** ISO 8601 — پایان تخفیف اختصاصی محصول (اولویت بر تایمر جشنواره) */
   discountEndsAt?: string;
 
@@ -231,7 +238,6 @@ export interface Product {
   freeResize?: boolean;
   /** تاریخ نخستین عرضه (ISO) — برای نمایش «در گالری از…» */
   firstAvailableAt?: string;
-  ugcMedia?: ProductUgcMedia[];
 }
 
 export interface PromoCodeDefinition {
@@ -294,6 +300,9 @@ export interface CartItem {
   availability?: ProductAvailability;
   customizerState?: CustomizerState;
   ringPurchaseCustomization?: RingPurchaseCustomization;
+  /** Marketplace — seller attribution on order line items */
+  vendorId?: string;
+  vendorDisplayName?: string;
 }
 
 export interface OrderPaymentSummary {
@@ -580,6 +589,8 @@ export interface ShopFilters {
   collectionIds: ShopCollectionId[];
   conditions: ProductCondition[];
   query: string;
+  /** Client-side: show only vendor-owned products (vendorId set). */
+  vendorOnly: boolean;
 }
 
 export interface SavedDesign {
@@ -784,8 +795,6 @@ export type SupportRequestStatus = "pending" | "in_progress" | "resolved" | "rej
 export type BackInStockAlertChannel = "sms" | "email";
 export type BackInStockAlertStatus = "pending" | "sent" | "failed" | "cancelled";
 export type AbandonedCartRecoveryStatus = "pending" | "sent" | "recovered" | "cancelled" | "failed";
-export type ProductUgcMediaType = "image" | "video";
-export type ProductUgcMediaStatus = "pending" | "approved" | "rejected";
 
 export interface BackInStockAlert {
   id: string;
@@ -829,29 +838,6 @@ export interface AbandonedCartRecovery {
   lastError?: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ProductUgcMedia {
-  id: string;
-  productId: string;
-  userId: string;
-  orderId?: string;
-  mediaUrl: string;
-  mediaType: ProductUgcMediaType;
-  caption?: string;
-  status: ProductUgcMediaStatus;
-  approvedAt?: string;
-  rejectedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProductUgcMediaAdmin extends ProductUgcMedia {
-  productName?: string;
-  productNamePersian?: string;
-  productImage?: string;
-  userName?: string;
-  userPhone?: string;
 }
 
 export interface SupportRequest {

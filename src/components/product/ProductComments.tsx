@@ -168,31 +168,112 @@ export function ProductComments({ productId }: ProductCommentsProps) {
       <div className="product-reviews-layout">
         <aside className="product-reviews-aside">
           <ProductReviewSummary productId={productId} />
+        </aside>
 
-          <div className="product-comment-form-wrap">
-            <h3 className="product-comment-form-title">{fa.product.commentFormTitle}</h3>
-            <p className="product-comment-form-hint">{fa.product.commentFormHint}</p>
-
-            {submitted ? (
-              <div className="product-comment-success" role="status">
-                <p>{fa.product.commentSubmitted}</p>
-                <button
-                  type="button"
-                  className="product-comment-success-action"
-                  onClick={() => setSubmitted(false)}
-                >
-                  {fa.product.commentWriteAnother}
-                </button>
+        <div className="product-reviews-main">
+          {isApprovedLoading ? (
+            <div className="space-y-3" aria-busy="true" aria-live="polite">
+              <div className="product-reviews-toolbar">
+                <div className="sk h-4 w-28" />
+                <div className="sk h-8 w-48 rounded-full" />
               </div>
-            ) : (
-              <>
-                <ul className="product-comment-guidelines">
-                  <li>{fa.product.commentGuideline1}</li>
-                  <li>{fa.product.commentGuideline2}</li>
-                  <li>{fa.product.commentGuideline3}</li>
-                </ul>
+              {Array.from({ length: 2 }).map((_, idx) => (
+                <article key={idx} className="product-comment-card">
+                  <header className="product-comment-card-header">
+                    <div className="product-comment-author">
+                      <span className="sk product-comment-avatar" style={{ color: "transparent" }}>.</span>
+                      <div>
+                        <div className="sk h-4 w-28" />
+                        <div className="sk mt-1.5 h-3 w-24" />
+                      </div>
+                    </div>
+                    <div className="sk h-4 w-24" />
+                  </header>
+                  <div className="sk mt-3 h-3 w-full" />
+                  <div className="sk mt-1.5 h-3 w-11/12" />
+                </article>
+              ))}
+            </div>
+          ) : approved.length > 0 ? (
+            <>
+              <div className="product-reviews-toolbar">
+                <p className="product-reviews-toolbar-count">
+                  {fa.product.commentsCount(approved.length)}
+                </p>
+                <div className="product-reviews-sort">
+                  <span className="product-reviews-sort-label">{fa.product.commentsSortLabel}</span>
+                  <div className="product-reviews-sort-options" role="group">
+                    {sortOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={cn(
+                          "product-reviews-sort-btn",
+                          sort === opt.value && "product-reviews-sort-btn--active"
+                        )}
+                        onClick={() => setSort(opt.value)}
+                        aria-pressed={sort === opt.value}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-                <form onSubmit={handleSubmit} className="product-comment-form">
+              <ul id="product-comments-list" className="product-comments-list">
+                {visibleComments.map((comment) => (
+                  <li key={comment.id}>
+                    <ProductCommentCard comment={comment} />
+                  </li>
+                ))}
+              </ul>
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                totalItems={totalItems}
+                from={from}
+                to={to}
+                scrollTargetId="product-comments-list"
+                className="product-comments-pagination"
+              />
+            </>
+          ) : (
+            <UnifiedEmptyState
+              visual="reviews"
+              title={fa.product.commentsEmpty}
+              description={fa.product.commentsBeFirst}
+              className="product-comments-empty"
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="product-comment-form-wrap">
+        <h3 className="product-comment-form-title">{fa.product.commentFormTitle}</h3>
+        <p className="product-comment-form-hint">{fa.product.commentFormHint}</p>
+
+        {submitted ? (
+          <div className="product-comment-success" role="status">
+            <p>{fa.product.commentSubmitted}</p>
+            <button
+              type="button"
+              className="product-comment-success-action"
+              onClick={() => setSubmitted(false)}
+            >
+              {fa.product.commentWriteAnother}
+            </button>
+          </div>
+        ) : (
+          <>
+            <ul className="product-comment-guidelines">
+              <li>{fa.product.commentGuideline1}</li>
+              <li>{fa.product.commentGuideline2}</li>
+              <li>{fa.product.commentGuideline3}</li>
+            </ul>
+
+            <form onSubmit={handleSubmit} className="product-comment-form">
                   <TextBox
                     label={fa.product.commentName}
                     placeholder={fa.product.commentNamePlaceholder}
@@ -205,29 +286,29 @@ export function ProductComments({ productId }: ProductCommentsProps) {
 
                   <div className="product-comment-rating-field">
                     <p className="product-comment-field-label">{fa.product.commentRating}</p>
-                    <StarRating value={rating} onChange={setRating} size="md" />
+                    <StarRating value={rating} onChange={setRating} size="sm" />
                   </div>
 
-                  <div className="product-comment-dimension-grid">
+                  <div className="product-comment-dimension-grid product-comment-form-full">
                     <div className="product-comment-rating-field">
                       <p className="product-comment-field-label">{fa.product.commentRatingBuildQuality}</p>
-                      <StarRating value={ratingBuildQuality} onChange={setRatingBuildQuality} size="md" />
+                      <StarRating value={ratingBuildQuality} onChange={setRatingBuildQuality} size="sm" />
                     </div>
                     <div className="product-comment-rating-field">
                       <p className="product-comment-field-label">{fa.product.commentRatingBeauty}</p>
-                      <StarRating value={ratingBeauty} onChange={setRatingBeauty} size="md" />
+                      <StarRating value={ratingBeauty} onChange={setRatingBeauty} size="sm" />
                     </div>
                     <div className="product-comment-rating-field">
                       <p className="product-comment-field-label">{fa.product.commentRatingValue}</p>
-                      <StarRating value={ratingValue} onChange={setRatingValue} size="md" />
+                      <StarRating value={ratingValue} onChange={setRatingValue} size="sm" />
                     </div>
                     <div className="product-comment-rating-field">
                       <p className="product-comment-field-label">{fa.product.commentRatingPackaging}</p>
-                      <StarRating value={ratingPackaging} onChange={setRatingPackaging} size="md" />
+                      <StarRating value={ratingPackaging} onChange={setRatingPackaging} size="sm" />
                     </div>
                   </div>
 
-                  <div>
+                  <div className="product-comment-form-full">
                     <div className="product-comment-media-type-row">
                       <button
                         type="button"
@@ -298,7 +379,7 @@ export function ProductComments({ productId }: ProductCommentsProps) {
                     ) : null}
                   </div>
 
-                  <div>
+                  <div className="product-comment-form-full">
                     <TextAreaBox
                       id="comment-body"
                       label={fa.product.commentBody}
@@ -321,93 +402,12 @@ export function ProductComments({ productId }: ProductCommentsProps) {
                     </div>
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full">
+                  <Button type="submit" className="product-comment-form-full w-full sm:w-auto">
                     {fa.product.commentSubmit}
                   </Button>
                 </form>
               </>
             )}
-          </div>
-        </aside>
-
-        <div className="product-reviews-main">
-          {isApprovedLoading ? (
-            <div className="space-y-4" aria-busy="true" aria-live="polite">
-              <div className="product-reviews-toolbar">
-                <div className="sk h-4 w-28" />
-                <div className="sk h-9 w-48 rounded-full" />
-              </div>
-              {Array.from({ length: 3 }).map((_, idx) => (
-                <article key={idx} className="product-comment-card">
-                  <header className="product-comment-card-header">
-                    <div className="product-comment-author">
-                      <span className="sk product-comment-avatar" style={{ color: "transparent" }}>.</span>
-                      <div>
-                        <div className="sk h-4 w-28" />
-                        <div className="sk mt-2 h-3 w-24" />
-                      </div>
-                    </div>
-                    <div className="sk h-4 w-24" />
-                  </header>
-                  <div className="sk mt-4 h-3 w-full" />
-                  <div className="sk mt-2 h-3 w-11/12" />
-                </article>
-              ))}
-            </div>
-          ) : approved.length > 0 ? (
-            <>
-              <div className="product-reviews-toolbar">
-                <p className="product-reviews-toolbar-count">
-                  {fa.product.commentsCount(approved.length)}
-                </p>
-                <div className="product-reviews-sort">
-                  <span className="product-reviews-sort-label">{fa.product.commentsSortLabel}</span>
-                  <div className="product-reviews-sort-options" role="group">
-                    {sortOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        className={cn(
-                          "product-reviews-sort-btn",
-                          sort === opt.value && "product-reviews-sort-btn--active"
-                        )}
-                        onClick={() => setSort(opt.value)}
-                        aria-pressed={sort === opt.value}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <ul id="product-comments-list" className="product-comments-list">
-                {visibleComments.map((comment) => (
-                  <li key={comment.id}>
-                    <ProductCommentCard comment={comment} />
-                  </li>
-                ))}
-              </ul>
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                totalItems={totalItems}
-                from={from}
-                to={to}
-                scrollTargetId="product-comments-list"
-                className="product-comments-pagination"
-              />
-            </>
-          ) : (
-            <UnifiedEmptyState
-              visual="reviews"
-              title={fa.product.commentsEmpty}
-              description={fa.product.commentsBeFirst}
-              className="product-comments-empty"
-            />
-          )}
-        </div>
       </div>
     </section>
   );

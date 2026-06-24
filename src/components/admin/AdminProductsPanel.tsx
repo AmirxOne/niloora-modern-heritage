@@ -12,6 +12,9 @@ import type { AdminProductDto } from "@/lib/server/products/admin-product-dto";
 import { useAdminProducts } from "@/lib/hooks/useAdminProducts";
 import { formatPrice } from "@/lib/utils";
 import { PRODUCT_AVAILABILITY_OPTIONS, getProductStatusConfig } from "@/lib/product-status";
+import { PublicationStatusBadge } from "@/components/vendor/PublicationStatusBadge";
+import { publicationStatusLabel } from "@/lib/vendor/labels";
+import type { ProductPublicationStatus } from "@/lib/types/marketplace";
 import { fa } from "@/lib/i18n/fa";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +26,7 @@ export function AdminProductsPanel() {
   const admin = useAdminProducts();
   const { isAdmin, loadAll } = admin;
   const [search, setSearch] = useState("");
+  const [publicationFilter, setPublicationFilter] = useState<string>("all");
   const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [formValues, setFormValues] = useState<AdminProductFormValues>(emptyAdminProductForm());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -39,15 +43,29 @@ export function AdminProductsPanel() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return admin.products;
-    return admin.products.filter(
-      (p) =>
+    return admin.products.filter((p) => {
+      if (publicationFilter !== "all" && p.publicationStatus !== publicationFilter) {
+        return false;
+      }
+      if (!q) return true;
+      return (
         p.id.toLowerCase().includes(q) ||
         p.name.toLowerCase().includes(q) ||
         p.namePersian.includes(search.trim()) ||
         (p.collectionName ?? "").includes(search.trim())
-    );
-  }, [admin.products, search]);
+      );
+    });
+  }, [admin.products, search, publicationFilter]);
+
+  const publicationFilterOptions = [
+    { value: "all", label: fa.admin.products.publicationFilterAll },
+    ...(["draft", "pending_review", "approved", "published", "rejected", "archived"] as const).map(
+      (value) => ({
+        value,
+        label: publicationStatusLabel(value as ProductPublicationStatus),
+      })
+    ),
+  ];
 
   const availabilityOptions = [
     { value: "", label: fa.admin.products.bulkNoChange },
@@ -156,6 +174,12 @@ export function AdminProductsPanel() {
             label={fa.admin.products.search}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+          />
+          <SelectBox
+            label={fa.admin.products.publicationFilterLabel}
+            value={publicationFilter}
+            options={publicationFilterOptions}
+            onValueChange={setPublicationFilter}
           />
           <Button type="button" onClick={startCreate}>
             {fa.admin.products.add}
@@ -299,6 +323,12 @@ export function AdminProductsPanel() {
                           </span>
                           {product.collectionName ? ` · ${product.collectionName}` : ""}
                         </p>
+                        <p className="admin-product-list-meta text-xs">
+                          {fa.admin.products.vendorLabel}:{" "}
+                          {product.vendorId
+                            ? product.vendorDisplayName ?? product.vendorId
+                            : fa.admin.products.platformVendor}
+                        </p>
                         <p className="admin-product-list-price">
                           {formatPrice(product.price)}
                           {product.listPrice && product.listPrice > product.price ? (
@@ -308,7 +338,10 @@ export function AdminProductsPanel() {
                           ) : null}
                         </p>
                       </div>
-                      <Badge variant="gold">{status.shortLabel}</Badge>
+                      <div className="flex flex-col items-end gap-1">
+                        <PublicationStatusBadge status={product.publicationStatus} />
+                        <Badge variant="gold">{status.shortLabel}</Badge>
+                      </div>
                     </button>
                   </div>
                 </li>
