@@ -29,6 +29,33 @@ export function getVisibleListingDetails(details: string[]): string[] {
     .map(formatListingDetailLine);
 }
 
+export type ListingDetailEntry = { key: string; value: string };
+
+export const LISTING_DETAIL_PREVIEW_COUNT = 6;
+
+export function parseListingDetailLine(line: string): ListingDetailEntry | null {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  const colonIndex = trimmed.indexOf(":");
+  if (colonIndex === -1) return { key: trimmed, value: "" };
+  const key = trimmed.slice(0, colonIndex).trim();
+  if (!key) return null;
+  return { key, value: trimmed.slice(colonIndex + 1).trim() };
+}
+
+export function getListingDetailEntries(details: string[]): ListingDetailEntry[] {
+  return getVisibleListingDetails(details)
+    .map(parseListingDetailLine)
+    .filter((entry): entry is ListingDetailEntry => entry !== null);
+}
+
+export function getListingDetailPreview(
+  details: string[],
+  count = LISTING_DETAIL_PREVIEW_COUNT
+): ListingDetailEntry[] {
+  return getListingDetailEntries(details).slice(0, count);
+}
+
 /** پیش‌نمایش یک‌خطی برای اسلایدر و کارت */
 export function getProductListingPreview(product: Product, lineCount = 2): string {
   const lines = [product.listing.headline, ...product.listing.details];

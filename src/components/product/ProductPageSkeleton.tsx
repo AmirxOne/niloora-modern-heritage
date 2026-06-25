@@ -295,12 +295,13 @@ export function ProductPageSkeleton() {
         </nav>
 
         <div className="product-detail-grid">
-          <div className="product-detail-media">
-            <ProductGallerySkeleton />
-          </div>
+          <div className="product-detail-hero-row">
+            <div className="product-detail-media">
+              <ProductGallerySkeleton />
+            </div>
 
-          <div className="product-detail-info">
-            <div className="product-detail-top-layout">
+            <div className="product-detail-info">
+              <div className="product-detail-top-layout">
               <header className="product-detail-header product-detail-top-layout__intro">
                 <Sk className="product-detail-title h-7 w-4/5 max-w-xl rounded-sm sm:h-8 md:h-8 lg:h-9" />
                 <div className="product-detail-meta">
@@ -308,6 +309,16 @@ export function ProductPageSkeleton() {
                   <Sk className="h-4 w-24 rounded-sm" />
                 </div>
                 <Sk className="product-detail-piece-number mt-2 h-4 w-32 rounded-sm" />
+                <div className="product-detail-description mt-4">
+                  <ul className="product-content-brief-specs">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <li key={index} className="product-content-brief-spec">
+                        <Sk className="h-3 w-12 rounded-sm" />
+                        <Sk className="mt-1 h-3.5 w-full rounded-sm" />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </header>
 
               <aside className="product-detail-side-panel product-detail-top-layout__commerce">
@@ -319,16 +330,10 @@ export function ProductPageSkeleton() {
                 </div>
               </aside>
 
-              <div className="product-detail-main product-detail-top-layout__details">
-                <div className="product-detail-description space-y-2">
-                  <Sk className="h-3 w-full rounded-sm" />
-                  <Sk className="h-3 w-11/12 rounded-sm" />
-                  <Sk className="h-3 w-4/5 rounded-sm" />
-                </div>
-              </div>
             </div>
 
             <div id="product-section-intro" />
+            </div>
           </div>
 
           <div className="product-detail-insight-panels">

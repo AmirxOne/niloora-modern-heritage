@@ -1,4 +1,8 @@
-import { getProductListingTags, getVisibleListingDetails } from "@/lib/product-listing";
+import {
+  getListingDetailPreview,
+  getProductListingTags,
+  LISTING_DETAIL_PREVIEW_COUNT,
+} from "@/lib/product-listing";
 import type { ProductListing } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { fa } from "@/lib/i18n/fa";
@@ -16,23 +20,37 @@ interface ProductContentBriefProps {
 
 export function ProductContentBrief({ listing, className, compact, onViewMore }: ProductContentBriefProps) {
   const tags = getProductListingTags(listing);
-  const details = getVisibleListingDetails(listing.details);
+  const previewCount = compact ? 2 : LISTING_DETAIL_PREVIEW_COUNT;
+  const previewEntries = getListingDetailPreview(listing.details, previewCount);
 
   return (
     <div className={cn("product-content-brief", compact && "product-content-brief--compact", className)}>
       <div className="product-content-brief-body">
-        <div className="product-content-brief-tags">
-          {tags.map((tag) => (
-            <span key={tag} className="product-content-brief-tag">
-              #{tag}
-            </span>
-          ))}
-        </div>
-        <div className="product-content-brief-details">
-          {details.map((line, index) => (
-            <p key={index}>{line}</p>
-          ))}
-        </div>
+        {tags.length > 0 ? (
+          <div className="product-content-brief-tags">
+            {tags.map((tag) => (
+              <span key={tag} className="product-content-brief-tag">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {previewEntries.length > 0 ? (
+          <ul
+            className={cn(
+              "product-content-brief-specs",
+              compact && "product-content-brief-specs--compact"
+            )}
+            aria-label={fa.product.featuresTitle}
+          >
+            {previewEntries.map(({ key, value }) => (
+              <li key={key} className="product-content-brief-spec">
+                <span className="product-content-brief-spec__key">{key}</span>
+                <span className="product-content-brief-spec__val">{value || "—"}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
       {onViewMore ? (
         <div className="product-content-brief-view-more">
@@ -40,7 +58,7 @@ export function ProductContentBrief({ listing, className, compact, onViewMore }:
           <button
             type="button"
             onClick={onViewMore}
-            className="flex w-fit shrink-0 cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-black/10 bg-transparent px-3 py-3 text-sm font-medium text-[#424750] transition-colors hover:text-[#2c2a29] [-webkit-tap-highlight-color:transparent]"
+            className="product-content-brief-view-more-btn"
             aria-label={fa.product.viewMoreSpecsAria}
           >
             <span>{fa.product.viewMore}</span>

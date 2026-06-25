@@ -209,12 +209,13 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         <ProductBreadcrumb productName={displayName} />
 
         <div className="product-detail-grid">
-          <div className="product-detail-media">
-            <ProductGallery images={images} name={displayName} productId={product.id} />
-          </div>
+          <div className="product-detail-hero-row">
+            <div className="product-detail-media">
+              <ProductGallery images={images} name={displayName} productId={product.id} />
+            </div>
 
-          <div className="product-detail-info">
-            <div className="product-detail-top-layout">
+            <div className="product-detail-info">
+              <div className="product-detail-top-layout">
               <header className="product-detail-header product-detail-top-layout__intro">
                 <h1 className="product-detail-title">{displayName}</h1>
                 <div className="product-detail-meta">
@@ -233,6 +234,11 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   code={pieceCode}
                   variant="card"
                   className="product-detail-piece-number"
+                />
+                <ProductContentBrief
+                  listing={product.listing}
+                  className="product-detail-description"
+                  onViewMore={() => scrollToProductSectionNav()}
                 />
               </header>
 
@@ -350,24 +356,20 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                 <BackInStockAlertCard product={product} />
               </aside>
 
-              <div className="product-detail-main product-detail-top-layout__details">
-                <ProductContentBrief
-                  listing={product.listing}
-                  className="product-detail-description"
-                  onViewMore={() => scrollToProductSectionNav()}
-                />
-                {product.introVideoUrl ? (
+              {product.introVideoUrl ? (
+                <div className="product-detail-main product-detail-top-layout__details">
                   <ProductIntroVideo
                     url={product.introVideoUrl}
                     title={displayName}
                     className="product-detail-intro-video"
                   />
-                ) : null}
-              </div>
+                </div>
+              ) : null}
             </div>
 
             <div id="product-section-intro" />
 
+            </div>
           </div>
 
           <div className="product-detail-insight-panels">
@@ -380,7 +382,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
             <ProductDetailTrustCards />
           </div>
 
-          <div className="product-detail-pre-owned lg:col-span-2">
+          <div className="product-detail-pre-owned">
             <PreOwnedProductPanel product={product} />
           </div>
         </div>
