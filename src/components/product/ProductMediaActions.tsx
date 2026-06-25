@@ -1,25 +1,30 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Heart, Share } from "@/components/icons";
+import { Compare, Heart, Search, Share } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
+import { useAppSelector } from "@/lib/store/hooks";
+import { selectIsInCompareList } from "@/lib/store/slices/compareListSlice";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 interface ProductMediaActionsProps {
   productId: string;
   productName: string;
+  onZoom?: () => void;
   className?: string;
 }
 
 export function ProductMediaActions({
   productId,
   productName,
+  onZoom,
   className,
 }: ProductMediaActionsProps) {
-  const { wishlist } = useApp();
+  const { wishlist, compareList } = useApp();
   const wished = wishlist.isWishlisted(productId);
+  const compared = useAppSelector(selectIsInCompareList(productId));
   const [shareNotice, setShareNotice] = useState<string | null>(null);
 
   const handleShare = useCallback(async () => {
@@ -74,7 +79,7 @@ export function ProductMediaActions({
           <Heart
             size={iconSizes.sm}
             variant={ICON_VARIANT}
-            className={wished ? "fill-gold text-gold" : "text-white"}
+            className={wished ? "fill-gold text-gold" : "text-current"}
             fill={wished ? "currentColor" : "none"}
             aria-hidden
           />
@@ -82,6 +87,34 @@ export function ProductMediaActions({
             {wished ? fa.product.wishlisted : fa.product.wishlist}
           </span>
         </button>
+        <button
+          type="button"
+          className={cn(
+            "product-media-actions-btn",
+            compared && "product-media-actions-btn--active"
+          )}
+          onClick={() => compareList.toggle(productId)}
+          aria-label={compared ? fa.product.compareRemoveAria : fa.product.compareAddAria}
+          aria-pressed={compared}
+          title={compared ? fa.product.compared : fa.product.compare}
+        >
+          <Compare size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+          <span className="sr-only">
+            {compared ? fa.product.compared : fa.product.compare}
+          </span>
+        </button>
+        {onZoom ? (
+          <button
+            type="button"
+            className="product-media-actions-btn"
+            onClick={onZoom}
+            aria-label={fa.product.galleryZoomOpen}
+            title={fa.product.galleryZoomHint}
+          >
+            <Search size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
+            <span className="sr-only">{fa.product.galleryZoomOpen}</span>
+          </button>
+        ) : null}
       </div>
       {shareNotice ? (
         <p className="product-media-actions-toast" role="status">

@@ -43,11 +43,6 @@ export function ProductSmartRecommendations({
 
   return (
     <section className="product-smart-recommendations" aria-label={fa.product.smartRecommendations.title}>
-      <header className="product-smart-recommendations__head">
-        <h2 className="product-smart-recommendations__title">{fa.product.smartRecommendations.title}</h2>
-        <p className="product-smart-recommendations__subtitle">{fa.product.smartRecommendations.subtitle}</p>
-      </header>
-
       <div className="product-smart-recommendations__groups">
         {groups.map((group) => (
           <section key={group.title} className="product-smart-recommendations__group">

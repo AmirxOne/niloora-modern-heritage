@@ -62,6 +62,11 @@ describe("piece-code", () => {
     expect(resolvePieceCode(p)).toBe("NL-RGM-9999");
   });
 
+  it("اگر id خودش کد معتبر باشد، همان نمایش داده می‌شود", () => {
+    const p = makeProduct({ id: "NL-RGM-2900" });
+    expect(resolvePieceCode(p)).toBe("NL-RGM-2900");
+  });
+
   it("نوع اثر روی کد تأثیر دارد", () => {
     const ring = makeProduct({ id: "x", productType: "ring-men" });
     const necklace = makeProduct({ id: "x", productType: "necklace" });

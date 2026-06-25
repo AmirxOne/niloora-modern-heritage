@@ -19,10 +19,6 @@ interface ProductCommentCardProps {
 
 export function ProductCommentCard({ comment }: ProductCommentCardProps) {
   const initial = comment.authorName.trim().charAt(0) || "؟";
-  const buildQuality = comment.ratingBuildQuality ?? comment.rating;
-  const beauty = comment.ratingBeauty ?? comment.rating;
-  const value = comment.ratingValue ?? comment.rating;
-  const packaging = comment.ratingPackaging ?? comment.rating;
 
   return (
     <article className="product-comment-card">
@@ -67,20 +63,6 @@ export function ProductCommentCard({ comment }: ProductCommentCardProps) {
           )}
         </div>
       ) : null}
-      <div className="product-comment-dimensions">
-        <span className="product-comment-dimension-chip">
-          {fa.product.commentRatingBuildQuality}: {buildQuality.toLocaleString("fa-IR")}
-        </span>
-        <span className="product-comment-dimension-chip">
-          {fa.product.commentRatingBeauty}: {beauty.toLocaleString("fa-IR")}
-        </span>
-        <span className="product-comment-dimension-chip">
-          {fa.product.commentRatingValue}: {value.toLocaleString("fa-IR")}
-        </span>
-        <span className="product-comment-dimension-chip">
-          {fa.product.commentRatingPackaging}: {packaging.toLocaleString("fa-IR")}
-        </span>
-      </div>
     </article>
   );
 }

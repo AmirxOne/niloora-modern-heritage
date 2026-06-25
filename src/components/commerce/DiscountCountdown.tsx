@@ -31,7 +31,16 @@ export function DiscountCountdown({ endsAt, className }: Props) {
     return () => window.clearInterval(timer);
   }, [resolvedEndsAt]);
 
-  if (!resolvedEndsAt || now === null) return null;
+  if (!resolvedEndsAt) return null;
+
+  if (now === null) {
+    return (
+      <p className={className ?? "discount-countdown"} aria-busy="true" aria-hidden>
+        <span className="discount-countdown__time sk inline-block h-[1.15rem] w-[5.5rem] rounded-sm" />
+      </p>
+    );
+  }
+
   const remaining = getDiscountRemaining(resolvedEndsAt, now);
   if (remaining.expired) return null;
 

@@ -24,8 +24,7 @@ export interface PieceNumberProps {
 
 const pieceNumberBaseClassName = "tabular-nums tracking-[0.04em]";
 
-const pieceNumberValueClassName =
-  'font-[ui-monospace,"SF_Mono","Cascadia_Mono",Menlo,Consolas,monospace] select-all [-webkit-user-select:all]';
+const pieceNumberValueClassName = "font-body select-all [-webkit-user-select:all]";
 
 const pieceNumberCopyClassName =
   "inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[rgba(184,134,11,0.25)] bg-[rgba(255,255,255,0.9)] px-[9px] py-1 text-[10px] font-semibold text-[#8b6914] transition-[background-color,transform] duration-100 [-webkit-tap-highlight-color:transparent] hover:bg-[rgba(184,134,11,0.06)] active:scale-[0.96]";
@@ -82,7 +81,7 @@ export function PieceNumber({
           <span
             className={cn(
               pieceNumberValueClassName,
-              "text-[15px] font-bold tracking-[0.06em] text-[#2c2a29]"
+              "text-[15px] font-semibold tracking-[0.08em] text-[#2c2a29]"
             )}
             aria-label={fa.product.pieceCode.label}
           >

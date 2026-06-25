@@ -18,29 +18,44 @@ export interface PendingProductQuestionAnswer {
   questionAuthorName: string;
 }
 
-export function useProductQuestions(productId: string) {
+export function useProductQuestions(
+  productId: string,
+  initialApproved?: ProductQuestion[]
+) {
   const [hydrated, setHydrated] = useState(false);
-  const [approved, setApproved] = useState<ProductQuestion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [approved, setApproved] = useState<ProductQuestion[]>(initialApproved ?? []);
+  const [isLoading, setIsLoading] = useState(initialApproved == null);
 
-  const loadApproved = useCallback(async () => {
-    setIsLoading(true);
+  const loadApproved = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setIsLoading(true);
+    }
     try {
       const response = await fetch(
-        `/api/product-questions?productId=${encodeURIComponent(productId)}&status=approved`
+        `/api/product-questions?productId=${encodeURIComponent(productId)}`,
+        { cache: "no-store" }
       );
       if (!response.ok) return;
       const data = await parseJsonResponse<{ questions: ProductQuestion[] }>(response);
       setApproved(data?.questions ?? []);
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
     }
   }, [productId]);
 
   useEffect(() => {
+    if (initialApproved != null) {
+      setApproved(initialApproved);
+      setIsLoading(false);
+    }
+  }, [initialApproved]);
+
+  useEffect(() => {
     setHydrated(true);
-    loadApproved();
-  }, [loadApproved]);
+    void loadApproved({ silent: initialApproved != null });
+  }, [initialApproved, loadApproved]);
 
   const submitQuestion = useCallback(
     async (authorName: string, body: string) => {

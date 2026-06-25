@@ -3,44 +3,22 @@ export interface ProductRatingSummary {
   count: number;
   /** امتیاز گردشده ۱–۵ برای نمایش ستاره */
   displayStars: number;
-  dimensions: {
-    buildQuality: number;
-    beauty: number;
-    value: number;
-    packaging: number;
-  };
 }
 
 export type RatingDistribution = Record<1 | 2 | 3 | 4 | 5, number>;
 
 export function computeProductRating(
-  ratings: readonly {
-    rating: number;
-    ratingBuildQuality?: number;
-    ratingBeauty?: number;
-    ratingValue?: number;
-    ratingPackaging?: number;
-  }[]
+  ratings: readonly { rating: number }[]
 ): ProductRatingSummary {
   if (ratings.length === 0) {
     return {
       average: 0,
       count: 0,
       displayStars: 0,
-      dimensions: {
-        buildQuality: 0,
-        beauty: 0,
-        value: 0,
-        packaging: 0,
-      },
     };
   }
 
   const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
-  const buildQualitySum = ratings.reduce((acc, r) => acc + (r.ratingBuildQuality ?? r.rating), 0);
-  const beautySum = ratings.reduce((acc, r) => acc + (r.ratingBeauty ?? r.rating), 0);
-  const valueSum = ratings.reduce((acc, r) => acc + (r.ratingValue ?? r.rating), 0);
-  const packagingSum = ratings.reduce((acc, r) => acc + (r.ratingPackaging ?? r.rating), 0);
   const average = sum / ratings.length;
   const displayStars = Math.min(5, Math.max(1, Math.round(average)));
 
@@ -48,12 +26,6 @@ export function computeProductRating(
     average,
     count: ratings.length,
     displayStars,
-    dimensions: {
-      buildQuality: buildQualitySum / ratings.length,
-      beauty: beautySum / ratings.length,
-      value: valueSum / ratings.length,
-      packaging: packagingSum / ratings.length,
-    },
   };
 }
 

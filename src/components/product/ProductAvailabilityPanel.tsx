@@ -17,7 +17,6 @@ export function ProductAvailabilityPanel({ availability }: ProductAvailabilityPa
 
   return (
     <div className="product-availability-panel" role="status">
-      <p className="text-sm leading-relaxed text-silver">{config.description}</p>
       <div className="product-availability-delivery-row">
         <span className="product-availability-delivery-icon" aria-hidden>
           {immediate ? "◆" : "◇"}

@@ -70,6 +70,7 @@ export default async function RootLayout({
     <html
       lang="fa"
       dir="rtl"
+      suppressHydrationWarning
       className={cn(
         cormorant.variable,
         vazirmatn.variable,
@@ -79,7 +80,7 @@ export default async function RootLayout({
         promoIsImage && "header-promo-active--image"
       )}
     >
-      <body className="font-IranYekanFontNum">
+      <body className="font-IranYekanFontNum" suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify([orgJsonLd, webSiteJsonLd]) }}

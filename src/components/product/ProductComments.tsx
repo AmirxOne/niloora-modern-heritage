@@ -1,14 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { fa } from "@/lib/i18n/fa";
+import { resolveAccountDisplayName } from "@/lib/account/display-name";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useProductComments } from "@/lib/hooks/useComments";
+import { useStickyWithinContainer } from "@/lib/hooks/useStickyWithinContainer";
 import type { ProductComment } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { TextAreaBox, TextBox } from "@/components/inputs";
-import { StarRating } from "@/components/product/StarRating";
-import { ProductReviewSummary } from "@/components/product/ProductReviewSummary";
+import { ProductCommentFormModal, COMMENT_BODY_MAX, COMMENT_BODY_MIN } from "@/components/product/ProductCommentFormModal";
+import {
+  ProductReviewScoreBlock,
+} from "@/components/product/ProductReviewSummary";
 import { ProductCommentCard } from "@/components/product/ProductCommentCard";
 import { cn } from "@/lib/utils";
 import { usePagination } from "@/lib/hooks/usePagination";
@@ -16,13 +21,13 @@ import { COMMENTS_PAGE_SIZE } from "@/lib/pagination";
 import { Pagination } from "@/components/ui/Pagination";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
-const COMMENT_BODY_MIN = 10;
-const COMMENT_BODY_MAX = 600;
-
 type CommentSort = "newest" | "highest" | "lowest";
 
 interface ProductCommentsProps {
   productId: string;
+  productName?: string;
+  productImage?: string;
+  initialApproved?: ProductComment[];
 }
 
 function sortComments(comments: ProductComment[], sort: CommentSort): ProductComment[] {
@@ -47,25 +52,49 @@ function sortComments(comments: ProductComment[], sort: CommentSort): ProductCom
   }
 }
 
-export function ProductComments({ productId }: ProductCommentsProps) {
-  const { approved, submit: submitComment, isApprovedLoading } = useProductComments(productId);
+export function ProductComments({
+  productId,
+  productName,
+  productImage,
+  initialApproved,
+}: ProductCommentsProps) {
+  const { user, isLoggedIn } = useAuth();
+  const { approved, submit: submitComment, isApprovedLoading, ratingSummary } =
+    useProductComments(productId, initialApproved);
+  const mediaTrackRef = useRef<HTMLDivElement>(null);
+  const {
+    containerRef: reviewsLayoutRef,
+    targetRef: reviewsSummaryRef,
+    phase: reviewsSummaryPhase,
+    targetStyle: reviewsSummaryStyle,
+    placeholderHeight: reviewsSummaryPlaceholderHeight,
+  } = useStickyWithinContainer(true, 3.25);
+
+  const accountDisplayName = useMemo(() => {
+    if (!user) return "";
+    return resolveAccountDisplayName({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      name: user.name,
+      phone: user.phone,
+    });
+  }, [user]);
 
   const [authorName, setAuthorName] = useState("");
+  const [publishAnonymously, setPublishAnonymously] = useState(false);
   const [body, setBody] = useState("");
   const [rating, setRating] = useState(5);
-  const [ratingBuildQuality, setRatingBuildQuality] = useState(5);
-  const [ratingBeauty, setRatingBeauty] = useState(5);
-  const [ratingValue, setRatingValue] = useState(5);
-  const [ratingPackaging, setRatingPackaging] = useState(5);
-  const [mediaType, setMediaType] = useState<"image" | "video">("image");
-  const [mediaUrl, setMediaUrl] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [bodyError, setBodyError] = useState<string | null>(null);
   const [sort, setSort] = useState<CommentSort>("newest");
 
   const sortedComments = useMemo(() => sortComments(approved, sort), [approved, sort]);
+  const commentsWithMedia = useMemo(
+    () => approved.filter((comment) => Boolean(comment.mediaUrl)),
+    [approved]
+  );
 
   const {
     paginatedItems: visibleComments,
@@ -77,28 +106,33 @@ export function ProductComments({ productId }: ProductCommentsProps) {
     totalItems,
   } = usePagination(sortedComments, COMMENTS_PAGE_SIZE, sort);
 
-  const handleImageUpload = async (file: File) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await fetch("/api/reviews/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = (await response.json().catch(() => null)) as
-        | { url?: string; message?: string }
-        | null;
-      if (!response.ok || !data?.url) {
-        toast.error(data?.message ?? fa.product.commentMediaUploadError);
-        return;
-      }
-      setMediaType("image");
-      setMediaUrl(data.url);
-    } catch {
-      toast.error(fa.product.commentMediaUploadError);
-    } finally {
-      setIsUploading(false);
+  const resetFormFields = () => {
+    setBody("");
+    setRating(5);
+    setPublishAnonymously(false);
+    setNameError(null);
+    setBodyError(null);
+  };
+
+  const openFormModal = () => {
+    setSubmitted(false);
+    if (isLoggedIn && accountDisplayName) {
+      setAuthorName(accountDisplayName);
+    }
+    setPublishAnonymously(false);
+    setIsFormModalOpen(true);
+  };
+
+  const closeFormModal = () => {
+    setIsFormModalOpen(false);
+    setSubmitted(false);
+  };
+
+  const handleSubmittedReset = () => {
+    setSubmitted(false);
+    resetFormFields();
+    if (isLoggedIn && accountDisplayName) {
+      setAuthorName(accountDisplayName);
     }
   };
 
@@ -107,10 +141,14 @@ export function ProductComments({ productId }: ProductCommentsProps) {
     setNameError(null);
     setBodyError(null);
 
-    const trimmedName = authorName.trim();
     const trimmedBody = body.trim();
+    const resolvedName = isLoggedIn
+      ? publishAnonymously
+        ? fa.product.commentAnonymousName
+        : accountDisplayName
+      : authorName.trim();
 
-    if (!trimmedName) {
+    if (!resolvedName) {
       setNameError(fa.product.commentValidationName);
       return;
     }
@@ -123,29 +161,19 @@ export function ProductComments({ productId }: ProductCommentsProps) {
       return;
     }
 
-    const success = await submitComment(productId, trimmedName, trimmedBody, rating, {
-      ratingBuildQuality,
-      ratingBeauty,
-      ratingValue,
-      ratingPackaging,
-    }, {
-      mediaUrl: mediaUrl.trim() || undefined,
-      mediaType: mediaUrl.trim() ? mediaType : undefined,
-    });
+    const success = await submitComment(productId, resolvedName, trimmedBody, rating);
     if (!success) {
       toast.error("ارسال نظر انجام نشد. ابتدا وارد حساب شوید یا دوباره تلاش کنید.");
       return;
     }
     toast.success("نظر شما ثبت شد و بعد از تایید نمایش داده می‌شود.");
     setSubmitted(true);
-    setBody("");
-    setRating(5);
-    setRatingBuildQuality(5);
-    setRatingBeauty(5);
-    setRatingValue(5);
-    setRatingPackaging(5);
-    setMediaUrl("");
-    setMediaType("image");
+    resetFormFields();
+  };
+
+  const scrollMediaStrip = () => {
+    const track = mediaTrackRef.current;
+    track?.lastElementChild?.scrollIntoView({ behavior: "smooth", inline: "end", block: "nearest" });
   };
 
   const sortOptions: { value: CommentSort; label: string }[] = [
@@ -154,23 +182,106 @@ export function ProductComments({ productId }: ProductCommentsProps) {
     { value: "lowest", label: fa.product.sortLowest },
   ];
 
+  const sharedSummaryProps = {
+    productId,
+    approved,
+    ratingSummary,
+    isApprovedLoading,
+  };
+
   return (
     <section className="product-reviews" aria-labelledby="product-comments-title">
-      <header className="product-reviews-header">
-        <div>
+      <div className="product-reviews-section">
+        <header className="product-reviews-section-header">
           <h2 id="product-comments-title" className="product-reviews-title">
             {fa.product.commentsTitle}
           </h2>
-          <p className="product-reviews-subtitle">{fa.product.commentsSubtitle}</p>
-        </div>
-      </header>
+        </header>
 
-      <div className="product-reviews-layout">
-        <aside className="product-reviews-aside">
-          <ProductReviewSummary productId={productId} />
-        </aside>
+        <div ref={reviewsLayoutRef} className="product-reviews-layout">
+          <aside
+            className="product-reviews-summary"
+            style={
+              reviewsSummaryPlaceholderHeight
+                ? { minHeight: reviewsSummaryPlaceholderHeight }
+                : undefined
+            }
+          >
+            <div
+              ref={reviewsSummaryRef}
+              className={cn(
+                "product-reviews-summary-sticky",
+                reviewsSummaryPhase === "bottom" && "product-reviews-summary-sticky--bottom"
+              )}
+              style={reviewsSummaryStyle}
+            >
+              <ProductReviewScoreBlock {...sharedSummaryProps} compact />
+              <div className="product-reviews-cta">
+                <p className="product-reviews-cta-text">{fa.product.commentCtaPrompt}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="product-reviews-cta-btn"
+                  onClick={openFormModal}
+                >
+                  {fa.product.commentCtaButton}
+                </Button>
+              </div>
+            </div>
+          </aside>
 
-        <div className="product-reviews-main">
+          <div className="product-reviews-main">
+        {commentsWithMedia.length > 0 ? (
+          <div
+            className="product-reviews-media-strip"
+            aria-label={fa.product.commentsMediaStripAria}
+          >
+            <div className="product-reviews-media-strip-header">
+              <h3 className="product-reviews-media-strip-title">
+                {fa.product.commentsMediaStripTitle}
+              </h3>
+              {commentsWithMedia.length > 4 ? (
+                <button
+                  type="button"
+                  className="product-reviews-media-strip-more"
+                  onClick={scrollMediaStrip}
+                >
+                  {fa.product.commentsMediaViewAll}
+                </button>
+              ) : null}
+            </div>
+            <div ref={mediaTrackRef} className="product-reviews-media-strip-track">
+              {commentsWithMedia.map((comment) => (
+                <div key={comment.id} className="product-reviews-media-item">
+                  {comment.mediaType === "video" ? (
+                    <>
+                      <video
+                        src={comment.mediaUrl}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        className="product-reviews-media-video"
+                      />
+                      <span className="product-reviews-media-play" aria-hidden>
+                        <span className="product-reviews-media-play-icon" />
+                      </span>
+                    </>
+                  ) : (
+                    <Image
+                      src={comment.mediaUrl!}
+                      alt={comment.body.slice(0, 60)}
+                      fill
+                      className="object-cover"
+                      sizes="120px"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="product-reviews-body">
           {isApprovedLoading ? (
             <div className="space-y-3" aria-busy="true" aria-live="polite">
               <div className="product-reviews-toolbar">
@@ -196,10 +307,14 @@ export function ProductComments({ productId }: ProductCommentsProps) {
             </div>
           ) : approved.length > 0 ? (
             <>
-              <div className="product-reviews-toolbar">
+              <div className="product-reviews-body-header">
+                <h3 className="product-reviews-body-title">{fa.product.commentsListTitle}</h3>
                 <p className="product-reviews-toolbar-count">
                   {fa.product.commentsCount(approved.length)}
                 </p>
+              </div>
+
+              <div className="product-reviews-toolbar">
                 <div className="product-reviews-sort">
                   <span className="product-reviews-sort-label">{fa.product.commentsSortLabel}</span>
                   <div className="product-reviews-sort-options" role="group">
@@ -248,167 +363,31 @@ export function ProductComments({ productId }: ProductCommentsProps) {
             />
           )}
         </div>
-      </div>
-
-      <div className="product-comment-form-wrap">
-        <h3 className="product-comment-form-title">{fa.product.commentFormTitle}</h3>
-        <p className="product-comment-form-hint">{fa.product.commentFormHint}</p>
-
-        {submitted ? (
-          <div className="product-comment-success" role="status">
-            <p>{fa.product.commentSubmitted}</p>
-            <button
-              type="button"
-              className="product-comment-success-action"
-              onClick={() => setSubmitted(false)}
-            >
-              {fa.product.commentWriteAnother}
-            </button>
           </div>
-        ) : (
-          <>
-            <ul className="product-comment-guidelines">
-              <li>{fa.product.commentGuideline1}</li>
-              <li>{fa.product.commentGuideline2}</li>
-              <li>{fa.product.commentGuideline3}</li>
-            </ul>
-
-            <form onSubmit={handleSubmit} className="product-comment-form">
-                  <TextBox
-                    label={fa.product.commentName}
-                    placeholder={fa.product.commentNamePlaceholder}
-                    value={authorName}
-                    onChange={(e) => setAuthorName(e.target.value)}
-                    error={nameError ?? undefined}
-                    touched={Boolean(nameError)}
-                    autoComplete="name"
-                  />
-
-                  <div className="product-comment-rating-field">
-                    <p className="product-comment-field-label">{fa.product.commentRating}</p>
-                    <StarRating value={rating} onChange={setRating} size="sm" />
-                  </div>
-
-                  <div className="product-comment-dimension-grid product-comment-form-full">
-                    <div className="product-comment-rating-field">
-                      <p className="product-comment-field-label">{fa.product.commentRatingBuildQuality}</p>
-                      <StarRating value={ratingBuildQuality} onChange={setRatingBuildQuality} size="sm" />
-                    </div>
-                    <div className="product-comment-rating-field">
-                      <p className="product-comment-field-label">{fa.product.commentRatingBeauty}</p>
-                      <StarRating value={ratingBeauty} onChange={setRatingBeauty} size="sm" />
-                    </div>
-                    <div className="product-comment-rating-field">
-                      <p className="product-comment-field-label">{fa.product.commentRatingValue}</p>
-                      <StarRating value={ratingValue} onChange={setRatingValue} size="sm" />
-                    </div>
-                    <div className="product-comment-rating-field">
-                      <p className="product-comment-field-label">{fa.product.commentRatingPackaging}</p>
-                      <StarRating value={ratingPackaging} onChange={setRatingPackaging} size="sm" />
-                    </div>
-                  </div>
-
-                  <div className="product-comment-form-full">
-                    <div className="product-comment-media-type-row">
-                      <button
-                        type="button"
-                        className={cn(
-                          "product-comment-media-type-btn",
-                          mediaType === "image" && "product-comment-media-type-btn--active"
-                        )}
-                        onClick={() => setMediaType("image")}
-                      >
-                        تصویر
-                      </button>
-                      <button
-                        type="button"
-                        className={cn(
-                          "product-comment-media-type-btn",
-                          mediaType === "video" && "product-comment-media-type-btn--active"
-                        )}
-                        onClick={() => setMediaType("video")}
-                      >
-                        ویدیو
-                      </button>
-                    </div>
-                    <TextBox
-                      label={
-                        mediaType === "video"
-                          ? fa.product.commentMediaVideoLabel
-                          : fa.product.commentMediaImageLabel
-                      }
-                      placeholder={fa.product.commentMediaPlaceholder}
-                      value={mediaUrl}
-                      onChange={(e) => setMediaUrl(e.target.value)}
-                      inputClassName="auth-input-ltr"
-                    />
-                    {mediaType === "image" ? (
-                      <div className="mt-2">
-                        <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-turquoise-dark hover:text-turquoise">
-                          <span>{isUploading ? fa.product.commentMediaUploading : fa.product.commentMediaUploadLabel}</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            hidden
-                            disabled={isUploading}
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleImageUpload(file);
-                              e.currentTarget.value = "";
-                            }}
-                          />
-                        </label>
-                        {mediaUrl && mediaType === "image" ? (
-                          <div className="mt-2 flex items-center gap-3">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={mediaUrl}
-                              alt=""
-                              className="h-16 w-16 rounded-heritage object-cover"
-                            />
-                            <button
-                              type="button"
-                              className="text-xs text-danger hover:underline"
-                              onClick={() => setMediaUrl("")}
-                            >
-                              {fa.product.commentMediaRemove}
-                            </button>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="product-comment-form-full">
-                    <TextAreaBox
-                      id="comment-body"
-                      label={fa.product.commentBody}
-                      value={body}
-                      onChange={(e) => setBody(e.target.value.slice(0, COMMENT_BODY_MAX))}
-                      placeholder={fa.product.commentBodyPlaceholder}
-                      maxLength={COMMENT_BODY_MAX}
-                      error={bodyError ?? undefined}
-                      touched={Boolean(bodyError)}
-                    />
-                    <div className="product-comment-textarea-footer">
-                      {bodyError ? (
-                        <p className="product-comment-field-error">{bodyError}</p>
-                      ) : (
-                        <span />
-                      )}
-                      <span className="product-comment-char-count">
-                        {fa.product.commentCharCount(body.length, COMMENT_BODY_MAX)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button type="submit" className="product-comment-form-full w-full sm:w-auto">
-                    {fa.product.commentSubmit}
-                  </Button>
-                </form>
-              </>
-            )}
+        </div>
       </div>
+
+      <ProductCommentFormModal
+        isOpen={isFormModalOpen}
+        onClose={closeFormModal}
+        productName={productName}
+        productImage={productImage}
+        isLoggedIn={isLoggedIn}
+        accountDisplayName={accountDisplayName}
+        publishAnonymously={publishAnonymously}
+        onPublishAnonymouslyChange={setPublishAnonymously}
+        authorName={authorName}
+        onAuthorNameChange={setAuthorName}
+        body={body}
+        onBodyChange={setBody}
+        rating={rating}
+        onRatingChange={setRating}
+        nameError={nameError}
+        bodyError={bodyError}
+        submitted={submitted}
+        onSubmittedReset={handleSubmittedReset}
+        onSubmit={handleSubmit}
+      />
     </section>
   );
 }

@@ -37,11 +37,6 @@ function PendingCommentCard({
   onReject: (id: string) => Promise<boolean> | void;
   productName?: string;
 }) {
-  const buildQuality = comment.ratingBuildQuality ?? comment.rating;
-  const beauty = comment.ratingBeauty ?? comment.rating;
-  const value = comment.ratingValue ?? comment.rating;
-  const packaging = comment.ratingPackaging ?? comment.rating;
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -64,20 +59,8 @@ function PendingCommentCard({
           <p className="comment-moderation-author">{comment.authorName}</p>
           <p className="comment-moderation-date">{formatCommentDate(comment.createdAt)}</p>
         </div>
-        <div className="flex flex-col items-end gap-1 text-[11px] text-silver">
+        <div className="flex flex-col items-end gap-1">
           <StarRating value={comment.rating} size="sm" />
-          <span>
-            {fa.product.commentRatingBuildQuality}: {buildQuality.toLocaleString("fa-IR")}
-          </span>
-          <span>
-            {fa.product.commentRatingBeauty}: {beauty.toLocaleString("fa-IR")}
-          </span>
-          <span>
-            {fa.product.commentRatingValue}: {value.toLocaleString("fa-IR")}
-          </span>
-          <span>
-            {fa.product.commentRatingPackaging}: {packaging.toLocaleString("fa-IR")}
-          </span>
         </div>
       </div>
       <p className="comment-moderation-body">{comment.body}</p>

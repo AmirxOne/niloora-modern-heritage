@@ -4,6 +4,7 @@ import { useProductComments } from "@/lib/hooks/useComments";
 import { StarRating } from "@/components/product/StarRating";
 import { fa } from "@/lib/i18n/fa";
 import { cn } from "@/lib/utils";
+import type { ProductComment } from "@/lib/types";
 
 interface ProductRatingProps {
   productId: string;
@@ -11,6 +12,17 @@ interface ProductRatingProps {
   showCount?: boolean;
   showAverage?: boolean;
   className?: string;
+  initialApproved?: ProductComment[];
+}
+
+function ProductRatingSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn("product-rating", className)} aria-busy="true" aria-hidden>
+      <div className="sk h-4 w-[4.5rem] rounded-sm" />
+      <div className="sk h-4 w-7 rounded-sm" />
+      <div className="sk h-3 w-16 rounded-sm" />
+    </div>
+  );
 }
 
 export function ProductRating({
@@ -19,9 +31,14 @@ export function ProductRating({
   showCount = true,
   showAverage = true,
   className,
+  initialApproved,
 }: ProductRatingProps) {
-  const { ratingSummary } = useProductComments(productId);
-  const { average, count, displayStars } = ratingSummary;
+  const { ratingSummary, isApprovedLoading } = useProductComments(productId, initialApproved);
+  const { average, count } = ratingSummary;
+
+  if (isApprovedLoading) {
+    return <ProductRatingSkeleton className={className} />;
+  }
 
   if (count === 0) return null;
 
@@ -33,9 +50,9 @@ export function ProductRating({
   return (
     <div
       className={cn("product-rating", className)}
-      aria-label={fa.product.ratingAria(displayStars, count)}
+      aria-label={fa.product.ratingAria(average, count)}
     >
-      <StarRating value={displayStars} size={size} />
+      <StarRating value={average} size={size} />
       {showAverage ? (
         <span className="product-rating-average">{averageFormatted}</span>
       ) : null}

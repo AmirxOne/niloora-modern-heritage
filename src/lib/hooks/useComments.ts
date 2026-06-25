@@ -50,12 +50,6 @@ export function useComments() {
       authorName: string,
       body: string,
       rating: number,
-      dimensionRatings?: {
-        ratingBuildQuality: number;
-        ratingBeauty: number;
-        ratingValue: number;
-        ratingPackaging: number;
-      },
       media?: {
         mediaUrl?: string;
         mediaType?: "image" | "video";
@@ -64,7 +58,7 @@ export function useComments() {
       const response = await apiFetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, authorName, body, rating, ...dimensionRatings, ...media }),
+        body: JSON.stringify({ productId, authorName, body, rating, ...media }),
       });
       return response.ok;
     },
@@ -100,29 +94,44 @@ export function useComments() {
   };
 }
 
-export function useProductComments(productId: string) {
+export function useProductComments(
+  productId: string,
+  initialApproved?: ProductComment[]
+) {
   const [hydrated, setHydrated] = useState(false);
-  const [approved, setApproved] = useState<ProductComment[]>([]);
-  const [isApprovedLoading, setIsApprovedLoading] = useState(true);
+  const [approved, setApproved] = useState<ProductComment[]>(initialApproved ?? []);
+  const [isApprovedLoading, setIsApprovedLoading] = useState(initialApproved == null);
 
-  const loadApproved = useCallback(async () => {
-    setIsApprovedLoading(true);
+  const loadApproved = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setIsApprovedLoading(true);
+    }
     try {
       const response = await fetch(
-        `/api/comments?productId=${encodeURIComponent(productId)}&status=approved`
+        `/api/comments?productId=${encodeURIComponent(productId)}`,
+        { cache: "no-store" }
       );
       if (!response.ok) return;
       const data = await parseJsonResponse<{ comments: ProductComment[] }>(response);
       setApproved(data?.comments ?? []);
     } finally {
-      setIsApprovedLoading(false);
+      if (!options?.silent) {
+        setIsApprovedLoading(false);
+      }
     }
   }, [productId]);
 
   useEffect(() => {
+    if (initialApproved != null) {
+      setApproved(initialApproved);
+      setIsApprovedLoading(false);
+    }
+  }, [initialApproved]);
+
+  useEffect(() => {
     setHydrated(true);
-    loadApproved();
-  }, [loadApproved]);
+    void loadApproved({ silent: initialApproved != null });
+  }, [initialApproved, loadApproved]);
 
   const submit = useCallback(
     async (
@@ -130,12 +139,6 @@ export function useProductComments(productId: string) {
       authorName: string,
       body: string,
       rating: number,
-      dimensionRatings?: {
-        ratingBuildQuality: number;
-        ratingBeauty: number;
-        ratingValue: number;
-        ratingPackaging: number;
-      },
       media?: {
         mediaUrl?: string;
         mediaType?: "image" | "video";
@@ -144,7 +147,7 @@ export function useProductComments(productId: string) {
       const response = await apiFetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: id, authorName, body, rating, ...dimensionRatings, ...media }),
+        body: JSON.stringify({ productId: id, authorName, body, rating, ...media }),
       });
       const success = response.ok;
       if (success) {

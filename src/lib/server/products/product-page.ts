@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/types";
+import type { Product, ProductComment, ProductQuestion } from "@/lib/types";
 import { prisma } from "@/lib/server/prisma";
 import { getVendorTrustScore } from "@/lib/server/marketplace/vendor-trust-service";
 import {
@@ -10,29 +10,16 @@ import {
   type SmartRecommendationGroups,
 } from "@/lib/server/products";
 import { listActiveBundleOffers } from "@/lib/server/bundle/bundle-offer-service";
+import { mapDbProductComment, mapDbProductQuestion } from "@/lib/server/products/product-ugc-mappers";
+
 export type ProductPagePayload = {
   product: Product;
   related: Product[];
   vendorProducts: Product[];
   smartRecommendations: SmartRecommendationGroups;
   activeBundles: import("@/lib/types").BundleOfferDefinition[];
-  approvedComments: Array<{
-    id: string;
-    authorName: string;
-    body: string;
-    rating: number;
-    createdAt: Date;
-  }>;
-  approvedQuestions: Array<{
-    id: string;
-    body: string;
-    answers: Array<{
-      id: string;
-      body: string;
-      isOfficial: boolean;
-      createdAt: Date;
-    }>;
-  }>;
+  approvedComments: ProductComment[];
+  approvedQuestions: ProductQuestion[];
 };
 
 export async function getProductPagePayload(id: string): Promise<ProductPagePayload | null> {
@@ -50,30 +37,26 @@ export async function getProductPagePayload(id: string): Promise<ProductPagePayl
         }
       : baseProduct;
 
-  const [catalog, approvedComments, approvedQuestions] = await Promise.all([
+  const [catalog, approvedCommentRows, approvedQuestionRows] = await Promise.all([
     getCatalogProducts(),
     prisma.productComment.findMany({
       where: { productId: id, status: "approved" },
-      select: { id: true, authorName: true, body: true, rating: true, createdAt: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
     }),
     prisma.productQuestion.findMany({
       where: { productId: id, status: "approved" },
-      select: {
-        id: true,
-        body: true,
+      include: {
         answers: {
           where: { status: "approved" },
-          select: { id: true, body: true, isOfficial: true, createdAt: true },
           orderBy: [{ isOfficial: "desc" }, { createdAt: "asc" }],
-          take: 3,
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 12,
     }),
   ]);
+
+  const approvedComments = approvedCommentRows.map(mapDbProductComment);
+  const approvedQuestions = approvedQuestionRows.map(mapDbProductQuestion);
   const related = getRelatedProducts(catalog, product.id, 4);
   const smartRecommendations = getSmartRecommendations(catalog, product.id, 5);
   const vendorProducts =

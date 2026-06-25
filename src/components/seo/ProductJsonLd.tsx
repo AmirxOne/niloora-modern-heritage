@@ -12,17 +12,17 @@ export function ProductJsonLd({
   questions = [],
 }: {
   product: Product;
-  comments?: Array<{
+  comments: Array<{
     id: string;
     authorName: string;
     body: string;
     rating: number;
-    createdAt: Date;
+    createdAt: Date | string;
   }>;
   questions?: Array<{
     id: string;
     body: string;
-    answers: Array<{ id: string; body: string; isOfficial: boolean; createdAt: Date }>;
+    answers: Array<{ id: string; body: string; isOfficial: boolean; createdAt: Date | string }>;
   }>;
 }) {
   const productPayload = buildProductJsonLd(product);

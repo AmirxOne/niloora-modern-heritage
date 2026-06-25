@@ -18,12 +18,12 @@ interface MobileProductBuyBarProps {
 }
 
 const buyBarClassName =
-  "pointer-events-none fixed inset-x-0 bottom-[var(--mobile-nav-height-safe)] z-[44] translate-y-[120%] border-t border-[rgba(184,134,11,0.12)] bg-[rgba(255,252,247,0.97)] px-3 py-2 opacity-0 shadow-[0_-10px_28px_-14px_rgba(44,42,41,0.18)] backdrop-blur-[18px] backdrop-saturate-[150%] transition-[transform_260ms_cubic-bezier(0.22,1,0.36,1),opacity_200ms_ease] [-webkit-backdrop-filter:blur(18px)_saturate(150%)] print:hidden lg:hidden";
+  "pointer-events-none fixed inset-x-0 bottom-[var(--mobile-nav-height-safe)] z-[44] translate-y-[120%] border-t border-[rgba(184,134,11,0.12)] bg-[rgba(255,252,247,0.97)] px-3 py-2.5 opacity-0 shadow-[0_-10px_28px_-14px_rgba(44,42,41,0.18)] backdrop-blur-[18px] backdrop-saturate-[150%] transition-[transform_260ms_cubic-bezier(0.22,1,0.36,1),opacity_200ms_ease] [-webkit-backdrop-filter:blur(18px)_saturate(150%)] print:hidden lg:hidden";
 
 const buyBarVisibleClassName = "translate-y-0 opacity-100 pointer-events-auto";
 
 const buyBarCtaClassName =
-  "h-10 cursor-pointer whitespace-nowrap rounded-full border-0 bg-[linear-gradient(180deg,#c89c2b_0%,#a07514_100%)] px-4 text-xs font-bold text-white transition-[transform,opacity] duration-100 [-webkit-tap-highlight-color:transparent] active:scale-[0.96]";
+  "min-h-11 cursor-pointer whitespace-nowrap rounded-full border-0 bg-[linear-gradient(180deg,#c89c2b_0%,#a07514_100%)] px-4 py-2.5 text-xs font-bold text-white transition-[transform,opacity] duration-100 [-webkit-tap-highlight-color:transparent] active:scale-[0.96] sm:text-sm";
 
 /**
  * نوار خرید چسبان موبایل — مشابه اپ‌های شاپ:

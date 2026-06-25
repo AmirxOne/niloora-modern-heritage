@@ -2211,11 +2211,11 @@
   }
 
   .product-detail-artisans-panel {
-    @apply mt-4;
+    @apply mt-0;
   }
 
   .product-artisans-panel {
-    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage;
+    @apply flex h-full flex-col rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage;
   }
 
   .product-artisans-panel__head {
@@ -2231,7 +2231,7 @@
   }
 
   .product-artisans-panel__list {
-    @apply space-y-3;
+    @apply flex-1 space-y-3;
   }
 
   .product-artisans-panel__item {
@@ -2259,7 +2259,7 @@
   }
 
   .product-artisans-panel__footer {
-    @apply mt-3;
+    @apply mt-auto pt-3;
   }
 
   .product-artisans-panel__all-link {
@@ -2287,11 +2287,11 @@
   }
 
   .product-detail-stone-insight {
-    @apply mt-4;
+    @apply mt-0;
   }
 
   .product-stone-insight {
-    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage;
+    @apply flex h-full flex-col rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage;
   }
 
   .product-stone-insight__title {
@@ -2303,7 +2303,7 @@
   }
 
   .product-stone-insight__grid {
-    @apply mt-3 grid gap-3 sm:grid-cols-2;
+    @apply mt-3 flex-1 grid gap-3 sm:grid-cols-2;
   }
 
   .product-stone-insight__h3 {
@@ -2315,7 +2315,7 @@
   }
 
   .product-stone-insight__footer {
-    @apply mt-3;
+    @apply mt-auto pt-3;
   }
 
   .product-stone-insight__link {
@@ -3226,13 +3226,6 @@
     @apply mt-8 md:mt-10;
   }
 
-  .shop-product-pagination .pagination-nav {
-    padding: 0;
-    width: 34px;
-    height: 34px;
-    justify-content: center;
-  }
-
   .pagination {
     @apply flex w-full flex-col items-stretch justify-between gap-4 border-t border-gold/10 pt-6 md:flex-row md:items-center md:gap-5 md:pt-8;
   }
@@ -3258,7 +3251,7 @@
   }
 
   .pagination-nav {
-    @apply inline-flex items-center gap-1.5 rounded-heritage border border-gold/15 bg-matte-elevated px-3 py-2 text-xs font-medium text-ivory transition-colors hover:border-gold/30 hover:text-gold disabled:pointer-events-none disabled:opacity-40 md:px-4 md:text-sm;
+    @apply inline-flex h-[34px] w-[34px] items-center justify-center rounded-heritage border border-gold/15 bg-matte-elevated p-0 text-ivory transition-colors hover:border-gold/30 hover:text-gold disabled:pointer-events-none disabled:opacity-40;
   }
 
   .pagination-pages {
@@ -4271,11 +4264,11 @@
   /* ——— جزئیات محصول ——— */
 
   .product-detail-page {
-    @apply pb-24 pt-5 md:pt-8;
+    @apply pb-[calc(var(--mobile-nav-height-safe)+3.75rem)] pt-4 md:pb-24 md:pt-8;
   }
 
   .product-breadcrumb {
-    @apply mb-6 md:mb-8;
+    @apply mb-4 md:mb-6 lg:mb-8;
   }
 
   .product-breadcrumb-list {
@@ -4295,39 +4288,71 @@
   }
 
   .product-detail-grid {
-    @apply grid gap-10 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-start lg:gap-12 xl:gap-14;
+    @apply grid gap-6 md:gap-8 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:items-start lg:gap-x-5 lg:gap-y-12;
   }
 
   .product-detail-media {
-    @apply flex flex-col gap-6;
+    @apply flex min-w-0 flex-col gap-4 md:gap-6;
+  }
+
+  @media (max-width: 639px) {
+    .product-detail-media {
+      width: calc(100% + 2rem);
+      max-width: none;
+      margin-inline: -1rem;
+    }
+
+    .product-detail-media .product-gallery-frame {
+      @apply rounded-none border-x-0;
+    }
   }
 
   .product-detail-media .product-gallery {
-    @apply mx-auto w-full max-w-[23rem] sm:max-w-[26rem] md:max-w-[28rem] lg:max-w-[30rem];
+    @apply mx-auto w-full max-w-none sm:max-w-[calc(26rem+3rem)] md:max-w-[calc(28rem+3rem)] lg:max-w-[calc(30rem+3rem)];
   }
 
   .product-detail-media .product-gallery-frame {
-    @apply aspect-square;
+    @apply aspect-[4/5] sm:aspect-square;
   }
 
   .product-detail-media .product-gallery-nav {
-    @apply h-11 w-11;
+    @apply h-11 min-h-11 w-11 min-w-11;
   }
 
   .product-detail-media .product-gallery-thumb {
-    @apply h-[4.5rem] w-[4.5rem];
+    @apply h-14 w-14 sm:h-[4.5rem] sm:w-[4.5rem];
   }
 
   .product-detail-info {
-    @apply min-w-0 flex flex-col lg:sticky lg:top-24 lg:self-start;
+    @apply flex min-w-0 flex-col lg:sticky lg:top-[calc(var(--header-height)+1rem)] lg:self-start;
   }
 
   .product-detail-top-layout {
-    @apply flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start lg:gap-8;
+    @apply flex flex-col gap-5 md:gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-5 lg:gap-y-6;
+  }
+
+  .product-detail-top-layout__intro {
+    @apply min-w-0 lg:col-start-1 lg:row-start-1;
+  }
+
+  .product-detail-top-layout__commerce {
+    @apply min-w-0 lg:col-start-2 lg:row-span-2 lg:row-start-1;
+  }
+
+  .product-detail-top-layout__details {
+    @apply min-w-0 lg:col-start-1 lg:row-start-2;
   }
 
   .product-detail-main {
-    @apply flex min-w-0 flex-col gap-6;
+    @apply flex min-w-0 flex-col gap-4 md:gap-6;
+  }
+
+  .product-detail-insight-panels {
+    @apply grid gap-4 md:grid-cols-2 lg:col-span-2 xl:grid-cols-3 lg:gap-6;
+  }
+
+  .product-detail-insight-panel {
+    @apply min-h-0;
   }
 
   .product-detail-hero-meta {
@@ -4335,19 +4360,19 @@
   }
 
   .product-detail-trust {
-    @apply rounded-heritage-xl border border-gold/15 bg-gradient-to-b from-matte-elevated/90 via-parchment/25 to-matte-elevated/90 p-4 shadow-heritage md:p-6;
+    @apply rounded-heritage-xl border border-gold/15 bg-gradient-to-b from-matte-elevated/90 via-parchment/25 to-matte-elevated/90 p-0 shadow-heritage;
   }
 
   .product-detail-hero-meta .product-detail-trust {
-    @apply mt-0 pt-6;
+    @apply mt-0 border-0 p-0;
   }
 
   .product-detail-trust__head {
-    @apply mb-4 border-b border-gold/10 pb-4 md:mb-5;
+    @apply mb-0 pb-4;
   }
 
   .product-detail-trust__title {
-    @apply font-display text-xl font-semibold text-ivory md:text-2xl;
+    @apply font-display text-lg font-semibold text-ivory sm:text-xl md:text-2xl;
   }
 
   .product-detail-trust__subtitle {
@@ -4387,23 +4412,87 @@
   }
 
   .product-detail-header {
-    @apply pb-6;
+    @apply pb-0;
   }
 
   .product-detail-side-panel {
-    @apply flex flex-col gap-6;
+    @apply flex flex-col gap-4 md:gap-6;
+  }
+
+  .product-detail-buybox {
+    @apply flex w-full flex-col overflow-hidden rounded-heritage-lg border border-gold/15 bg-matte shadow-hojreh lg:w-[300px] lg:max-w-[300px];
+  }
+
+  .product-detail-buybox__section {
+    @apply px-3.5 py-3.5 sm:px-4 sm:py-4 md:px-5 md:py-5;
+  }
+
+  .product-detail-buybox__section + .product-detail-buybox__section {
+    @apply border-t border-gold/10;
+  }
+
+  .product-detail-buybox__section.product-detail-buybox__price {
+    @apply pt-5 pb-0;
+  }
+
+  .product-detail-buybox__price .product-detail-price {
+    @apply mt-0 items-start;
+  }
+
+  .product-detail-buybox__price .product-detail-sales-stat {
+    @apply mt-3;
+  }
+
+  .product-detail-buybox__price .product-detail-discount-row {
+    @apply mt-3 flex w-full items-center gap-3;
+  }
+
+  .product-detail-buybox__price .product-detail-discount-countdown {
+    @apply mt-0 mb-0 shrink-0 self-auto text-left;
+  }
+
+  .product-detail-discount-percent {
+    @apply ms-auto shrink-0 text-xs font-semibold;
+  }
+
+  .product-detail-buybox__section.product-detail-buybox__actions {
+    @apply border-t-0;
+  }
+
+  .product-detail-buybox__actions .product-detail-actions {
+    @apply mt-0;
+  }
+
+  .product-detail-buybox__customization-panel {
+    @apply mt-0 rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .product-detail-buybox__availability .product-detail-section-title {
+    @apply mb-3 text-xs font-semibold text-silver;
+  }
+
+  .product-detail-buybox__availability .product-availability-panel {
+    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
+  }
+
+  .product-detail-buybox__availability .product-availability-delivery-row {
+    @apply mt-3 gap-3 rounded-none border-0 bg-transparent p-0;
   }
 
   .product-detail-side-panel .product-detail-price {
-    @apply mt-0 rounded-heritage-lg border border-gold/15 bg-matte-elevated/70 p-4 md:p-5;
+    @apply mt-0 flex flex-col items-start;
   }
 
   .product-detail-sales-stat {
     @apply mt-3;
   }
 
+  .product-detail-side-panel .product-detail-discount-row {
+    @apply mt-3 flex w-full items-center gap-3;
+  }
+
   .product-detail-side-panel .product-detail-discount-countdown {
-    @apply mt-3;
+    @apply mt-0 mb-0 self-auto text-left;
   }
 
   .product-detail-side-section {
@@ -4419,11 +4508,19 @@
   }
 
   .product-authenticity-card {
-    @apply items-center text-center;
+    @apply flex h-full flex-col items-center rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 text-center shadow-heritage;
+  }
+
+  .product-authenticity-card__title {
+    @apply font-display text-base font-semibold text-ivory;
   }
 
   .product-authenticity-subtitle {
     @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-authenticity-body {
+    @apply mt-3 flex flex-1 flex-col items-center justify-center;
   }
 
   .product-authenticity-piece {
@@ -4431,7 +4528,7 @@
   }
 
   .product-authenticity-qr-wrap {
-    @apply mt-3 inline-flex rounded-heritage border border-gold/15 bg-white/90 p-2;
+    @apply inline-flex rounded-heritage border border-gold/15 bg-white/90 p-2;
   }
 
   .product-authenticity-qr {
@@ -4443,7 +4540,7 @@
   }
 
   .product-authenticity-link {
-    @apply mt-3 inline-flex items-center justify-center rounded-heritage-pill border border-gold/30 bg-gold/10 px-4 py-2 text-xs font-medium text-gold-dark transition-colors hover:bg-gold/20;
+    @apply mt-auto inline-flex items-center justify-center rounded-heritage-pill border border-gold/30 bg-gold/10 px-4 py-2 pt-3 text-xs font-medium text-gold-dark transition-colors hover:bg-gold/20;
   }
 
   .product-back-in-stock-card {
@@ -4579,23 +4676,27 @@
   }
 
   .product-detail-title {
-    @apply mt-0 font-display text-xl font-semibold leading-tight text-ivory md:text-2xl lg:text-[1.625rem];
+    @apply mt-0 font-display text-lg font-semibold leading-snug text-ivory sm:text-xl md:text-2xl lg:text-[1.625rem];
   }
 
   .product-detail-meta {
-    @apply mt-4 flex flex-wrap items-center gap-x-4 gap-y-2;
+    @apply mb-0 mt-2 flex min-h-6 flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4;
   }
 
   .product-detail-price {
-    @apply mt-5 flex flex-col items-end;
+    @apply mt-0 flex flex-col items-start;
   }
 
   .product-detail-description {
-    @apply mt-6;
+    @apply mt-0;
+  }
+
+  .product-detail-header .product-detail-piece-number {
+    @apply mt-2;
   }
 
   .product-detail-intro-video {
-    @apply mt-4;
+    @apply mt-4 w-full;
   }
 
   .short-educational-video {
@@ -4628,10 +4729,14 @@
   }
 
   .product-content-brief {
+    @apply block;
+  }
+
+  .product-content-brief-body {
     @apply space-y-2.5;
   }
 
-  .product-content-brief--compact {
+  .product-content-brief--compact .product-content-brief-body {
     @apply space-y-2;
   }
 
@@ -4664,7 +4769,11 @@
   }
 
   .product-content-brief-view-more {
-    @apply mt-2;
+    @apply mt-4 flex items-center justify-center gap-4;
+  }
+
+  .product-content-brief-view-more-line {
+    @apply h-px grow border-0 bg-black/10;
   }
 
   .product-detail-section {
@@ -4676,15 +4785,11 @@
   }
 
   .product-detail-actions {
-    @apply mt-10 flex flex-col gap-3;
-  }
-
-  .product-detail-actions-secondary {
-    @apply grid grid-cols-1 gap-3 sm:grid-cols-2;
+    @apply mt-0 flex flex-col gap-3;
   }
 
   .product-detail-actions-btn {
-    @apply h-auto min-h-12 w-full whitespace-normal px-4 py-3 text-center leading-snug sm:px-5;
+    @apply h-auto min-h-11 w-full whitespace-normal px-4 py-3 text-center text-sm leading-snug sm:min-h-12 sm:px-5 sm:text-base;
   }
 
   .product-detail-actions-primary {
@@ -4712,15 +4817,17 @@
   }
 
   .product-detail-comments {
-    @apply mt-10 pt-0 md:mt-12 md:pt-0;
+    @apply pb-3;
   }
 
   .product-detail-section-nav {
-    @apply sticky top-[4.5rem] z-20 mt-0 border-y border-gold/10 bg-matte/95 py-2 backdrop-blur-md md:top-20;
+    @apply sticky z-20 mt-0 border-0 bg-matte/95 py-2 backdrop-blur-md;
+    top: var(--header-height);
+    scroll-margin-top: var(--header-height);
   }
 
   .product-detail-specs-content {
-    @apply pt-6;
+    @apply pt-0;
   }
 
   .product-detail-specs-content .product-specs {
@@ -4750,11 +4857,11 @@
   }
 
   .product-section-nav-list {
-    @apply flex gap-1 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+    @apply -mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [scroll-padding-inline:0.25rem] [scroll-snap-type:x_mandatory] [&::-webkit-scrollbar]:hidden;
   }
 
   .product-section-nav-btn {
-    @apply shrink-0 rounded-full border border-transparent px-4 py-2 text-sm text-silver transition-colors hover:text-ivory;
+    @apply min-h-11 shrink-0 scroll-mx-1 snap-start rounded-full border border-transparent px-4 py-2.5 text-sm text-silver transition-colors hover:text-ivory;
   }
 
   .product-section-nav-btn--active {
@@ -4762,14 +4869,14 @@
   }
 
   .product-detail-questions {
-    @apply mt-16 border-t border-gold/10 pt-16 md:mt-20 md:pt-20;
+    @apply mt-4 pb-3 md:mt-6 lg:mt-4;
   }
 
-  .product-detail-trust {
-    @apply mt-16 border-t border-gold/10 pt-10 md:mt-20 md:pt-12;
+  .sales-trust-strip.product-detail-trust {
+    @apply py-10 border-0;
   }
 
-  .product-detail-trust .site-container {
+  .sales-trust-strip.product-detail-trust .site-container {
     @apply px-0;
   }
 
@@ -4778,7 +4885,7 @@
   }
 
   .product-detail-related-title {
-    @apply mb-8 font-display text-2xl font-semibold text-ivory md:text-3xl;
+    @apply mb-5 font-display text-xl font-semibold text-ivory sm:mb-6 sm:text-2xl md:mb-8 md:text-3xl;
   }
 
   .product-detail-related-grid {
@@ -4786,19 +4893,7 @@
   }
 
   .product-smart-recommendations {
-    @apply mt-16 border-t border-gold/10 md:mt-20;
-  }
-
-  .product-smart-recommendations__head {
-    @apply mb-5 max-w-2xl;
-  }
-
-  .product-smart-recommendations__title {
-    @apply font-display text-2xl font-semibold text-ivory md:text-3xl;
-  }
-
-  .product-smart-recommendations__subtitle {
-    @apply mt-1 text-sm text-silver;
+    @apply mt-10;
   }
 
   .product-smart-recommendations__groups {
@@ -4822,7 +4917,7 @@
   }
 
   .product-smart-recommendations__grid {
-    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
+    @apply grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
   }
 
   .product-gallery {
@@ -4833,8 +4928,12 @@
     @apply flex flex-col gap-3;
   }
 
+  .product-gallery-main {
+    @apply relative flex items-start gap-1;
+  }
+
   .product-gallery-frame {
-    @apply relative aspect-[4/5] w-full overflow-hidden rounded-heritage-lg border border-gold/15 bg-matte-elevated shadow-hojreh sm:aspect-square;
+    @apply relative min-w-0 flex-1 aspect-[4/5] overflow-hidden rounded-heritage-lg border border-gold/15 bg-matte-elevated shadow-hojreh sm:aspect-square;
   }
 
   .product-gallery-slide {
@@ -4878,7 +4977,7 @@
   }
 
   .product-gallery-thumbs {
-    @apply flex gap-2 overflow-x-auto pb-1;
+    @apply hidden gap-2 overflow-x-auto pb-1 sm:flex;
     scroll-snap-type: x mandatory;
     scrollbar-width: thin;
   }
@@ -4893,57 +4992,195 @@
   }
 
   .product-media-actions {
-    @apply absolute start-3 top-3 z-30 flex flex-col items-start gap-2;
+    @apply relative z-30 shrink-0;
   }
 
   .product-media-actions-toolbar {
-    @apply flex flex-col gap-2;
+    @apply flex gap-0 self-end text-silver lg:flex-col lg:self-start lg:text-ivory;
   }
 
   .product-media-actions-btn {
-    @apply flex h-10 w-10 items-center justify-center rounded-full border border-gold/30 bg-white text-ivory transition-[background-color,border-color,box-shadow] hover:border-gold/45 hover:bg-parchment;
+    @apply flex h-11 w-11 min-h-11 min-w-11 items-center justify-center transition-colors hover:text-gold-dark;
   }
 
   .product-media-actions-btn--active {
-    @apply border-gold/55 bg-parchment shadow-[0_3px_14px_rgba(44,42,41,0.16)];
+    @apply text-gold;
   }
 
   .product-media-actions-toast {
     @apply max-w-[10rem] rounded-heritage border border-gold/20 bg-matte-elevated/95 px-2.5 py-1.5 text-[10px] leading-snug text-turquoise-dark shadow-hojreh;
   }
 
-  /* ——— نظرات محصول ——— */
+  /* ——— نظرات محصول (الگوی دیجی‌کالا) ——— */
 
   .product-reviews {
     @apply w-full;
   }
 
-  .product-reviews-header {
-    @apply mb-4 md:mb-5;
+  .product-reviews-section {
+    @apply w-full rounded-heritage-xl border border-gold/15 bg-white px-4 py-4 shadow-heritage
+           md:px-5 md:py-5 lg:px-6 lg:py-6;
+  }
+
+  .product-reviews-section-header {
+    @apply border-b border-gold/10 pb-3 md:pb-4;
   }
 
   .product-reviews-title {
-    @apply font-display text-xl font-semibold text-ivory md:text-2xl;
+    @apply font-display text-base font-semibold text-ivory md:text-lg;
   }
 
-  .product-reviews-subtitle {
-    @apply mt-1 max-w-2xl text-xs leading-relaxed text-silver md:text-sm;
+  .product-reviews-layout {
+    @apply relative grid gap-5 pt-4 md:gap-6 md:pt-5
+           lg:grid-cols-[minmax(0,11.5rem)_minmax(0,1fr)] lg:gap-8 lg:pt-6;
+  }
+
+  .product-reviews-summary {
+    @apply relative m-0 min-h-0 lg:col-start-1 lg:row-start-1;
+  }
+
+  .product-reviews-summary-sticky {
+    @apply flex flex-col gap-0 border-b border-gold/10 pb-4 lg:border-b-0 lg:pb-0;
+  }
+
+  .product-reviews-summary-sticky--bottom {
+    @apply absolute bottom-0 start-0;
+  }
+
+  .product-reviews-main {
+    @apply min-w-0 lg:col-start-2;
+  }
+
+  .product-reviews-distribution {
+    @apply border-b border-gold/10 pb-4 md:pb-5;
+  }
+
+  .product-reviews-score-block {
+    @apply flex flex-col items-center text-center sm:items-start sm:text-start;
+  }
+
+  .product-reviews-score-block--compact {
+    @apply items-start text-start;
+  }
+
+  .product-reviews-score-block--compact .product-reviews-score-row {
+    @apply justify-start;
+  }
+
+  .product-reviews-score-block--compact .product-reviews-score-value {
+    @apply text-3xl md:text-[2.125rem];
+  }
+
+  .product-reviews-score-block--compact .product-reviews-score-meta {
+    @apply mt-2;
+  }
+
+  .product-reviews-score-block--compact .product-reviews-score-stars-row {
+    @apply mt-2 w-full justify-start;
+  }
+
+  .product-reviews-score-row {
+    @apply flex items-end justify-center gap-1 sm:justify-start;
+  }
+
+  .product-reviews-score-value {
+    @apply font-display text-4xl font-bold leading-none text-ivory md:text-[2.75rem];
+  }
+
+  .product-reviews-score-suffix {
+    @apply pb-1 text-xs font-medium text-silver;
+  }
+
+  .product-reviews-score-stars {
+    @apply mt-1.5 justify-center sm:justify-start;
+  }
+
+  .product-reviews-score-meta {
+    @apply mt-1.5 text-[11px] leading-snug text-silver;
+  }
+
+  .product-reviews-score-sub {
+    @apply mt-0.5 text-[10px] text-silver/80;
+  }
+
+  .product-reviews-bars-block {
+    @apply min-w-0 space-y-1.5 sm:col-span-1 lg:col-span-1;
+  }
+
+  .product-reviews-bars-block--empty {
+    @apply flex min-h-[6rem] items-center justify-center rounded-heritage border border-dashed border-gold/15 bg-parchment/20 px-4 py-3 text-center;
+  }
+
+  .product-reviews-bars-empty {
+    @apply text-xs leading-relaxed text-silver;
+  }
+
+  .product-reviews-cta {
+    @apply flex flex-col items-stretch gap-2.5 text-start;
+  }
+
+  .product-reviews-summary .product-reviews-cta {
+    @apply mt-1 gap-3;
+  }
+
+  .product-reviews-cta-text {
+    @apply text-xs leading-relaxed text-silver;
+  }
+
+  .product-reviews-cta-btn {
+    @apply w-full shrink-0 border-gold/30 px-4 text-sm font-medium text-ivory hover:border-gold/50 hover:bg-gold/5;
+  }
+
+  .product-reviews-media-strip {
+    @apply border-b border-gold/10 py-3 md:py-4;
+  }
+
+  .product-reviews-media-strip-header {
+    @apply mb-3 flex items-center justify-between gap-3;
+  }
+
+  .product-reviews-media-strip-title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .product-reviews-media-strip-more {
+    @apply shrink-0 text-xs font-medium text-turquoise-dark transition-colors hover:text-turquoise;
+  }
+
+  .product-reviews-media-strip-track {
+    @apply flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+  }
+
+  .product-reviews-media-item {
+    @apply relative h-20 w-20 shrink-0 overflow-hidden rounded-heritage border border-gold/15 bg-black/10 md:h-24 md:w-24;
+  }
+
+  .product-reviews-media-video {
+    @apply h-full w-full object-cover;
+  }
+
+  .product-reviews-media-play {
+    @apply pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20;
+  }
+
+  .product-reviews-media-play-icon {
+    @apply block h-0 w-0 border-y-[7px] border-y-transparent border-s-[12px] border-s-white/95;
+  }
+
+  .product-reviews-body {
+    @apply pt-4 md:pt-5 lg:pt-0;
+  }
+
+  .product-reviews-body-header {
+    @apply mb-3 flex flex-wrap items-center justify-between gap-2;
+  }
+
+  .product-reviews-body-title {
+    @apply text-sm font-semibold text-ivory md:text-base;
   }
 
   .product-reviews-count {
     @apply mt-2 text-xs font-medium text-turquoise-dark;
-  }
-
-  .product-reviews-layout {
-    @apply grid gap-4 lg:grid-cols-[minmax(0,15rem)_1fr] lg:items-start lg:gap-5 xl:grid-cols-[minmax(0,16rem)_1fr];
-  }
-
-  .product-reviews-aside {
-    @apply lg:sticky lg:top-24 lg:self-start;
-  }
-
-  .product-reviews-main {
-    @apply min-w-0;
   }
 
   .product-review-summary {
@@ -4974,22 +5211,6 @@
     @apply mt-2.5 rounded-heritage border border-turquoise/20 bg-turquoise/5 px-2.5 py-1.5 text-[11px] leading-snug text-turquoise-dark;
   }
 
-  .product-review-dimensions {
-    @apply mb-2 mt-2.5 grid grid-cols-2 gap-1.5;
-  }
-
-  .product-review-dimension-item {
-    @apply rounded-heritage border border-gold/10 bg-parchment/20 px-2 py-1.5;
-  }
-
-  .product-review-dimension-label {
-    @apply block text-[10px] text-silver;
-  }
-
-  .product-review-dimension-value {
-    @apply mt-0.5 block text-xs font-semibold text-ivory tabular-nums;
-  }
-
   .product-review-summary-bars {
     @apply mt-2.5 space-y-1;
   }
@@ -5003,7 +5224,7 @@
   }
 
   .product-review-summary-bar-track {
-    @apply h-1 overflow-hidden rounded-full bg-parchment/60;
+    @apply h-1.5 overflow-hidden rounded-full bg-parchment/70;
   }
 
   .product-review-summary-bar-fill {
@@ -5015,11 +5236,11 @@
   }
 
   .product-reviews-toolbar {
-    @apply mb-3 flex flex-col gap-2 border-b border-gold/10 pb-3 sm:flex-row sm:items-center sm:justify-between;
+    @apply mb-3 flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between;
   }
 
   .product-reviews-toolbar-count {
-    @apply text-sm font-medium text-ivory;
+    @apply text-xs text-silver;
   }
 
   .product-reviews-sort {
@@ -5035,11 +5256,103 @@
   }
 
   .product-reviews-sort-btn {
-    @apply rounded-full border border-gold/15 bg-matte-elevated/80 px-3 py-1.5 text-xs text-silver transition-colors hover:border-gold/30 hover:text-ivory;
+    @apply rounded-full border border-gold/15 bg-white/70 px-3 py-1.5 text-xs text-silver transition-colors hover:border-gold/30 hover:text-ivory;
   }
 
   .product-reviews-sort-btn--active {
     @apply border-gold/40 bg-gold/10 text-ivory;
+  }
+
+  .product-comment-form-modal .product-comment-form {
+    @apply mt-3 gap-4 md:gap-y-4;
+  }
+
+  .product-comment-form-product-header {
+    @apply mb-3 flex items-start gap-3;
+  }
+
+  .product-comment-form-product-image {
+    @apply relative h-20 w-20 shrink-0 overflow-hidden rounded-heritage border border-gold/15 bg-parchment/30;
+  }
+
+  .product-comment-form-product-copy {
+    @apply min-w-0 flex-1;
+  }
+
+  .product-comment-form-product-name {
+    @apply mb-1 font-display text-sm font-semibold leading-snug text-ivory md:text-base;
+  }
+
+  .product-comment-form-modal .product-comment-form-hint {
+    @apply mt-0 text-[11px] leading-snug text-silver;
+  }
+
+  .product-comment-publish-select {
+    @apply relative;
+  }
+
+  .product-comment-publish-select-trigger {
+    @apply mt-1 flex w-full items-center justify-between gap-3 rounded-heritage border border-gold/15 bg-white px-3 py-2.5 text-start transition-colors hover:border-gold/30;
+  }
+
+  .product-comment-publish-select-trigger--open {
+    @apply rounded-b-none border-b-transparent border-turquoise/35 ring-2 ring-turquoise/10;
+  }
+
+  .product-comment-publish-select-trigger-text {
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  .product-comment-publish-select-title {
+    @apply text-sm font-semibold text-ivory;
+  }
+
+  .product-comment-publish-select-subtitle {
+    @apply text-[11px] text-silver;
+  }
+
+  .product-comment-publish-select-chevron {
+    @apply shrink-0 text-silver transition-transform duration-200;
+  }
+
+  .product-comment-publish-select-chevron--open {
+    @apply rotate-180;
+  }
+
+  .product-comment-publish-select-menu {
+    @apply overflow-hidden rounded-b-heritage border border-gold/15 bg-white shadow-heritage;
+  }
+
+  .product-comment-publish-select-menu--portal {
+    @apply pointer-events-auto rounded-b-heritage border-t-0;
+  }
+
+  .product-comment-publish-select-option {
+    @apply flex w-full items-center justify-between gap-3 border-t border-gold/10 px-3 py-2.5 text-start transition-colors first:border-t-0 hover:bg-parchment/40;
+  }
+
+  .product-comment-publish-select-option--active {
+    @apply bg-gold/5;
+  }
+
+  .product-comment-publish-select-option-text {
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  .product-comment-form-modal .product-comment-success {
+    @apply mt-0;
+  }
+
+  .product-reviews-form-panel {
+    @apply mt-4 rounded-heritage-xl border border-gold/15 bg-parchment/25 p-4 shadow-heritage md:mt-5 md:p-5;
+  }
+
+  .product-reviews-form-panel-header {
+    @apply flex items-start justify-between gap-3;
+  }
+
+  .product-reviews-form-close {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/15 text-lg leading-none text-silver transition-colors hover:border-gold/30 hover:text-ivory;
   }
 
   .product-rating {
@@ -5072,6 +5385,7 @@
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   .product-sales-stat {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
@@ -5190,15 +5504,15 @@
 
 
   .product-comments-list {
-    @apply space-y-3;
+    @apply divide-y divide-gold/10;
   }
 
   .product-comment-card {
-    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/90 p-4 shadow-heritage transition-shadow hover:shadow-hojreh;
+    @apply py-4 md:py-5;
   }
 
   .product-comment-card-header {
-    @apply mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-gold/10 pb-3;
+    @apply mb-2.5 flex flex-wrap items-start justify-between gap-3;
   }
 
   .product-comment-author {
@@ -5243,14 +5557,6 @@
 
   .product-comment-media video {
     @apply h-full w-full object-cover;
-  }
-
-  .product-comment-dimensions {
-    @apply mt-4 flex flex-wrap gap-2 border-t border-gold/10 pt-3;
-  }
-
-  .product-comment-dimension-chip {
-    @apply inline-flex items-center rounded-full border border-gold/20 bg-parchment/30 px-2.5 py-1 text-[11px] text-silver;
   }
 
   .product-comments-empty {
@@ -5302,7 +5608,7 @@
   }
 
   .product-comment-form {
-    @apply mt-3 grid gap-3 md:grid-cols-2 md:gap-x-4 md:gap-y-3;
+    @apply mt-3 grid gap-4 md:grid-cols-2 md:gap-x-4 md:gap-y-4;
   }
 
   .product-comment-form-full {
@@ -5314,11 +5620,7 @@
   }
 
   .product-comment-rating-field {
-    @apply rounded-heritage border border-gold/10 bg-matte/50 px-2.5 py-1.5;
-  }
-
-  .product-comment-dimension-grid {
-    @apply grid grid-cols-2 gap-2 lg:grid-cols-4;
+    @apply rounded-heritage border border-gold/10 bg-matte/50 px-3 py-2;
   }
 
   .product-comment-media-type-row {
@@ -5357,66 +5659,116 @@
     @apply mt-3 text-sm font-medium text-turquoise-dark underline-offset-4 hover:text-turquoise hover:underline;
   }
 
-  /* ——— پرسش‌های محصول ——— */
+  /* ——— پرسش‌های محصول (الگوی دیجی‌کالا) ——— */
 
   .product-questions {
     @apply w-full;
   }
 
-  .product-questions-header {
-    @apply mb-8 md:mb-10;
+  .product-questions-section {
+    @apply w-full rounded-heritage-xl border border-gold/15 bg-white px-4 py-4 shadow-heritage
+           md:px-5 md:py-5 lg:px-6 lg:py-6;
+  }
+
+  .product-questions-section-header {
+    @apply border-b border-gold/10 pb-3 md:pb-4;
   }
 
   .product-questions-title {
-    @apply font-display text-2xl font-semibold text-ivory md:text-3xl;
-  }
-
-  .product-questions-subtitle {
-    @apply mt-2 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
+    @apply font-display text-base font-semibold text-ivory md:text-lg;
   }
 
   .product-questions-layout {
-    @apply grid gap-8 lg:grid-cols-[minmax(0,20rem)_1fr] lg:gap-10 xl:grid-cols-[minmax(0,22rem)_1fr] xl:gap-12;
+    @apply relative grid gap-5 pt-4 md:gap-6 md:pt-5
+           lg:grid-cols-[minmax(0,11.5rem)_minmax(0,1fr)] lg:gap-8 lg:pt-6;
   }
 
-  .product-questions-aside {
-    @apply flex flex-col gap-6;
+  .product-questions-summary {
+    @apply relative m-0 min-h-0 lg:col-start-1 lg:row-start-1;
+  }
+
+  .product-questions-summary-sticky {
+    @apply flex flex-col gap-0 border-b border-gold/10 pb-4 lg:border-b-0 lg:pb-0;
+  }
+
+  .product-questions-summary-sticky--bottom {
+    @apply absolute bottom-0 start-0;
+  }
+
+  .product-questions-summary .product-reviews-cta {
+    @apply mt-0 gap-3;
   }
 
   .product-questions-main {
-    @apply min-w-0;
+    @apply min-w-0 lg:col-start-2;
+  }
+
+  .product-questions-body {
+    @apply pt-0;
   }
 
   .product-questions-toolbar {
-    @apply mb-5 flex flex-col gap-3 border-b border-gold/10 pb-4 sm:flex-row sm:items-center sm:justify-between;
+    @apply mb-3 flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between;
   }
 
   .product-questions-toolbar-count {
-    @apply text-sm font-medium text-ivory;
+    @apply text-xs text-silver;
   }
 
   .product-questions-list {
-    @apply space-y-4;
+    @apply divide-y divide-gold/10;
   }
 
-  .product-question-form-wrap {
-    @apply rounded-heritage-lg border border-gold/15 bg-parchment/25 p-5 shadow-heritage md:p-6;
+  .product-question-form-modal .product-question-form {
+    @apply mt-3 gap-4 md:gap-y-4;
   }
 
-  .product-question-form-title {
-    @apply font-display text-lg font-medium text-ivory;
+  .product-question-form-product-header {
+    @apply mb-6 flex items-start gap-3;
+  }
+
+  .product-question-form-product-image {
+    @apply relative h-20 w-20 shrink-0 overflow-hidden rounded-heritage border border-gold/15 bg-parchment/30;
+  }
+
+  .product-question-form-product-copy {
+    @apply min-w-0 flex-1;
+  }
+
+  .product-question-form-product-name {
+    @apply text-sm font-medium leading-snug text-ivory;
+  }
+
+  .product-question-form-modal .product-question-form-hint {
+    @apply mt-1 text-xs leading-relaxed text-silver;
+  }
+
+  .product-question-answer-modal-context {
+    @apply mb-4 rounded-heritage border border-gold/10 bg-parchment/20 px-4 py-3;
+  }
+
+  .product-question-answer-modal-label {
+    @apply text-[11px] font-medium text-silver;
+  }
+
+  .product-question-answer-modal-question {
+    @apply mt-1.5 text-sm font-medium leading-relaxed text-ivory;
   }
 
   .product-question-form-hint {
-    @apply mt-2 text-xs leading-relaxed text-silver;
+    @apply text-xs leading-relaxed text-silver;
   }
 
   .product-question-form {
-    @apply mt-5 space-y-5;
+    @apply space-y-4;
+  }
+
+  .product-question-form-actions {
+    @apply flex justify-end pt-1;
   }
 
   .product-question-success {
-    @apply mt-4 rounded-heritage border border-turquoise/25 bg-turquoise/5 px-4 py-4 text-sm leading-relaxed text-turquoise-dark;
+    @apply rounded-heritage border border-turquoise/25 bg-turquoise/5 px-4 py-4 text-sm leading-relaxed text-turquoise-dark;
   }
 
   .product-question-success-action {
@@ -5424,35 +5776,47 @@
   }
 
   .product-questions-empty {
-    @apply flex min-h-[16rem] flex-col items-center justify-center rounded-heritage-lg border border-dashed border-gold/20 bg-parchment/20 px-6 py-12 text-center;
+    @apply flex min-h-[8rem] flex-col items-center justify-center rounded-heritage-lg border border-dashed border-gold/20 bg-parchment/20 px-4 py-6 text-center;
   }
 
-  .product-questions-empty-title {
-    @apply font-display text-xl text-ivory;
+  .product-questions-empty.unified-empty-state {
+    @apply max-w-none border-dashed px-4 py-5 shadow-none md:px-5 md:py-6;
   }
 
-  .product-questions-empty-text {
-    @apply mt-2 max-w-md text-sm leading-relaxed text-silver;
+  .product-questions-empty .unified-empty-state__visual {
+    @apply mb-2 h-20 max-w-[140px];
+  }
+
+  .product-questions-empty .unified-empty-state__title {
+    @apply text-base font-medium;
+  }
+
+  .product-questions-empty .unified-empty-state__desc {
+    @apply mt-1 text-xs leading-snug;
   }
 
   .product-question-card {
-    @apply rounded-heritage-lg border border-gold/15 bg-matte-elevated/80 p-5 shadow-heritage md:p-6;
+    @apply py-4 md:py-5;
+  }
+
+  .product-question-card-top {
+    @apply flex flex-wrap items-start justify-between gap-3;
   }
 
   .product-question-body {
-    @apply text-base leading-relaxed text-ivory;
-  }
-
-  .product-question-meta {
-    @apply mt-2 text-xs text-silver;
+    @apply min-w-0 flex-1 text-sm font-medium leading-relaxed text-ivory md:text-[0.9375rem];
   }
 
   .product-question-answers {
-    @apply mt-5 space-y-4 border-t border-gold/10 pt-5;
+    @apply mt-4 space-y-3;
   }
 
   .product-question-answer {
-    @apply me-0 ms-4 border-s-2 border-gold/20 ps-4;
+    @apply rounded-heritage border border-gold/10 bg-parchment/20 p-3 md:p-4;
+  }
+
+  .product-question-answer--official {
+    @apply border-turquoise/20 bg-turquoise/5;
   }
 
   .product-question-answer-header {
@@ -5468,7 +5832,7 @@
   }
 
   .product-question-answer-body {
-    @apply mt-2 text-sm leading-relaxed text-silver;
+    @apply mt-2 text-sm leading-[1.75] text-silver;
   }
 
   .product-question-answer-date {
@@ -5480,11 +5844,11 @@
   }
 
   .product-question-answer-cta {
-    @apply mt-4 text-sm font-medium text-gold transition-colors hover:text-gold-dark;
+    @apply shrink-0 text-sm font-medium text-turquoise-dark transition-colors hover:text-turquoise;
   }
 
   .product-question-answer-form {
-    @apply mt-4 space-y-4 border-t border-gold/10 pt-4;
+    @apply mt-4 space-y-4 rounded-heritage border border-gold/10 bg-parchment/10 p-4;
   }
 
   .product-question-answer-form-actions {
@@ -5492,11 +5856,11 @@
   }
 
   .product-question-answer-pending {
-    @apply mt-4 text-xs leading-relaxed text-turquoise-dark;
+    @apply mt-3 text-xs leading-relaxed text-turquoise-dark;
   }
 
   .product-questions-pagination {
-    @apply mt-8;
+    @apply mt-6 md:mt-8;
   }
 
   /* ——— مدیریت نظرات (ادمین) ——— */
@@ -8464,17 +8828,13 @@
 /* دکمه‌های ناوبری اسلایدر — استثنا از حذف سراسری سایه */
 .product-rail-nav-btn,
 .home-banner-nav-btn,
-.product-gallery-nav,
-.product-gallery-zoom,
-.product-media-actions-btn {
+.product-gallery-nav {
   box-shadow: 0 2px 12px rgba(44, 42, 41, 0.14) !important;
 }
 
 .product-rail-nav-btn:hover:not(:disabled),
 .home-banner-nav-btn:hover:not(:disabled),
-.product-gallery-nav:hover:not(:disabled),
-.product-gallery-zoom:hover,
-.product-media-actions-btn:hover {
+.product-gallery-nav:hover:not(:disabled) {
   box-shadow: 0 4px 16px rgba(44, 42, 41, 0.18) !important;
 }
 

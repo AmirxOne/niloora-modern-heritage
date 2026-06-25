@@ -7,20 +7,19 @@ import Link from "next/link";
 import { ProductPriceDisplay } from "@/components/product/ProductPriceDisplay";
 import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
+import { getProductPricing } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
 import type { ProductPagePayload } from "@/lib/server/products/product-page";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductBreadcrumb } from "@/components/product/ProductBreadcrumb";
-import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { Button } from "@/components/ui/Button";
 import { ProductAvailabilityPanel } from "@/components/product/ProductAvailabilityPanel";
 import { isProductPurchasable } from "@/lib/products/purchasability";
 import { getProductStatusConfig } from "@/lib/product-status";
 import { ProductComments } from "@/components/product/ProductComments";
 import { ProductQuestions } from "@/components/product/ProductQuestions";
-import { ProductSectionNav, scrollToProductSection } from "@/components/product/ProductSectionNav";
+import { ProductSectionNav, scrollToProductSectionNav } from "@/components/product/ProductSectionNav";
 import { SalesTrustStrip } from "@/components/commerce/SalesTrustStrip";
-import { ProductCompareButton } from "@/components/product/ProductCompareButton";
 import { DiscountCountdown } from "@/components/commerce/DiscountCountdown";
 import { ProductRating } from "@/components/product/ProductRating";
 import { ProductSalesCount } from "@/components/product/ProductSalesCount";
@@ -45,6 +44,7 @@ import { toast } from "sonner";
 import { trackFunnelEvent } from "@/lib/analytics/client";
 import { RingCustomizationEditor } from "@/components/cart/RingCustomizationEditor";
 import { ProductDetailTrustCards } from "@/components/product/ProductDetailTrustCards";
+import { ProductPageSkeleton } from "@/components/product/ProductPageSkeleton";
 
 type Props = {
   productId: string;
@@ -54,13 +54,11 @@ type Props = {
 function applyPayload(
   payload: ProductPagePayload,
   setProduct: (p: Product) => void,
-  setRelated: (r: Product[]) => void,
   setVendorProducts: (r: Product[]) => void,
   setSmartRecommendations: (r: ProductPagePayload["smartRecommendations"]) => void,
   setActiveBundles: (r: ProductPagePayload["activeBundles"]) => void
 ) {
   setProduct(payload.product);
-  setRelated(payload.related);
   setVendorProducts(payload.vendorProducts);
   setSmartRecommendations(payload.smartRecommendations);
   setActiveBundles(payload.activeBundles);
@@ -69,7 +67,6 @@ function applyPayload(
 export function ProductPageClient({ productId, initialPayload }: Props) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(initialPayload?.product ?? null);
-  const [related, setRelated] = useState<Product[]>(initialPayload?.related ?? []);
   const [vendorProducts, setVendorProducts] = useState<Product[]>(
     initialPayload?.vendorProducts ?? []
   );
@@ -103,7 +100,6 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
       applyPayload(
         payload,
         setProduct,
-        setRelated,
         setVendorProducts,
         setSmartRecommendations,
         setActiveBundles
@@ -152,39 +148,11 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   }
 
   if (isLoading || !product) {
-    return (
-      <div className="site-container py-16" aria-busy="true">
-        <div className="product-detail-grid">
-          <div className="product-detail-media">
-            <div className="sk aspect-[4/5] w-full rounded-heritage" />
-          </div>
-          <div className="product-detail-info">
-            <header className="product-detail-header">
-              <div className="sk h-3 w-28" />
-              <div className="sk mt-3 h-3 w-44" />
-              <div className="sk mt-2 h-7 w-72 max-w-full" />
-              <div className="sk mt-4 h-3 w-36" />
-              <div className="sk mt-5 h-6 w-40" />
-            </header>
-            <div className="product-detail-section space-y-2">
-              <div className="sk h-3 w-full" />
-              <div className="sk h-3 w-11/12" />
-              <div className="sk h-3 w-9/12" />
-            </div>
-            <div className="product-detail-actions">
-              <div className="sk h-12 w-full rounded-heritage" />
-              <div className="product-detail-actions-secondary">
-                <div className="sk h-12 w-full rounded-heritage" />
-                <div className="sk h-12 w-full rounded-heritage" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <ProductPageSkeleton />;
   }
 
   const displayName = getProductDisplayName(product);
+  const pricing = getProductPricing(product);
   const pieceCode = resolvePieceCode(product);
   const images = product.images && product.images.length > 0 ? product.images : [product.image];
   const status = getProductStatusConfig(product.availability);
@@ -243,16 +211,22 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         <div className="product-detail-grid">
           <div className="product-detail-media">
             <ProductGallery images={images} name={displayName} productId={product.id} />
-            <ProductStoneInsight product={product} className="product-detail-stone-insight" />
           </div>
 
           <div className="product-detail-info">
             <div className="product-detail-top-layout">
-              <div className="product-detail-main">
-                <header className="product-detail-header">
+              <header className="product-detail-header product-detail-top-layout__intro">
                 <h1 className="product-detail-title">{displayName}</h1>
                 <div className="product-detail-meta">
-                  <ProductRating productId={product.id} size="md" />
+                  <ProductRating
+                    productId={product.id}
+                    size="md"
+                    initialApproved={
+                      initialPayload?.product.id === product.id
+                        ? initialPayload.approvedComments
+                        : undefined
+                    }
+                  />
                   <ProductSalesCount productId={product.id} />
                 </div>
                 <PieceNumber
@@ -260,116 +234,112 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                   variant="card"
                   className="product-detail-piece-number"
                 />
-                <ProductContentBrief listing={product.listing} className="product-detail-description" />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="product-content-brief-view-more w-full"
-                  onClick={() => scrollToProductSection("product-section-specs")}
-                  aria-label={fa.product.viewMoreSpecsAria}
-                >
-                  {fa.product.viewMore}
-                </Button>
-                {product.introVideoUrl ? (
-                  <ProductIntroVideo
-                    url={product.introVideoUrl}
-                    title={displayName}
-                    className="product-detail-intro-video"
-                  />
-                ) : null}
-                </header>
+              </header>
 
-                <ProductArtisansPanel product={product} className="product-detail-artisans-panel" />
-              </div>
+              <aside className="product-detail-side-panel product-detail-top-layout__commerce">
+                <div className="product-detail-buybox" data-testid="buy-box">
+                  <div className="product-detail-buybox__section product-detail-buybox__price">
+                    <div className="product-detail-price">
+                      <ProductPriceDisplay product={product} size="lg" layout="stack" showBadge={false} />
+                      {pricing.hasProductFurooh || product.discountEndsAt ? (
+                        <div className="product-detail-discount-row" dir="ltr">
+                          {product.discountEndsAt ? (
+                            <DiscountCountdown
+                              productId={product.id}
+                              endsAt={product.discountEndsAt}
+                              className="product-detail-discount-countdown"
+                            />
+                          ) : null}
+                          {pricing.hasProductFurooh ? (
+                            <span
+                              className="furooh-badge product-detail-discount-percent"
+                              aria-label={fa.bahakahi.percentOff(pricing.furoohPercent)}
+                            >
+                              {fa.bahakahi.cardTag(pricing.furoohPercent)}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
 
-              <aside className="product-detail-side-panel">
-                <div className="product-detail-price">
-                  <ProductPriceDisplay product={product} size="lg" layout="stack" />
-                  <DiscountCountdown
-                    productId={product.id}
-                    endsAt={product.discountEndsAt}
-                    className="product-detail-discount-countdown"
-                  />
-                </div>
+                    <ProductSalesStat
+                      productId={product.id}
+                      className="product-detail-sales-stat"
+                    />
+                  </div>
 
-                <ProductSalesStat
-                  productId={product.id}
-                  className="product-detail-sales-stat"
-                />
+                  <div className="product-detail-buybox__section product-detail-buybox__actions">
+                    <div className="product-detail-actions">
+                      <Button
+                        size="lg"
+                        className="product-detail-actions-primary product-detail-actions-btn"
+                        disabled={!canAddToCart && !isRemakeRequest}
+                        onClick={handlePrimaryAction}
+                      >
+                        {canAddToCart || isRemakeRequest ? (
+                          status.addToCartLabel
+                        ) : (
+                          fa.commerce.quickAddSoldOut
+                        )}
+                      </Button>
+                    </div>
+                  </div>
 
-                <div className="product-detail-actions">
-                  <Button
-                    size="lg"
-                    className="product-detail-actions-primary product-detail-actions-btn"
-                    disabled={!canAddToCart && !isRemakeRequest}
-                    onClick={handlePrimaryAction}
-                  >
-                    {canAddToCart || isRemakeRequest ? (
-                      <>
-                        <span className="md:hidden">{status.addToCartLabel}</span>
-                        <span className="hidden md:inline">{status.addToCartLabel}</span>
-                      </>
+                  <div className="product-detail-buybox__section product-detail-buybox__customization">
+                    {productCartItem ? (
+                      <RingCustomizationEditor
+                        item={productCartItem}
+                        className="product-detail-buybox__customization-panel"
+                        onClear={() => {
+                          const previousDelta =
+                            productCartItem.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
+                          if (!previousDelta) {
+                            cart.updateRingCustomization(productCartItem.id, {
+                              price: productCartItem.price,
+                              listPrice: productCartItem.listPrice,
+                              ringPurchaseCustomization: undefined,
+                            });
+                            return;
+                          }
+                          const basePrice = productCartItem.price - previousDelta;
+                          const baseList =
+                            (productCartItem.listPrice ?? productCartItem.price) - previousDelta;
+                          cart.updateRingCustomization(productCartItem.id, {
+                            price: basePrice,
+                            listPrice: baseList,
+                            ringPurchaseCustomization: undefined,
+                          });
+                        }}
+                      />
                     ) : (
-                      fa.commerce.quickAddSoldOut
+                      <div className="product-detail-buybox__customization-panel">
+                        <div className="grid gap-0.5">
+                          <p className="text-xs font-semibold text-ivory">شخصی‌سازی انگشتر</p>
+                          <p className="text-[11px] text-silver">
+                            برای حکاکی و قلم‌کاری اختصاصی، وارد مرحله شخصی‌سازی شوید.
+                          </p>
+                        </div>
+                        <div className="mt-2.5">
+                          <Link href={`/customize?productId=${encodeURIComponent(product.id)}`} className="block w-full">
+                            <Button size="sm" variant="outline" className="w-full">
+                              شخصی‌سازی
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
                     )}
-                  </Button>
-                  <div className="product-detail-actions-secondary">
-                    <ProductCompareButton productId={product.id} variant="detail" />
                   </div>
+
+                  <section
+                    className="product-detail-buybox__section product-detail-buybox__availability"
+                    aria-labelledby="product-availability-heading"
+                  >
+                    <h2 id="product-availability-heading" className="product-detail-section-title">
+                      {fa.product.availabilityTitle}
+                    </h2>
+                    <ProductAvailabilityPanel availability={product.availability} />
+                  </section>
                 </div>
-
-                {productCartItem ? (
-                  <RingCustomizationEditor
-                    item={productCartItem}
-                    className="mt-0"
-                    onClear={() => {
-                      const previousDelta =
-                        productCartItem.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
-                      if (!previousDelta) {
-                        cart.updateRingCustomization(productCartItem.id, {
-                          price: productCartItem.price,
-                          listPrice: productCartItem.listPrice,
-                          ringPurchaseCustomization: undefined,
-                        });
-                        return;
-                      }
-                      const basePrice = productCartItem.price - previousDelta;
-                      const baseList =
-                        (productCartItem.listPrice ?? productCartItem.price) - previousDelta;
-                      cart.updateRingCustomization(productCartItem.id, {
-                        price: basePrice,
-                        listPrice: baseList,
-                        ringPurchaseCustomization: undefined,
-                      });
-                    }}
-                  />
-                ) : (
-                  <div className="mt-3 rounded-heritage border border-gold/15 bg-gradient-to-br from-parchment/35 to-parchment/15 p-3">
-                    <div className="grid gap-0.5">
-                      <p className="text-xs font-semibold text-ivory">شخصی‌سازی انگشتر</p>
-                      <p className="text-[11px] text-silver">
-                        برای حکاکی و قلم‌کاری اختصاصی، وارد مرحله شخصی‌سازی شوید.
-                      </p>
-                    </div>
-                    <div className="mt-2.5">
-                      <Link href={`/customize?productId=${encodeURIComponent(product.id)}`} className="block w-full">
-                        <Button size="sm" variant="outline" className="w-full">
-                          شخصی‌سازی خرید
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                <section className="product-detail-side-section" aria-labelledby="product-availability-heading">
-                  <h2 id="product-availability-heading" className="product-detail-section-title">
-                    {fa.product.availabilityTitle}
-                  </h2>
-                  <ProductAvailabilityPanel availability={product.availability} />
-                </section>
-
-                <ProductAuthenticityCard product={product} />
 
                 <ProductVendorPanel product={product} />
                 <ProductBundleOffersPanel
@@ -379,10 +349,31 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                 />
                 <BackInStockAlertCard product={product} />
               </aside>
+
+              <div className="product-detail-main product-detail-top-layout__details">
+                <ProductContentBrief
+                  listing={product.listing}
+                  className="product-detail-description"
+                  onViewMore={() => scrollToProductSectionNav()}
+                />
+                {product.introVideoUrl ? (
+                  <ProductIntroVideo
+                    url={product.introVideoUrl}
+                    title={displayName}
+                    className="product-detail-intro-video"
+                  />
+                ) : null}
+              </div>
             </div>
 
             <div id="product-section-intro" />
 
+          </div>
+
+          <div className="product-detail-insight-panels">
+            <ProductStoneInsight product={product} className="product-detail-insight-panel" />
+            <ProductArtisansPanel product={product} className="product-detail-insight-panel" />
+            <ProductAuthenticityCard product={product} className="product-detail-insight-panel" />
           </div>
 
           <div className="product-detail-hero-meta">
@@ -407,24 +398,31 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         <SalesTrustStrip variant="dense" className="product-detail-trust" />
 
         <section id="product-section-comments" className="product-detail-comments">
-          <ProductComments productId={product.id} />
+          <ProductComments
+            productId={product.id}
+            productName={product.namePersian?.trim() || product.name}
+            productImage={product.images?.[0] ?? product.image}
+            initialApproved={
+              initialPayload?.product.id === product.id ? initialPayload.approvedComments : undefined
+            }
+          />
         </section>
 
         <section id="product-section-questions" className="product-detail-questions">
-          <ProductQuestions productId={product.id} />
+          <ProductQuestions
+            productId={product.id}
+            productName={product.namePersian?.trim() || product.name}
+            productImage={product.images?.[0] ?? product.image}
+            initialApproved={
+              initialPayload?.product.id === product.id ? initialPayload.approvedQuestions : undefined
+            }
+          />
         </section>
 
         <ProductVendorProductsRail
           products={vendorProducts}
           vendorName={product.vendor?.displayName}
         />
-
-        {related.length > 0 ? (
-          <section className="product-detail-related">
-            <h2 className="product-detail-related-title">{fa.product.related}</h2>
-            <ShopProductGrid products={related} className="product-detail-related-grid" />
-          </section>
-        ) : null}
 
         <ProductSmartRecommendations
           similar={smartRecommendations.similar}

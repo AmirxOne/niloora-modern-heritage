@@ -12,15 +12,21 @@ export function getProductListingTags(listing: ProductListing): string[] {
   return tags;
 }
 
-const HIDDEN_LISTING_DETAIL_LABELS = ["تاریخ ثبت", "تگ‌ها"] as const;
+const HIDDEN_LISTING_DETAIL_LABELS = ["تاریخ ثبت", "تگ‌ها", "عنوان"] as const;
+
+function formatListingDetailLine(line: string): string {
+  return line.replace(/^(\s*)دسته(\s*):/, `$1${fa.productListing.categoryLabel}$2:`);
+}
 
 export function getVisibleListingDetails(details: string[]): string[] {
-  return details.filter((line) => {
-    const trimmed = line.trim();
-    return !HIDDEN_LISTING_DETAIL_LABELS.some((label) =>
-      new RegExp(`^${label}\\s*:`).test(trimmed)
-    );
-  });
+  return details
+    .filter((line) => {
+      const trimmed = line.trim();
+      return !HIDDEN_LISTING_DETAIL_LABELS.some((label) =>
+        new RegExp(`^${label}\\s*:`).test(trimmed)
+      );
+    })
+    .map(formatListingDetailLine);
 }
 
 /** پیش‌نمایش یک‌خطی برای اسلایدر و کارت */

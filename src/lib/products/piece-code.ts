@@ -125,6 +125,10 @@ export function resolvePieceCode(
   if (product.sku && isValidPieceCode(product.sku)) {
     return normalizePieceCode(product.sku);
   }
+  // شناسهٔ دیتابیس اغلب همان کد اثر است (مثل NL-RGM-2900).
+  if (isValidPieceCode(product.id)) {
+    return normalizePieceCode(product.id);
+  }
 
   const productType = product.productType ?? DEFAULT_PRODUCT_TYPE;
   const typeMeta = PRODUCT_TYPE_CODES[productType];

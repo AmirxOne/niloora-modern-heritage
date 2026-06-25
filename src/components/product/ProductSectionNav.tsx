@@ -15,8 +15,16 @@ const SECTIONS: { id: ProductSectionId; label: string }[] = [
   { id: "product-section-questions", label: fa.product.sectionQuestions },
 ];
 
+export const PRODUCT_SECTION_NAV_ID = "product-section-nav";
+
 export function scrollToProductSection(id: ProductSectionId) {
   const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+export function scrollToProductSectionNav() {
+  const el = document.getElementById(PRODUCT_SECTION_NAV_ID);
   if (!el) return;
   el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -56,6 +64,7 @@ export function ProductSectionNav({ className }: ProductSectionNavProps) {
 
   return (
     <nav
+      id={PRODUCT_SECTION_NAV_ID}
       className={cn("product-section-nav", className)}
       aria-label={fa.product.sectionNavAria}
     >

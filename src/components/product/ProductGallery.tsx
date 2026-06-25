@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Search } from "@/components/icons";
+import { ChevronLeft, ChevronRight } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
@@ -45,7 +45,14 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
   return (
     <div className="product-gallery" aria-roledescription="carousel">
       <div className="product-gallery-stage">
-        <div className="product-gallery-frame">
+        <div className="product-gallery-main">
+          <ProductMediaActions
+            productId={productId}
+            productName={name}
+            onZoom={() => setLightboxOpen(true)}
+          />
+
+          <div className="product-gallery-frame">
           {slides.map((src, i) => {
             // Only eagerly mount the first, the active, and its immediate
             // neighbours. Distant slides mount lazily once navigated to, so a
@@ -85,18 +92,6 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
             );
           })}
 
-          <button
-            type="button"
-            className="product-gallery-zoom absolute bottom-3 left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-gold/30 bg-white text-ivory shadow-[0_2px_12px_rgba(44,42,41,0.14)] transition hover:border-gold/45 hover:bg-parchment hover:shadow-[0_4px_16px_rgba(44,42,41,0.18)]"
-            onClick={() => setLightboxOpen(true)}
-            aria-label={fa.product.galleryZoomOpen}
-            title={fa.product.galleryZoomHint}
-          >
-            <Search size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
-          </button>
-
-          <ProductMediaActions productId={productId} productName={name} />
-
           {total > 1 ? (
             <>
               <button
@@ -120,6 +115,7 @@ export function ProductGallery({ images, name, productId }: ProductGalleryProps)
           <p className="product-gallery-counter" aria-live="polite">
             {fa.product.galleryCounter(activeIndex + 1, total)}
           </p>
+          </div>
         </div>
 
         <div className="product-gallery-dots" role="tablist" aria-label={fa.product.galleryDotsAria}>

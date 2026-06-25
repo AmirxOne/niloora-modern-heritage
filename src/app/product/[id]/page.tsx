@@ -11,8 +11,8 @@ type PageProps = {
   params: Promise<{ id: string }>;
 };
 
-/** On-demand ISR — no product pages pre-rendered at build (avoids DB connection storms). */
-export const revalidate = 3600;
+/** Fresh UGC (comments/questions) on every product page load. */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;

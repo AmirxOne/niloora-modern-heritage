@@ -79,6 +79,10 @@ export function buildProductJsonLd(product: Product) {
   return payload;
 }
 
+function toIsoDate(value: Date | string): string {
+  return typeof value === "string" ? value : value.toISOString();
+}
+
 export function buildProductReviewJsonLd(input: {
   product: Product;
   comments: Array<{
@@ -86,7 +90,7 @@ export function buildProductReviewJsonLd(input: {
     authorName: string;
     body: string;
     rating: number;
-    createdAt: Date;
+    createdAt: Date | string;
   }>;
 }) {
   const comments = input.comments.filter((item) => item.rating >= 1 && item.rating <= 5);
@@ -107,7 +111,7 @@ export function buildProductReviewJsonLd(input: {
     review: comments.slice(0, 10).map((comment) => ({
       "@type": "Review",
       reviewBody: comment.body,
-      datePublished: comment.createdAt.toISOString(),
+      datePublished: toIsoDate(comment.createdAt),
       author: {
         "@type": "Person",
         name: comment.authorName,

@@ -22,6 +22,13 @@ const sizeClasses = {
   xl: "max-w-4xl",
 };
 
+function isModalPortalDropdownTarget(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    Boolean(target.closest("[data-modal-portal-dropdown]"))
+  );
+}
+
 export function Modal({
   isOpen,
   onClose,
@@ -40,6 +47,11 @@ export function Modal({
             "data-[state=open]:animate-in data-[state=open]:fade-in-0",
             "data-[state=closed]:animate-out data-[state=closed]:fade-out-0"
           )}
+          onPointerDownOutside={(event) => {
+            if (isModalPortalDropdownTarget(event.target)) {
+              event.preventDefault();
+            }
+          }}
         >
           <div
             className={cn(
@@ -52,7 +64,7 @@ export function Modal({
             aria-modal
           >
             {title ? (
-              <div className="flex items-center justify-between border-b border-[#F0EDE9] px-6 py-4">
+              <div className="flex items-center justify-between border-b border-[#F0EDE9] px-5 py-3.5">
                 <Drawer.Title asChild>
                   <h2 className="font-display text-xl text-ivory">{title}</h2>
                 </Drawer.Title>

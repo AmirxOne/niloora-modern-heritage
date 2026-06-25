@@ -202,7 +202,7 @@ function buildListingDetails(attrs: SourceAttrs | null | undefined, tags: string
   const dateJalali = clean(attrs?.date_jalali);
 
   if (title) lines.push(`عنوان: ${title}`);
-  if (category) lines.push(`دسته: ${category}${subtype ? ` / ${subtype}` : ""}`);
+  if (category) lines.push(`دسته‌بندی: ${category}${subtype ? ` / ${subtype}` : ""}`);
   if (material) lines.push(`جنس: ${material}`);
   if (stoneType || stoneColor || stoneOrigin) {
     lines.push(`نگین: ${[stoneType, stoneColor, stoneOrigin].filter(Boolean).join(" - ")}`);
