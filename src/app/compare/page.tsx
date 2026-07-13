@@ -28,16 +28,8 @@ export default function ComparePage() {
       <div className="site-container py-10 md:py-14">
         <header className="compare-page__header">
           <div>
-            <p className="compare-page__eyebrow">{fa.brand.name}</p>
             <h1 className="compare-page__title">{fa.compare.title}</h1>
             <p className="compare-page__subtitle">{fa.compare.subtitle(compareList.max)}</p>
-            {!isPreparing ? (
-              <p className="compare-page__count">
-                {fa.compare.countLabel(compareList.count, compareList.max)}
-              </p>
-            ) : (
-              <div className="compare-page__count-skel sk mt-2 h-4 w-20" aria-hidden />
-            )}
           </div>
           {!isPreparing && compareList.count > 0 ? (
             <Button variant="outline" size="sm" onClick={() => compareList.clear()}>

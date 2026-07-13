@@ -3208,6 +3208,25 @@
     @apply grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-3.5 md:grid-cols-3 lg:grid-cols-4 lg:gap-4 xl:grid-cols-5;
   }
 
+  /* Continuous product stream: one grid so rows fill at every breakpoint */
+  .shop-product-pages {
+    width: 100%;
+  }
+
+  .shop-product-grid--loading-more > .shop-product-card[aria-busy="true"] {
+    overflow-anchor: none;
+  }
+
+  .shop-product-grid > .shop-product-card {
+    overflow-anchor: auto;
+  }
+
+  .shop-scroll-sentinel {
+    width: 100%;
+    height: 1px;
+    overflow-anchor: none;
+  }
+
   .shop-product-grid--compact {
     column-gap: 20px;
     row-gap: 20px;
@@ -3775,10 +3794,6 @@
     @apply mb-8 flex flex-wrap items-start justify-between gap-4;
   }
 
-  .compare-page__eyebrow {
-    @apply text-xs font-semibold tracking-wide text-gold;
-  }
-
   .compare-page__title {
     @apply font-display text-3xl font-semibold text-ivory;
   }
@@ -3793,7 +3808,7 @@
   }
 
   .compare-page__skeleton .product-compare-table__thumb.sk {
-    @apply h-28 w-28;
+    @apply aspect-square w-full;
   }
 
   .compare-page__empty h2 {
@@ -3805,11 +3820,11 @@
   }
 
   .product-compare-table-wrap {
-    @apply mt-5 overflow-x-auto rounded-heritage border border-gold/15 bg-gradient-to-b from-white/70 to-parchment/25 shadow-heritage;
+    @apply overflow-x-auto rounded-heritage border border-gold/15 bg-gradient-to-b from-white/70 to-parchment/25 shadow-heritage;
   }
 
   .product-compare-table {
-    @apply w-full min-w-[44rem] border-collapse text-sm;
+    @apply w-full min-w-[44rem] table-fixed border-collapse text-sm;
   }
 
   .product-compare-table th,
@@ -3821,24 +3836,30 @@
     @apply sticky top-0 z-[1] bg-white/85 font-semibold text-ivory backdrop-blur-sm;
   }
 
+  .product-compare-table thead th:first-child {
+    @apply w-36;
+  }
+
   .product-compare-table tbody th[scope="row"] {
-    @apply w-40 bg-parchment/45 font-medium text-silver;
+    @apply w-36 bg-parchment/45 font-medium text-silver;
+  }
+
+  .product-compare-table__product-col {
+    /* Lets the head fill cell height so actions can align across columns */
+    height: 1px;
+    width: auto;
   }
 
   .product-compare-table__product-head {
-    @apply flex min-w-[14rem] items-start gap-3;
+    @apply mx-auto flex h-full w-full max-w-[16rem] flex-col items-stretch gap-2;
   }
 
   .product-compare-table__thumb {
-    @apply relative block h-28 w-28 shrink-0 overflow-hidden rounded-heritage border border-gold/15 bg-ivory/5 shadow-sm;
-  }
-
-  .product-compare-table__meta {
-    @apply flex min-w-0 flex-1 flex-col items-start gap-2;
+    @apply relative mx-auto aspect-square w-full overflow-hidden rounded-heritage border border-gold/15 bg-ivory/5 shadow-sm;
   }
 
   .product-compare-table__name {
-    @apply line-clamp-2 text-sm font-semibold text-ivory transition-colors hover:text-turquoise-dark;
+    @apply line-clamp-1 text-sm font-semibold text-ivory transition-colors hover:text-turquoise-dark;
   }
 
   .product-compare-table__sku {
@@ -3849,14 +3870,8 @@
     @apply mt-auto flex w-full flex-wrap gap-2;
   }
 
-  .compare-enhanced {
-    @apply space-y-5;
-  }
-
-  .compare-enhanced__recommendation,
-  .compare-enhanced__summary,
   .compare-enhanced__diff {
-    @apply rounded-heritage border border-gold/15 bg-gradient-to-b from-white/65 to-parchment/20 p-4 shadow-heritage md:p-5;
+    @apply shadow-heritage;
   }
 
   .compare-enhanced__section-title {
@@ -3865,46 +3880,6 @@
 
   .compare-enhanced__hint {
     @apply mt-1 text-xs text-silver;
-  }
-
-  .compare-enhanced__need-row {
-    @apply mt-3 flex flex-wrap items-center gap-2;
-  }
-
-  .compare-enhanced__need-label {
-    @apply text-sm text-silver;
-  }
-
-  .compare-enhanced__need-select {
-    @apply w-full max-w-xs;
-  }
-
-  .compare-enhanced__recommendation-result {
-    @apply mt-3 rounded-heritage border border-turquoise/25 bg-turquoise/10 p-3 text-sm leading-relaxed text-silver;
-  }
-
-  .compare-enhanced__summary-grid {
-    @apply mt-3 grid gap-3 lg:grid-cols-2 xl:grid-cols-3;
-  }
-
-  .compare-enhanced__summary-card {
-    @apply rounded-heritage border border-gold/10 bg-white/70 p-3;
-  }
-
-  .compare-enhanced__summary-title {
-    @apply text-sm font-semibold text-ivory;
-  }
-
-  .compare-enhanced__summary-label {
-    @apply mt-2 text-xs font-semibold text-gold-dark;
-  }
-
-  .compare-enhanced__list {
-    @apply mt-1 space-y-1 text-xs leading-relaxed text-silver;
-  }
-
-  .compare-enhanced__list--cons li {
-    @apply text-silver/90;
   }
 
   .product-compare-table__row--different > th,

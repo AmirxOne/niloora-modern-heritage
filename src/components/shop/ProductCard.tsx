@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import type { Product } from "@/lib/types";
 import { getProductPricing } from "@/lib/pricing";
 import { fa } from "@/lib/i18n/fa";
@@ -35,8 +34,6 @@ interface ProductCardProps {
 
 export function ProductCard({
   product,
-  index = 0,
-  variant = "grid",
   timerOverride,
   compact = false,
 }: ProductCardProps) {
@@ -179,24 +176,15 @@ export function ProductCard({
 
   const cardClassName = cn("shop-product-card group", compact && "shop-product-card--compact");
 
-  if (variant === "carousel") {
-    return (
-      <article className={cardClassName} data-persian-digits="react">
-        {content}
-      </article>
-    );
-  }
-
+  // No entrance motion on grid cards — animations remount/reflow and jump the
+  // scroll position when infinite-scroll appends the next page.
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-32px" }}
-      transition={{ duration: 0.4, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+    <article
       className={cardClassName}
+      data-product-id={product.id}
       data-persian-digits="react"
     >
       {content}
-    </motion.article>
+    </article>
   );
 }

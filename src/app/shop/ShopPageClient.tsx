@@ -12,6 +12,10 @@ import { useShopFiltersUrl } from "@/lib/hooks/useShopFiltersUrl";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
+import {
+  ShopProductPages,
+  type ShopProductDisplayPage,
+} from "@/components/shop/ShopProductPages";
 import { ProductCardSkeleton } from "@/components/shop/ProductCardSkeleton";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { ShopFiltersPanel, ShopFiltersDrawer } from "@/components/shop/ShopFilters";
@@ -27,8 +31,6 @@ import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 import { useApp } from "@/lib/context/AppContext";
 import type { ProductOccasion, RingStyle, StoneType } from "@/lib/types";
 import { useAbExperiment } from "@/lib/hooks/useAbExperiment";
-
-const SHOP_SCROLL_BATCH = 20;
 
 type ShopSortKey =
   | "bestselling"
@@ -116,74 +118,177 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
   const { campaign: shopCampaign } = useCampaignBySlug(campaignSlug);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sort, setSort] = useState<ShopSortKey>("bestselling");
-  const { products, maxPrice, isLoading: isCatalogLoading, hasMore, isLoadingMore, loadMore } =
-    useCatalogProducts();
+  const {
+    pages: catalogPages,
+    products,
+    maxPrice,
+    isLoading: isCatalogLoading,
+    hasMore,
+    isLoadingMore,
+    pageSize,
+    loadMore,
+  } = useCatalogProducts();
   const { filters, setFilters, resetFilters } = useShopFiltersUrl(maxPrice);
   const search = useProductSearch(filters.query);
   const { auth } = useApp();
   const cardLayoutExperiment = useAbExperiment("shop_card_layout_v1");
 
   const isSearchMode = search.hasQuery;
-  const sourceProducts = useMemo(
-    () => (isSearchMode ? search.catalogHits : products),
-    [isSearchMode, search.catalogHits, products]
+
+  const transformPageProducts = useCallback(
+    (items: Product[]) => {
+      const filtered = applyShopFilters(items, filters, { skipQuery: isSearchMode });
+      const landingFiltered = !seoLanding
+        ? filtered
+        : filtered.filter((p) => {
+            if (seoLanding.facet === "stone") return productMatchesStoneFilter(p, [seoLanding.slug]);
+            if (seoLanding.facet === "style") return p.category === seoLanding.slug;
+            const occasions = p.occasions ?? [];
+            return occasions.includes(seoLanding.slug as ProductOccasion);
+          });
+      const campaignFiltered = !shopCampaign
+        ? landingFiltered
+        : landingFiltered.filter((p) =>
+            productMatchesCampaignTarget(
+              { productId: p.id, collectionId: p.collectionId ?? null },
+              shopCampaign
+            )
+          );
+
+      const prefStone = auth.user?.favoriteStone;
+      const prefStyle = auth.user?.favoriteStyle;
+      const prefBudget = auth.user?.favoriteBudgetBand;
+      let preferenceSorted = campaignFiltered;
+      if (prefStone || prefStyle || prefBudget) {
+        const budgetOf = (price: number): "entry" | "mid" | "premium" | "luxury" => {
+          if (price <= 40_000_000) return "entry";
+          if (price <= 90_000_000) return "mid";
+          if (price <= 180_000_000) return "premium";
+          return "luxury";
+        };
+        preferenceSorted = [...campaignFiltered].sort((a, b) => {
+          const score = (p: Product) => {
+            let s = 0;
+            if (prefStone && p.stone === prefStone) s += 5;
+            if (prefStyle && p.category === prefStyle) s += 5;
+            if (prefBudget && budgetOf(p.price) === prefBudget) s += 4;
+            if (p.featured) s += 2;
+            if (p.bestseller) s += 1;
+            return s;
+          };
+          return score(b) - score(a);
+        });
+      }
+
+      return sortShopProducts(preferenceSorted, sort);
+    },
+    [
+      filters,
+      isSearchMode,
+      seoLanding,
+      shopCampaign,
+      auth.user?.favoriteStone,
+      auth.user?.favoriteStyle,
+      auth.user?.favoriteBudgetBand,
+      sort,
+    ]
   );
 
-  const filtered = useMemo(
+  const filterResetKey = useMemo(
     () =>
-      applyShopFilters(sourceProducts, filters, {
-        skipQuery: isSearchMode,
+      JSON.stringify({
+        filters,
+        sort,
+        seoLanding,
+        campaignId: shopCampaign?.id ?? null,
+        prefStone: auth.user?.favoriteStone ?? null,
+        prefStyle: auth.user?.favoriteStyle ?? null,
+        prefBudget: auth.user?.favoriteBudgetBand ?? null,
+        search: isSearchMode ? search.resolvedQuery : null,
       }),
-    [sourceProducts, filters, isSearchMode]
+    [
+      filters,
+      sort,
+      seoLanding,
+      shopCampaign?.id,
+      auth.user?.favoriteStone,
+      auth.user?.favoriteStyle,
+      auth.user?.favoriteBudgetBand,
+      isSearchMode,
+      search.resolvedQuery,
+    ]
   );
-  const landingFiltered = useMemo(() => {
-    if (!seoLanding) return filtered;
-    return filtered.filter((p) => {
-      if (seoLanding.facet === "stone") return productMatchesStoneFilter(p, [seoLanding.slug]);
-      if (seoLanding.facet === "style") return p.category === seoLanding.slug;
-      const occasions = p.occasions ?? [];
-      return occasions.includes(seoLanding.slug as ProductOccasion);
-    });
-  }, [filtered, seoLanding]);
 
-  const campaignFiltered = useMemo(() => {
-    if (!shopCampaign) return landingFiltered;
-    return landingFiltered.filter((p) =>
-      productMatchesCampaignTarget(
-        { productId: p.id, collectionId: p.collectionId ?? null },
-        shopCampaign
-      )
+  const [displayPages, setDisplayPages] = useState<ShopProductDisplayPage[]>([]);
+  const syncedCatalogPagesRef = useRef(0);
+
+  // Rebuild all pages when filters/sort/search change.
+  useEffect(() => {
+    if (isSearchMode) {
+      const searchProducts = transformPageProducts(search.catalogHits);
+      setDisplayPages(
+        searchProducts.length > 0 ? [{ id: "search-results", products: searchProducts }] : []
+      );
+      syncedCatalogPagesRef.current = 0;
+      return;
+    }
+
+    setDisplayPages(
+      catalogPages
+        .map((page) => ({
+          id: page.id,
+          products: transformPageProducts(page.products),
+        }))
+        .filter((page) => page.products.length > 0)
     );
-  }, [landingFiltered, shopCampaign]);
-  const preferenceSorted = useMemo(() => {
-    const prefStone = auth.user?.favoriteStone;
-    const prefStyle = auth.user?.favoriteStyle;
-    const prefBudget = auth.user?.favoriteBudgetBand;
-    if (!prefStone && !prefStyle && !prefBudget) return campaignFiltered;
+    syncedCatalogPagesRef.current = catalogPages.length;
+    // catalogPages intentionally read for full rebuild on filter changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterResetKey, isSearchMode, search.catalogHits, transformPageProducts]);
 
-    const budgetOf = (price: number): "entry" | "mid" | "premium" | "luxury" => {
-      if (price <= 40_000_000) return "entry";
-      if (price <= 90_000_000) return "mid";
-      if (price <= 180_000_000) return "premium";
-      return "luxury";
-    };
+  // Digikala-style append: only mount a new page block; keep previous pages untouched.
+  useEffect(() => {
+    if (isSearchMode) return;
 
-    return [...campaignFiltered].sort((a, b) => {
-      const score = (p: Product) => {
-        let s = 0;
-        if (prefStone && p.stone === prefStone) s += 5;
-        if (prefStyle && p.category === prefStyle) s += 5;
-        if (prefBudget && budgetOf(p.price) === prefBudget) s += 4;
-        if (p.featured) s += 2;
-        if (p.bestseller) s += 1;
-        return s;
-      };
-      const delta = score(b) - score(a);
-      if (delta !== 0) return delta;
-      return 0;
-    });
-  }, [campaignFiltered, auth.user?.favoriteStone, auth.user?.favoriteStyle, auth.user?.favoriteBudgetBand]);
-  const sorted = useMemo(() => sortShopProducts(preferenceSorted, sort), [preferenceSorted, sort]);
+    if (catalogPages.length < syncedCatalogPagesRef.current) {
+      setDisplayPages(
+        catalogPages
+          .map((page) => ({
+            id: page.id,
+            products: transformPageProducts(page.products),
+          }))
+          .filter((page) => page.products.length > 0)
+      );
+      syncedCatalogPagesRef.current = catalogPages.length;
+      return;
+    }
+
+    if (catalogPages.length === syncedCatalogPagesRef.current) return;
+
+    const freshPages = catalogPages.slice(syncedCatalogPagesRef.current);
+    const appended = freshPages
+      .map((page) => ({
+        id: page.id,
+        products: transformPageProducts(page.products),
+      }))
+      .filter((page) => page.products.length > 0);
+
+    if (appended.length > 0) {
+      setDisplayPages((prev) => [...prev, ...appended]);
+    }
+    syncedCatalogPagesRef.current = catalogPages.length;
+  }, [catalogPages, isSearchMode, transformPageProducts]);
+
+  const displayProductsCount = useMemo(
+    () => displayPages.reduce((sum, page) => sum + page.products.length, 0),
+    [displayPages]
+  );
+
+  const filteredCount = useMemo(() => {
+    if (isSearchMode) return transformPageProducts(search.catalogHits).length;
+    return transformPageProducts(products).length;
+  }, [isSearchMode, search.catalogHits, products, transformPageProducts]);
+
   const personalizedPicks = useMemo(() => {
     const prefStone = auth.user?.favoriteStone;
     const prefStyle = auth.user?.favoriteStyle;
@@ -221,116 +326,41 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
     auth.user?.favoriteStyle,
     auth.user?.favoriteBudgetBand,
   ]);
-  const cardUiQaMode = false;
-  const displayProducts = sorted;
-  const timerOverridesByProductId = useMemo(() => {
-    if (!cardUiQaMode) return undefined;
-    return Object.fromEntries(
-      sorted.map((product, idx) => {
-        const group = idx % 4;
-        const hasTimer = group === 0 || group === 2;
-        return [product.id, hasTimer];
-      })
-    ) as Record<string, boolean>;
-  }, [cardUiQaMode, sorted]);
-  const cardVariant = cardLayoutExperiment.variantId === "compact_grid" ? "compact" : "grid";
 
+  const cardVariant = cardLayoutExperiment.variantId === "compact_grid" ? "compact" : "grid";
   const isLoading = isCatalogLoading || (isSearchMode && search.isSearching);
   const showSearchError = isSearchMode && search.searchFailed && !search.isSearching;
-
-  const filterResetKey = useMemo(
-    () => `${JSON.stringify(filters)}|${isSearchMode ? search.resolvedQuery : "catalog"}|${sort}`,
-    [filters, isSearchMode, search.resolvedQuery, sort]
-  );
-
-  const [visibleCount, setVisibleCount] = useState(SHOP_SCROLL_BATCH);
-  const [isAppending, setIsAppending] = useState(false);
-  const appendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setVisibleCount(SHOP_SCROLL_BATCH);
-    setIsAppending(false);
-    if (appendTimerRef.current) {
-      clearTimeout(appendTimerRef.current);
-      appendTimerRef.current = null;
-    }
-  }, [filterResetKey]);
-
-  useEffect(() => {
-    return () => {
-      if (appendTimerRef.current) clearTimeout(appendTimerRef.current);
-    };
-  }, []);
-
-  const visibleProducts = useMemo(
-    () => displayProducts.slice(0, visibleCount),
-    [displayProducts, visibleCount]
-  );
-
-  const canRevealMore = visibleCount < displayProducts.length;
-  const canFetchMoreCatalog = hasMore && !isSearchMode;
-  const canLoadMore = canRevealMore || canFetchMoreCatalog;
-  const isScrollLoading = isAppending || isLoadingMore;
+  const canFetchMore = hasMore && !isSearchMode;
 
   const handleLoadMore = useCallback(() => {
-    if (isScrollLoading) return;
-
-    const revealNextBatch = () => {
-      setVisibleCount((prev) => prev + SHOP_SCROLL_BATCH);
-      setIsAppending(false);
-      appendTimerRef.current = null;
-    };
-
-    const scheduleReveal = () => {
-      if (appendTimerRef.current) clearTimeout(appendTimerRef.current);
-      appendTimerRef.current = setTimeout(revealNextBatch, 450);
-    };
-
-    setIsAppending(true);
-
-    if (canRevealMore) {
-      scheduleReveal();
-      return;
-    }
-
-    if (canFetchMoreCatalog) {
-      void loadMore().finally(() => {
-        scheduleReveal();
-      });
-      return;
-    }
-
-    setIsAppending(false);
-  }, [isScrollLoading, canRevealMore, canFetchMoreCatalog, loadMore]);
+    if (!canFetchMore || isLoadingMore) return;
+    void loadMore();
+  }, [canFetchMore, isLoadingMore, loadMore]);
 
   const loadMoreSentinelRef = useInfiniteScroll({
-    enabled: !isLoading && displayProducts.length > 0 && canLoadMore && !isScrollLoading,
-    recheckKey: `${visibleCount}|${displayProducts.length}|${hasMore}|${isScrollLoading}`,
-    rootMargin: "240px 0px",
+    enabled: !isLoading && displayProductsCount > 0 && canFetchMore && !isLoadingMore,
+    recheckKey: `${catalogPages.length}|${hasMore}`,
+    rootMargin: "480px 0px",
     onLoadMore: handleLoadMore,
   });
 
-  // Keep fetching catalog pages while filters match nothing in the loaded set.
   useEffect(() => {
     if (isLoading || isSearchMode || isLoadingMore) return;
-    if (displayProducts.length === 0 && hasMore) {
+    if (displayProductsCount === 0 && hasMore) {
       void loadMore();
     }
-  }, [isLoading, isSearchMode, isLoadingMore, displayProducts.length, hasMore, loadMore]);
+  }, [isLoading, isSearchMode, isLoadingMore, displayProductsCount, hasMore, loadMore]);
 
   const emptyMessage = useMemo(() => {
     if (showSearchError) return fa.shop.searchError;
-    if (isSearchMode && !isLoading && filtered.length === 0) return fa.shop.searchNoMatches;
+    if (isSearchMode && !isLoading && filteredCount === 0) return fa.shop.searchNoMatches;
     return fa.shop.noResults;
-  }, [showSearchError, isSearchMode, isLoading, filtered.length]);
+  }, [showSearchError, isSearchMode, isLoading, filteredCount]);
 
   const emptyHint = useMemo(() => {
     if (showSearchError) return fa.shop.searchApiHint;
-    if (isSearchMode && !isLoading && filtered.length === 0) {
-      return fa.shop.noResultsHint;
-    }
     return fa.shop.noResultsHint;
-  }, [showSearchError, isSearchMode, isLoading, filtered.length]);
+  }, [showSearchError]);
 
   const priceRangeReady = !isCatalogLoading && maxPrice > 0;
   const seoLandingActive = Boolean(seoLanding);
@@ -440,7 +470,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                     ))}
                   </div>
                   <p className="shop-sort-box-count">
-                    <span className="shop-sort-box-count-num">{fa.shop.count(displayProducts.length)}</span>
+                    <span className="shop-sort-box-count-num">{fa.shop.count(displayProductsCount)}</span>
                     <span className="shop-sort-box-count-label">{fa.shop.countLabel}</span>
                   </p>
                 </div>
@@ -457,13 +487,13 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                       <ProductCardSkeleton key={idx} />
                     ))}
                   </div>
-                ) : displayProducts.length === 0 && !isSearchMode && (isLoadingMore || hasMore) ? (
+                ) : displayProductsCount === 0 && !isSearchMode && (isLoadingMore || hasMore) ? (
                   <div className="shop-product-grid" aria-busy="true">
                     {Array.from({ length: 8 }).map((_, idx) => (
                       <ProductCardSkeleton key={`filter-more-${idx}`} />
                     ))}
                   </div>
-                ) : displayProducts.length === 0 ? (
+                ) : displayProductsCount === 0 ? (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -488,23 +518,20 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                     />
                   </motion.div>
                 ) : (
-                  <>
-                    <ShopProductGrid
-                      products={visibleProducts}
-                      cardVariant={cardVariant}
-                      loadingCount={isScrollLoading ? Math.min(SHOP_SCROLL_BATCH, 8) : 0}
-                      abTest={{
-                        experimentId: cardLayoutExperiment.experimentId,
-                        variantId: cardLayoutExperiment.variantId,
-                        identity: cardLayoutExperiment.identity,
-                        page: "/shop",
-                      }}
-                      timerOverridesByProductId={timerOverridesByProductId}
-                    />
-                    {canLoadMore || isScrollLoading ? (
-                      <div ref={loadMoreSentinelRef} className="h-px w-full" aria-hidden />
-                    ) : null}
-                  </>
+                  <ShopProductPages
+                    pages={displayPages}
+                    isLoadingMore={isLoadingMore}
+                    skeletonCount={Math.min(pageSize, 12)}
+                    cardVariant={cardVariant}
+                    abTest={{
+                      experimentId: cardLayoutExperiment.experimentId,
+                      variantId: cardLayoutExperiment.variantId,
+                      identity: cardLayoutExperiment.identity,
+                      page: "/shop",
+                    }}
+                    showSentinel={canFetchMore}
+                    sentinelRef={loadMoreSentinelRef}
+                  />
                 )}
               </section>
             </motion.div>
