@@ -65,8 +65,8 @@ export default function AccountPage() {
   }, [applySectionFromUrl]);
 
   const wishlistedProducts = products.filter((p) => wishlist.isWishlisted(p.id));
-  const compareProducts = useProductsByIds(compareList.ids);
-  const recentlyViewedProducts = useProductsByIds(recentlyViewed.ids);
+  const { products: compareProducts } = useProductsByIds(compareList.ids);
+  const { products: recentlyViewedProducts } = useProductsByIds(recentlyViewed.ids);
   const recentlyViewedBadge = catalogLoading
     ? recentlyViewed.ids.length
     : recentlyViewedProducts.length;

@@ -202,6 +202,14 @@ export async function getOrCreateRingCustomizationConfig(
   return adminConfig;
 }
 
+export async function isRingCustomizationEnabled(productId: string): Promise<boolean> {
+  const config = await prisma.productRingCustomizationConfig.findUnique({
+    where: { productId },
+    select: { enabled: true },
+  });
+  return Boolean(config?.enabled);
+}
+
 export async function getRingCustomizationPublicConfig(
   productId: string
 ): Promise<RingCustomizationPublicConfigDto | null> {

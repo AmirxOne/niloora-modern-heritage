@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   PenTool,
+  Receipt,
   Recycle,
   ScanEye,
   ShoppingCart,
@@ -12,7 +13,6 @@ import {
   Sparkles,
   Store,
   User,
-  Wallet,
 } from "@/components/icons";
 import { iconSizes, ICON_VARIANT } from "@/lib/icons";
 
@@ -28,7 +28,7 @@ export const adminNavIconById: Record<string, React.ReactNode> = {
   "promo-codes": <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   campaigns: <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   bundles: <Category size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
-  "gift-cards": <Wallet size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+  "gift-cards": <Receipt size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   "customizer-quotes": <Hammer size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   home: <LayoutDashboard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
   "ab-tests": <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,

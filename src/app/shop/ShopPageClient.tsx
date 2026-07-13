@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { productMatchesCampaignTarget } from "@/lib/campaign/campaign-discount";
 import { useCampaignBySlug } from "@/lib/hooks/useActiveCampaigns";
@@ -10,13 +10,12 @@ import { fa } from "@/lib/i18n/fa";
 import { applyShopFilters, productMatchesStoneFilter } from "@/lib/shop-filter-utils";
 import { useShopFiltersUrl } from "@/lib/hooks/useShopFiltersUrl";
 import { useProductSearch } from "@/lib/hooks/useProductSearch";
-import { usePagination } from "@/lib/hooks/usePagination";
+import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
 import { ProductCardSkeleton } from "@/components/shop/ProductCardSkeleton";
 import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { ShopFiltersPanel, ShopFiltersDrawer } from "@/components/shop/ShopFilters";
 import { PreOwnedShopStrip } from "@/components/pre-owned/PreOwnedShopStrip";
-import { Pagination } from "@/components/ui/Pagination";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useCatalogProducts } from "@/lib/hooks/useCatalogProducts";
@@ -24,11 +23,12 @@ import type { Product } from "@/lib/types";
 import { SliderHorizontal } from "@/components/icons";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
 import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 import { useApp } from "@/lib/context/AppContext";
 import type { ProductOccasion, RingStyle, StoneType } from "@/lib/types";
 import { useAbExperiment } from "@/lib/hooks/useAbExperiment";
+
+const SHOP_SCROLL_BATCH = 20;
 
 type ShopSortKey =
   | "bestselling"
@@ -118,7 +118,7 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
   const [sort, setSort] = useState<ShopSortKey>("bestselling");
   const { products, maxPrice, isLoading: isCatalogLoading, hasMore, isLoadingMore, loadMore } =
     useCatalogProducts();
-  const { filters, setFilters, page, pageSize, setPage, setPageSize, resetFilters } = useShopFiltersUrl(maxPrice);
+  const { filters, setFilters, resetFilters } = useShopFiltersUrl(maxPrice);
   const search = useProductSearch(filters.query);
   const { auth } = useApp();
   const cardLayoutExperiment = useAbExperiment("shop_card_layout_v1");
@@ -239,21 +239,84 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
   const showSearchError = isSearchMode && search.searchFailed && !search.isSearching;
 
   const filterResetKey = useMemo(
-    () => `${JSON.stringify(filters)}|${isSearchMode ? search.resolvedQuery : "catalog"}`,
-    [filters, isSearchMode, search.resolvedQuery]
+    () => `${JSON.stringify(filters)}|${isSearchMode ? search.resolvedQuery : "catalog"}|${sort}`,
+    [filters, isSearchMode, search.resolvedQuery, sort]
   );
 
-  const {
-    paginatedItems: pagedProducts,
-    totalPages,
-    from,
-    to,
-    totalItems,
-    setPage: setPaginationPage,
-  } = usePagination(displayProducts, pageSize, `${filterResetKey}|${sort}|${cardUiQaMode}|${pageSize}`, {
-    page,
-    onPageChange: setPage,
+  const [visibleCount, setVisibleCount] = useState(SHOP_SCROLL_BATCH);
+  const [isAppending, setIsAppending] = useState(false);
+  const appendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(SHOP_SCROLL_BATCH);
+    setIsAppending(false);
+    if (appendTimerRef.current) {
+      clearTimeout(appendTimerRef.current);
+      appendTimerRef.current = null;
+    }
+  }, [filterResetKey]);
+
+  useEffect(() => {
+    return () => {
+      if (appendTimerRef.current) clearTimeout(appendTimerRef.current);
+    };
+  }, []);
+
+  const visibleProducts = useMemo(
+    () => displayProducts.slice(0, visibleCount),
+    [displayProducts, visibleCount]
+  );
+
+  const canRevealMore = visibleCount < displayProducts.length;
+  const canFetchMoreCatalog = hasMore && !isSearchMode;
+  const canLoadMore = canRevealMore || canFetchMoreCatalog;
+  const isScrollLoading = isAppending || isLoadingMore;
+
+  const handleLoadMore = useCallback(() => {
+    if (isScrollLoading) return;
+
+    const revealNextBatch = () => {
+      setVisibleCount((prev) => prev + SHOP_SCROLL_BATCH);
+      setIsAppending(false);
+      appendTimerRef.current = null;
+    };
+
+    const scheduleReveal = () => {
+      if (appendTimerRef.current) clearTimeout(appendTimerRef.current);
+      appendTimerRef.current = setTimeout(revealNextBatch, 450);
+    };
+
+    setIsAppending(true);
+
+    if (canRevealMore) {
+      scheduleReveal();
+      return;
+    }
+
+    if (canFetchMoreCatalog) {
+      void loadMore().finally(() => {
+        scheduleReveal();
+      });
+      return;
+    }
+
+    setIsAppending(false);
+  }, [isScrollLoading, canRevealMore, canFetchMoreCatalog, loadMore]);
+
+  const loadMoreSentinelRef = useInfiniteScroll({
+    enabled: !isLoading && displayProducts.length > 0 && canLoadMore && !isScrollLoading,
+    recheckKey: `${visibleCount}|${displayProducts.length}|${hasMore}|${isScrollLoading}`,
+    rootMargin: "240px 0px",
+    onLoadMore: handleLoadMore,
   });
+
+  // Keep fetching catalog pages while filters match nothing in the loaded set.
+  useEffect(() => {
+    if (isLoading || isSearchMode || isLoadingMore) return;
+    if (displayProducts.length === 0 && hasMore) {
+      void loadMore();
+    }
+  }, [isLoading, isSearchMode, isLoadingMore, displayProducts.length, hasMore, loadMore]);
 
   const emptyMessage = useMemo(() => {
     if (showSearchError) return fa.shop.searchError;
@@ -394,6 +457,12 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                       <ProductCardSkeleton key={idx} />
                     ))}
                   </div>
+                ) : displayProducts.length === 0 && !isSearchMode && (isLoadingMore || hasMore) ? (
+                  <div className="shop-product-grid" aria-busy="true">
+                    {Array.from({ length: 8 }).map((_, idx) => (
+                      <ProductCardSkeleton key={`filter-more-${idx}`} />
+                    ))}
+                  </div>
                 ) : displayProducts.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -421,8 +490,9 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                 ) : (
                   <>
                     <ShopProductGrid
-                      products={pagedProducts}
+                      products={visibleProducts}
                       cardVariant={cardVariant}
+                      loadingCount={isScrollLoading ? Math.min(SHOP_SCROLL_BATCH, 8) : 0}
                       abTest={{
                         experimentId: cardLayoutExperiment.experimentId,
                         variantId: cardLayoutExperiment.variantId,
@@ -431,29 +501,8 @@ function ShopPageContent({ seoLanding }: { seoLanding?: SeoLandingInput }) {
                       }}
                       timerOverridesByProductId={timerOverridesByProductId}
                     />
-                    <Pagination
-                      page={page}
-                      totalPages={totalPages}
-                      onPageChange={setPaginationPage}
-                      totalItems={totalItems}
-                      from={from}
-                      to={to}
-                      pageSize={pageSize}
-                      onPageSizeChange={setPageSize}
-                      scrollTargetId="shop-products"
-                      className="shop-product-pagination"
-                    />
-                    {hasMore && !isSearchMode ? (
-                      <div className="mt-6 flex justify-center">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          isLoading={isLoadingMore}
-                          onClick={() => void loadMore()}
-                        >
-                          {fa.shop.loadMore}
-                        </Button>
-                      </div>
+                    {canLoadMore || isScrollLoading ? (
+                      <div ref={loadMoreSentinelRef} className="h-px w-full" aria-hidden />
                     ) : null}
                   </>
                 )}

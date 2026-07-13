@@ -21,7 +21,6 @@ export {
   Diamonds as Gem,
   Element4 as LayoutDashboard,
   Heart,
-  I3DRotate as Rotate3d,
   Location as MapPin,
   Lock,
   Logout as LogOut,
@@ -56,7 +55,6 @@ export {
   Truck,
   User,
   Verify,
-  Wallet,
   PathTool as Hammer,
 } from "iconsax-reactjs";
 

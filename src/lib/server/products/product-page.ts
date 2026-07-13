@@ -11,6 +11,7 @@ import {
 } from "@/lib/server/products";
 import { listActiveBundleOffers } from "@/lib/server/bundle/bundle-offer-service";
 import { mapDbProductComment, mapDbProductQuestion } from "@/lib/server/products/product-ugc-mappers";
+import { isRingCustomizationEnabled } from "@/lib/server/ring-customization/service";
 
 export type ProductPagePayload = {
   product: Product;
@@ -20,6 +21,7 @@ export type ProductPagePayload = {
   activeBundles: import("@/lib/types").BundleOfferDefinition[];
   approvedComments: ProductComment[];
   approvedQuestions: ProductQuestion[];
+  ringCustomizationEnabled: boolean;
 };
 
 export async function getProductPagePayload(id: string): Promise<ProductPagePayload | null> {
@@ -37,23 +39,25 @@ export async function getProductPagePayload(id: string): Promise<ProductPagePayl
         }
       : baseProduct;
 
-  const [catalog, approvedCommentRows, approvedQuestionRows] = await Promise.all([
-    getCatalogProducts(),
-    prisma.productComment.findMany({
-      where: { productId: id, status: "approved" },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.productQuestion.findMany({
-      where: { productId: id, status: "approved" },
-      include: {
-        answers: {
-          where: { status: "approved" },
-          orderBy: [{ isOfficial: "desc" }, { createdAt: "asc" }],
+  const [catalog, approvedCommentRows, approvedQuestionRows, ringCustomizationEnabled] =
+    await Promise.all([
+      getCatalogProducts(),
+      prisma.productComment.findMany({
+        where: { productId: id, status: "approved" },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.productQuestion.findMany({
+        where: { productId: id, status: "approved" },
+        include: {
+          answers: {
+            where: { status: "approved" },
+            orderBy: [{ isOfficial: "desc" }, { createdAt: "asc" }],
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
+        orderBy: { createdAt: "desc" },
+      }),
+      isRingCustomizationEnabled(id),
+    ]);
 
   const approvedComments = approvedCommentRows.map(mapDbProductComment);
   const approvedQuestions = approvedQuestionRows.map(mapDbProductQuestion);
@@ -73,6 +77,7 @@ export async function getProductPagePayload(id: string): Promise<ProductPagePayl
     activeBundles,
     approvedComments,
     approvedQuestions,
+    ringCustomizationEnabled,
   };
 }
 

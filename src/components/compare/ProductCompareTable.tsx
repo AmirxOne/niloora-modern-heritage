@@ -216,27 +216,29 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
                           src={product.image}
                           alt={getProductDisplayName(product)}
                           fill
-                          sizes="160px"
+                          sizes="112px"
                           className="object-cover"
                         />
                       </Link>
-                      <Link href={`/product/${product.id}`} className="product-compare-table__name">
-                        {getProductDisplayName(product)}
-                      </Link>
-                      <ProductPriceDisplay product={product} size="sm" />
-                      <div className="product-compare-table__actions">
-                        <Link href={`/product/${product.id}`}>
-                          <Button size="sm" variant="outline">
-                            {fa.compare.viewProduct}
-                          </Button>
+                      <div className="product-compare-table__meta">
+                        <Link href={`/product/${product.id}`} className="product-compare-table__name">
+                          {getProductDisplayName(product)}
                         </Link>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => compareList.remove(product.id)}
-                        >
-                          {fa.compare.removeProduct}
-                        </Button>
+                        <ProductPriceDisplay product={product} size="sm" />
+                        <div className="product-compare-table__actions">
+                          <Link href={`/product/${product.id}`}>
+                            <Button size="sm" variant="outline">
+                              {fa.compare.viewProduct}
+                            </Button>
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => compareList.remove(product.id)}
+                          >
+                            {fa.compare.removeProduct}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </th>

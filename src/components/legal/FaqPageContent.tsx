@@ -9,6 +9,7 @@ import {
   MessageCircle,
   MessageQuestion,
   PenTool,
+  Receipt,
   Recycle,
   ShieldCheck,
   ShoppingBag,
@@ -16,7 +17,6 @@ import {
   Truck,
   User,
   Verify,
-  Wallet,
 } from "@/components/icons";
 import { TextBox } from "@/components/inputs";
 import { Button } from "@/components/ui/Button";
@@ -33,7 +33,7 @@ const FAQ_CATEGORY_ICONS: Record<string, IconComponent> = {
   order: ShoppingBag,
   shipping: Truck,
   customize: PenTool,
-  payment: Wallet,
+  payment: Receipt,
   sizing: SlidersHorizontal,
   care: Gem,
   returns: Recycle,

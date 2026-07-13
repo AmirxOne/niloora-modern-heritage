@@ -3,9 +3,9 @@
 import {
   Heart,
   PenTool,
+  Receipt,
   ShoppingBag,
   ShoppingCart,
-  Wallet,
 } from "@/components/icons";
 import type { IconComponent } from "@/lib/icons";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
@@ -27,7 +27,7 @@ const tileMeta: {
   navId?: string;
 }[] = [
   { id: "orderCount", label: "تعداد سفارش", icon: ShoppingBag, navId: "orders" },
-  { id: "totalSpent", label: "مجموع خرید", icon: Wallet },
+  { id: "totalSpent", label: "مجموع خرید", icon: Receipt },
   { id: "wishlistCount", label: "علاقه‌مندی", icon: Heart, navId: "wishlist" },
   { id: "savedDesignsCount", label: "طرح ذخیره‌شده", icon: PenTool, navId: "designs" },
   { id: "cartItemsCount", label: "اقلام سبد", icon: ShoppingCart },

@@ -3792,6 +3792,10 @@
     @apply rounded-sm border border-gold/15 bg-parchment/30 px-6 py-12 text-center;
   }
 
+  .compare-page__skeleton .product-compare-table__thumb.sk {
+    @apply h-28 w-28;
+  }
+
   .compare-page__empty h2 {
     @apply font-display text-xl text-ivory;
   }
@@ -3822,15 +3826,19 @@
   }
 
   .product-compare-table__product-head {
-    @apply flex min-w-[12rem] flex-col items-start gap-2;
+    @apply flex min-w-[14rem] items-start gap-3;
   }
 
   .product-compare-table__thumb {
-    @apply relative block h-32 w-full overflow-hidden rounded-heritage border border-gold/15 bg-ivory/5 shadow-sm;
+    @apply relative block h-28 w-28 shrink-0 overflow-hidden rounded-heritage border border-gold/15 bg-ivory/5 shadow-sm;
+  }
+
+  .product-compare-table__meta {
+    @apply flex min-w-0 flex-1 flex-col items-start gap-2;
   }
 
   .product-compare-table__name {
-    @apply line-clamp-1 text-sm font-semibold text-ivory transition-colors hover:text-turquoise-dark;
+    @apply line-clamp-2 text-sm font-semibold text-ivory transition-colors hover:text-turquoise-dark;
   }
 
   .product-compare-table__sku {
@@ -3838,7 +3846,7 @@
   }
 
   .product-compare-table__actions {
-    @apply mt-1 flex w-full flex-wrap gap-2;
+    @apply mt-auto flex w-full flex-wrap gap-2;
   }
 
   .compare-enhanced {
@@ -6237,114 +6245,6 @@
 
   .shop-filter-group--wide {
     @apply md:col-span-2 xl:col-span-4;
-  }
-
-  .customize-studio {
-    @apply bg-matte;
-  }
-
-  .customize-studio-container {
-    @apply space-y-8 md:space-y-10;
-  }
-
-  .customize-studio-header {
-    @apply space-y-3 border-b border-gold/10 pb-6 md:pb-8;
-  }
-
-  .customize-studio-eyebrow {
-    @apply text-xs font-medium uppercase tracking-[0.2em] text-gold/80;
-  }
-
-  .customize-studio-header-row {
-    @apply flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between;
-  }
-
-  .customize-studio-title {
-    @apply font-display text-3xl text-ivory md:text-4xl lg:text-[2.75rem];
-  }
-
-  .customize-studio-subtitle {
-    @apply mt-2 max-w-2xl text-sm leading-relaxed text-silver md:text-base;
-  }
-
-  .customize-studio-header-price {
-    @apply flex shrink-0 flex-col items-start gap-1 rounded-heritage border border-gold/15 bg-parchment/5 px-5 py-3 sm:items-end;
-  }
-
-  .customize-studio-header-price-label {
-    @apply text-[11px] text-silver;
-  }
-
-  .customize-studio-header-price-value {
-    @apply font-display text-2xl text-price-sale md:text-3xl;
-  }
-
-  .customize-studio-grid {
-    @apply grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] xl:gap-7 2xl:gap-8;
-  }
-
-  .customize-studio-viewer {
-    @apply xl:sticky xl:top-[calc(var(--header-height)+1rem)] xl:self-start;
-  }
-
-  .customize-studio-viewer-inner {
-    @apply flex flex-col gap-4 rounded-heritage-lg border border-gold/10 bg-gradient-to-b from-matte-elevated via-matte to-matte-surface p-4 shadow-heritage md:p-5;
-  }
-
-  .customize-studio-viewer-label {
-    @apply text-[11px] font-medium uppercase tracking-wider text-gold/70;
-  }
-
-  .customize-studio-viewer-actions {
-    @apply flex flex-wrap gap-2;
-  }
-
-  .customize-studio-share-toast {
-    @apply text-center text-xs text-turquoise;
-  }
-
-  .customize-studio-config {
-    @apply min-w-0;
-  }
-
-  .ring-3d-preview {
-    @apply flex flex-col gap-4;
-  }
-
-  .ring-3d-viewport {
-    @apply relative min-h-[min(72vw,22rem)] overflow-hidden rounded-heritage border border-gold/10 bg-[#08090b] sm:min-h-[20rem] md:min-h-[24rem] lg:min-h-[26rem];
-  }
-
-  .ring-3d-viewport-glow {
-    @apply pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_42%,rgba(201,169,98,0.14),transparent_65%)];
-  }
-
-  .ring-3d-canvas {
-    @apply absolute inset-0 h-full w-full touch-none;
-  }
-
-  .ring-3d-hint {
-    @apply pointer-events-none absolute bottom-3 start-3 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 text-[11px] text-silver backdrop-blur-sm;
-  }
-
-  .ring-3d-specs {
-    @apply grid grid-cols-2 gap-3 text-sm sm:grid-cols-4;
-  }
-
-  .ring-3d-specs dt {
-    @apply text-[10px] uppercase tracking-wide text-silver/70;
-  }
-
-  .ring-3d-specs dd {
-    @apply mt-0.5 font-medium text-ivory;
-  }
-
-  .ring-3d-loading {
-    @apply flex min-h-[min(72vw,22rem)] flex-col items-center justify-center gap-4 text-sm text-silver;
-  }
-
-  .ring-3d-loading-orbit {
-    @apply h-12 w-12 animate-spin rounded-full border-2 border-gold/20 border-t-gold;
   }
 
   .choice-gallery {

@@ -61,6 +61,7 @@ model User {
   preferences   UserPreference?
   vendorMemberships      VendorMember[]
   createdVendorCommissionRules VendorCommissionRule[]
+  refunds       Refund[]
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 }
@@ -163,6 +164,9 @@ model Vendor {
   moderationEvents ProductModerationEvent[]
   commissionRules VendorCommissionRule[]
   payoutLedgers   VendorPayoutLedger[]
+  settlements     Settlement[]
+  payouts         Payout[]
+  payoutRecoveries PayoutRecovery[]
 
   @@index([status])
 }
@@ -510,6 +514,8 @@ model Order {
   campaign               DiscountCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   campaignUsages         DiscountCampaignUsage[]
   vendorPayoutLedgers    VendorPayoutLedger[]
+  settlements            Settlement[]
+  refunds                Refund[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -534,6 +540,7 @@ model OrderReturn {
   supportRequest   SupportRequest? @relation(fields: [supportRequestId], references: [id], onDelete: SetNull)
   items            OrderReturnItem[]
   statusHistory    OrderReturnStatusHistory[]
+  refunds          Refund[]
 
   @@index([orderId, createdAt])
   @@index([status, createdAt])
@@ -1231,4 +1238,259 @@ model AdminAuditLog {
   @@index([action])
   @@index([entityType])
   @@index([actorId])
+}
+
+enum SettlementStatus {
+  eligible
+  settled
+  paid_out
+  reversed
+}
+
+/// A vendor's settled earnings for a single order. Aggregates that vendor's
+/// eligible VendorPayoutLedger rows into a payable amount. Unique per
+/// (order, vendor) so an order can only be settled once per seller. Funds are
+/// disbursed via Payout (bank transfer), linked through PayoutSettlement.
+model Settlement {
+  id               String            @id @default(cuid())
+  orderId          String
+  vendorId         String
+  currency         String            @default("IRR")
+  grossAmount      BigInt
+  commissionAmount BigInt
+  netAmount        BigInt
+  status           SettlementStatus  @default(eligible)
+  eligibleAt       DateTime          @default(now())
+  settledAt        DateTime?
+  reversedAt       DateTime?
+  paidOutAt        DateTime?
+  idempotencyKey   String            @unique
+  note             String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  order            Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vendor           Vendor            @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  reversals        SettlementReversal[]
+  payoutLink       PayoutSettlement?
+
+  @@unique([orderId, vendorId])
+  @@index([vendorId, status])
+  @@index([status, eligibleAt])
+}
+
+enum PayoutStatus {
+  pending
+  approved
+  rejected
+  processing
+  completed
+  failed
+}
+
+/// A bank transfer of settled earnings to a seller. Composed of one or more
+/// Settlement rows via PayoutSettlement (atomic claim). Reject/fail detaches
+/// settlements so they return to the payable pool. `reference` is a
+/// client-supplied idempotency key.
+model Payout {
+  id            String                @id @default(cuid())
+  vendorId      String
+  userId        String
+  currency      String                @default("IRR")
+  amount        BigInt
+  status        PayoutStatus          @default(pending)
+  reference     String                @unique
+  failureReason String?
+  requestedById String?
+  approvedById  String?
+  processedById String?
+  requestedAt   DateTime              @default(now())
+  approvedAt    DateTime?
+  rejectedAt    DateTime?
+  processingAt  DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  vendor        Vendor                @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  statusHistory PayoutStatusHistory[]
+  settlements   PayoutSettlement[]
+
+  @@index([vendorId, status])
+  @@index([status, requestedAt])
+}
+
+/// Links a Payout to the Settlements it pays. `settlementId` is unique so a
+/// settlement can belong to at most one payout (double-payout guard).
+model PayoutSettlement {
+  id           String     @id @default(cuid())
+  payoutId     String
+  settlementId String     @unique
+  vendorId     String
+  amount       BigInt
+  createdAt    DateTime   @default(now())
+  payout       Payout     @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  settlement   Settlement @relation(fields: [settlementId], references: [id], onDelete: Restrict)
+
+  @@index([payoutId])
+  @@index([vendorId])
+}
+
+model PayoutStatusHistory {
+  id          String        @id @default(cuid())
+  payoutId    String
+  fromStatus  PayoutStatus?
+  toStatus    PayoutStatus
+  note        String?
+  changedById String?
+  createdAt   DateTime      @default(now())
+  payout      Payout        @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+
+  @@index([payoutId, createdAt])
+}
+
+/// Transactional outbox for marketplace domain events. Events are appended in
+/// the same transaction as the state change that produced them (publish), then
+/// consumed by an idempotent dispatcher (`processedAt` marks completion).
+model DomainEvent {
+  id             String    @id @default(cuid())
+  type           String
+  aggregateType  String
+  aggregateId    String
+  payload        Json
+  idempotencyKey String?   @unique
+  occurredAt     DateTime  @default(now())
+  processedAt    DateTime?
+  attempts       Int       @default(0)
+  lastError      String?
+  createdAt      DateTime  @default(now())
+
+  @@index([processedAt, occurredAt])
+  @@index([aggregateType, aggregateId])
+  @@index([type, occurredAt])
+}
+
+enum RefundStatus {
+  requested
+  under_review
+  approved
+  rejected
+  processing
+  completed
+  failed
+}
+
+enum RefundType {
+  full
+  partial
+}
+
+/// Financial refund aggregate. Drives customer money-back lifecycle and, on
+/// completion, seller-side settlement reversal. `amount` is the customer refund
+/// amount; `reference` is a client idempotency key preventing duplicate refunds.
+model Refund {
+  id            String                @id @default(cuid())
+  orderId       String
+  orderReturnId String?
+  userId        String
+  currency      String                @default("IRR")
+  amount        BigInt
+  type          RefundType            @default(partial)
+  status        RefundStatus          @default(requested)
+  reason        String?
+  reference     String                @unique
+  failureReason String?
+  requestedById String?
+  reviewedById  String?
+  approvedById  String?
+  processedById String?
+  requestedAt   DateTime              @default(now())
+  reviewedAt    DateTime?
+  approvedAt    DateTime?
+  rejectedAt    DateTime?
+  processingAt  DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  order         Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderReturn   OrderReturn?          @relation(fields: [orderReturnId], references: [id], onDelete: SetNull)
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  statusHistory RefundStatusHistory[]
+  reversals     SettlementReversal[]
+  recoveries    PayoutRecovery[]
+
+  @@index([orderId, status])
+  @@index([status, requestedAt])
+  @@index([userId, createdAt])
+}
+
+model RefundStatusHistory {
+  id          String        @id @default(cuid())
+  refundId    String
+  fromStatus  RefundStatus?
+  toStatus    RefundStatus
+  note        String?
+  changedById String?
+  createdAt   DateTime      @default(now())
+  refund      Refund        @relation(fields: [refundId], references: [id], onDelete: Cascade)
+
+  @@index([refundId, createdAt])
+}
+
+enum SettlementReversalOutcome {
+  settlement_reversed
+  payout_adjustment_required
+}
+
+/// One reversal of a single settlement caused by a refund. If the settlement
+/// was not yet paid out, it is reversed in place. If it was already paid out
+/// via bank transfer, a PayoutRecovery is recorded instead.
+model SettlementReversal {
+  id             String                    @id @default(cuid())
+  refundId       String
+  settlementId   String
+  vendorId       String
+  amount         BigInt
+  outcome        SettlementReversalOutcome
+  idempotencyKey String                    @unique
+  note           String?
+  createdAt      DateTime                  @default(now())
+  refund         Refund                    @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  settlement     Settlement                @relation(fields: [settlementId], references: [id], onDelete: Restrict)
+  recovery       PayoutRecovery?
+
+  @@index([refundId])
+  @@index([settlementId])
+  @@index([vendorId])
+}
+
+enum PayoutRecoveryStatus {
+  pending
+  recovered
+  written_off
+}
+
+/// Money owed back by a seller when a refund reverses a settlement whose funds
+/// were already paid out. The historical payout/ledger is left intact; this row
+/// tracks the adjustment that must be recovered from future settlements/payouts.
+model PayoutRecovery {
+  id                   String               @id @default(cuid())
+  vendorId             String
+  refundId             String
+  settlementReversalId String?              @unique
+  currency             String               @default("IRR")
+  amount               BigInt
+  status               PayoutRecoveryStatus @default(pending)
+  reason               String?
+  idempotencyKey       String               @unique
+  resolvedAt           DateTime?
+  resolvedById         String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  vendor               Vendor               @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  refund               Refund               @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  settlementReversal   SettlementReversal?  @relation(fields: [settlementReversalId], references: [id], onDelete: SetNull)
+
+  @@index([vendorId, status])
+  @@index([refundId])
 }

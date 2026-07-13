@@ -56,12 +56,14 @@ function applyPayload(
   setProduct: (p: Product) => void,
   setVendorProducts: (r: Product[]) => void,
   setSmartRecommendations: (r: ProductPagePayload["smartRecommendations"]) => void,
-  setActiveBundles: (r: ProductPagePayload["activeBundles"]) => void
+  setActiveBundles: (r: ProductPagePayload["activeBundles"]) => void,
+  setRingCustomizationEnabled: (enabled: boolean) => void
 ) {
   setProduct(payload.product);
   setVendorProducts(payload.vendorProducts);
   setSmartRecommendations(payload.smartRecommendations);
   setActiveBundles(payload.activeBundles);
+  setRingCustomizationEnabled(Boolean(payload.ringCustomizationEnabled));
 }
 
 export function ProductPageClient({ productId, initialPayload }: Props) {
@@ -75,6 +77,9 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   );
   const [activeBundles, setActiveBundles] = useState<ProductPagePayload["activeBundles"]>(
     initialPayload?.activeBundles ?? []
+  );
+  const [ringCustomizationEnabled, setRingCustomizationEnabled] = useState(
+    Boolean(initialPayload?.ringCustomizationEnabled)
   );
   const [isLoading, setIsLoading] = useState(!initialPayload);
   const [isMissing, setIsMissing] = useState(false);
@@ -102,7 +107,8 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         setProduct,
         setVendorProducts,
         setSmartRecommendations,
-        setActiveBundles
+        setActiveBundles,
+        setRingCustomizationEnabled
       );
       setIsMissing(false);
       setIsLoading(false);
@@ -291,50 +297,52 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
                     </div>
                   </div>
 
-                  <div className="product-detail-buybox__section product-detail-buybox__customization">
-                    {productCartItem ? (
-                      <RingCustomizationEditor
-                        item={productCartItem}
-                        className="product-detail-buybox__customization-panel"
-                        onClear={() => {
-                          const previousDelta =
-                            productCartItem.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
-                          if (!previousDelta) {
+                  {ringCustomizationEnabled ? (
+                    <div className="product-detail-buybox__section product-detail-buybox__customization">
+                      {productCartItem ? (
+                        <RingCustomizationEditor
+                          item={productCartItem}
+                          className="product-detail-buybox__customization-panel"
+                          onClear={() => {
+                            const previousDelta =
+                              productCartItem.ringPurchaseCustomization?.totalCustomizationDelta ?? 0;
+                            if (!previousDelta) {
+                              cart.updateRingCustomization(productCartItem.id, {
+                                price: productCartItem.price,
+                                listPrice: productCartItem.listPrice,
+                                ringPurchaseCustomization: undefined,
+                              });
+                              return;
+                            }
+                            const basePrice = productCartItem.price - previousDelta;
+                            const baseList =
+                              (productCartItem.listPrice ?? productCartItem.price) - previousDelta;
                             cart.updateRingCustomization(productCartItem.id, {
-                              price: productCartItem.price,
-                              listPrice: productCartItem.listPrice,
+                              price: basePrice,
+                              listPrice: baseList,
                               ringPurchaseCustomization: undefined,
                             });
-                            return;
-                          }
-                          const basePrice = productCartItem.price - previousDelta;
-                          const baseList =
-                            (productCartItem.listPrice ?? productCartItem.price) - previousDelta;
-                          cart.updateRingCustomization(productCartItem.id, {
-                            price: basePrice,
-                            listPrice: baseList,
-                            ringPurchaseCustomization: undefined,
-                          });
-                        }}
-                      />
-                    ) : (
-                      <div className="product-detail-buybox__customization-panel">
-                        <div className="grid gap-0.5">
-                          <p className="text-xs font-semibold text-ivory">شخصی‌سازی انگشتر</p>
-                          <p className="text-[11px] text-silver">
-                            برای حکاکی و قلم‌کاری اختصاصی، وارد مرحله شخصی‌سازی شوید.
-                          </p>
+                          }}
+                        />
+                      ) : (
+                        <div className="product-detail-buybox__customization-panel">
+                          <div className="grid gap-0.5">
+                            <p className="text-xs font-semibold text-ivory">شخصی‌سازی انگشتر</p>
+                            <p className="text-[11px] text-silver">
+                              برای حکاکی و قلم‌کاری اختصاصی، وارد مرحله شخصی‌سازی شوید.
+                            </p>
+                          </div>
+                          <div className="mt-2.5">
+                            <Link href={`/customize?productId=${encodeURIComponent(product.id)}`} className="block w-full">
+                              <Button size="sm" variant="outline" className="w-full">
+                                شخصی‌سازی
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
-                        <div className="mt-2.5">
-                          <Link href={`/customize?productId=${encodeURIComponent(product.id)}`} className="block w-full">
-                            <Button size="sm" variant="outline" className="w-full">
-                              شخصی‌سازی
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  ) : null}
 
                   <section
                     className="product-detail-buybox__section product-detail-buybox__availability"

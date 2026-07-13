@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Gem, Share, SlidersHorizontal, Wallet } from "@/components/icons";
+import { ArrowLeft, Gem, Receipt, Share, SlidersHorizontal } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { Button } from "@/components/ui/Button";
 import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 
-const featureIcons = [SlidersHorizontal, Wallet, Share] as const;
+const featureIcons = [SlidersHorizontal, Receipt, Share] as const;
 
 export function CustomizerCTA() {
   return (

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { ProductCompareSkeleton } from "@/components/compare/ProductCompareSkeleton";
 import { ProductCompareTable } from "@/components/compare/ProductCompareTable";
 import { useApp } from "@/lib/context/AppContext";
 import { useProductsByIds } from "@/lib/hooks/useProductsByIds";
@@ -13,11 +14,14 @@ import { MAX_COMPARE_PRODUCTS } from "@/lib/product-lists/constants";
 
 export default function ComparePage() {
   const { compareList } = useApp();
-  const products = useProductsByIds(compareList.ids);
+  const { products, isLoading: catalogLoading } = useProductsByIds(compareList.ids);
   const visibleProducts = useMemo(
     () => products.slice(0, MAX_COMPARE_PRODUCTS),
     [products]
   );
+
+  const isPreparing =
+    !compareList.hydrated || (compareList.count > 0 && catalogLoading);
 
   return (
     <PageTransition>
@@ -27,16 +31,26 @@ export default function ComparePage() {
             <p className="compare-page__eyebrow">{fa.brand.name}</p>
             <h1 className="compare-page__title">{fa.compare.title}</h1>
             <p className="compare-page__subtitle">{fa.compare.subtitle(compareList.max)}</p>
-            <p className="compare-page__count">{fa.compare.countLabel(compareList.count, compareList.max)}</p>
+            {!isPreparing ? (
+              <p className="compare-page__count">
+                {fa.compare.countLabel(compareList.count, compareList.max)}
+              </p>
+            ) : (
+              <div className="compare-page__count-skel sk mt-2 h-4 w-20" aria-hidden />
+            )}
           </div>
-          {compareList.count > 0 ? (
+          {!isPreparing && compareList.count > 0 ? (
             <Button variant="outline" size="sm" onClick={() => compareList.clear()}>
               {fa.compare.clearAll}
             </Button>
           ) : null}
         </header>
 
-        {visibleProducts.length === 0 ? (
+        {isPreparing ? (
+          <ProductCompareSkeleton
+            columns={compareList.count > 0 ? compareList.count : 2}
+          />
+        ) : visibleProducts.length === 0 ? (
           <UnifiedEmptyState
             visual="compare"
             title={fa.compare.emptyTitle}

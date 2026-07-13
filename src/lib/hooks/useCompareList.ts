@@ -9,13 +9,14 @@ import {
   addToCompareList,
   clearCompareList,
   removeFromCompareList,
+  selectCompareListHydrated,
   selectCompareListIds,
-  selectIsInCompareList,
 } from "../store/slices/compareListSlice";
 
 export function useCompareList() {
   const dispatch = useAppDispatch();
   const ids = useAppSelector(selectCompareListIds);
+  const hydrated = useAppSelector(selectCompareListHydrated);
 
   const isInCompare = useCallback(
     (productId: string) => ids.includes(productId),
@@ -56,6 +57,7 @@ export function useCompareList() {
     ids,
     count: ids.length,
     max: MAX_COMPARE_PRODUCTS,
+    hydrated,
     isInCompare,
     toggle,
     remove,

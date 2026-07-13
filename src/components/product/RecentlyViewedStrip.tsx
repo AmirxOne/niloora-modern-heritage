@@ -14,7 +14,7 @@ export function RecentlyViewedStrip({
 }) {
   const { recentlyViewed } = useApp();
   const ids = recentlyViewed.ids.filter((id) => id !== excludeProductId);
-  const products = useProductsByIds(ids);
+  const { products } = useProductsByIds(ids);
 
   if (products.length === 0) return null;
 
