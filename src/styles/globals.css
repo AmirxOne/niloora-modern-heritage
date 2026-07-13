@@ -3791,7 +3791,7 @@
   }
 
   .compare-page__header {
-    @apply mb-8 flex flex-wrap items-start justify-between gap-4;
+    @apply mb-5 flex flex-wrap items-start justify-between gap-4;
   }
 
   .compare-page__title {

@@ -602,7 +602,11 @@ export default function CustomizePage() {
                 {step === "size" ? (
                   <div className="grid gap-2">
                     <TextBox
-                      label={`سایز تحویل (${config.config.sizeMin} تا ${config.config.sizeMax})`}
+                      label={
+                        config.config.sizeMin != null && config.config.sizeMax != null
+                          ? `سایز تحویل (${config.config.sizeMin} تا ${config.config.sizeMax})`
+                          : "سایز تحویل"
+                      }
                       value={String(size ?? config.config.sizeBase ?? "")}
                       onChange={(e) => {
                         setUseSize(true);
