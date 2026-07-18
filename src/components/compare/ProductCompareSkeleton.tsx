@@ -33,7 +33,7 @@ export function ProductCompareSkeleton({ columns = 2 }: ProductCompareSkeletonPr
                     <div className="sk h-3 w-20" />
                     <div className="product-compare-table__actions">
                       <div className="sk h-8 w-24 rounded-heritage" />
-                      <div className="sk h-8 w-20 rounded-heritage" />
+                      <div className="sk h-8 w-8 rounded-heritage" />
                     </div>
                   </div>
                 </th>

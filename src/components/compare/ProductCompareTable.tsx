@@ -11,6 +11,8 @@ import { fa } from "@/lib/i18n/fa";
 import { useApp } from "@/lib/context/AppContext";
 import { Button } from "@/components/ui/Button";
 import { TomanPrice } from "@/components/commerce/TomanPrice";
+import { Trash2 } from "@/components/icons";
+import { ICON_VARIANT, iconSizes } from "@/lib/icons";
 
 type CompareRow = {
   key: string;
@@ -106,8 +108,10 @@ export function ProductCompareTable({ products }: { products: Product[] }) {
                         size="sm"
                         variant="ghost"
                         onClick={() => compareList.remove(product.id)}
+                        aria-label={fa.compare.removeProduct}
+                        title={fa.compare.removeProduct}
                       >
-                        {fa.compare.removeProduct}
+                        <Trash2 size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />
                       </Button>
                     </div>
                   </div>

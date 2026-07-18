@@ -3867,7 +3867,20 @@
   }
 
   .product-compare-table__actions {
-    @apply mt-auto flex w-full flex-wrap gap-2;
+    @apply mt-auto flex w-full flex-nowrap items-stretch gap-2 pt-4;
+  }
+
+  .product-compare-table__actions > a {
+    @apply min-w-0 flex-1;
+  }
+
+  .product-compare-table__actions > a > button {
+    @apply w-full;
+  }
+
+  .product-compare-table__actions > button {
+    @apply h-11 w-11 min-h-11 min-w-11 shrink-0 p-0 text-red-700;
+    @apply bg-red-500/10 hover:bg-red-500/20 hover:text-red-800;
   }
 
   .compare-enhanced__diff {

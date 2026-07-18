@@ -210,6 +210,19 @@ export async function isRingCustomizationEnabled(productId: string): Promise<boo
   return Boolean(config?.enabled);
 }
 
+export async function listEnabledRingCustomizationProductIds(
+  productIds: string[]
+): Promise<string[]> {
+  const uniqueIds = Array.from(new Set(productIds.filter(Boolean)));
+  if (uniqueIds.length === 0) return [];
+
+  const rows = await prisma.productRingCustomizationConfig.findMany({
+    where: { productId: { in: uniqueIds }, enabled: true },
+    select: { productId: true },
+  });
+  return rows.map((row) => row.productId);
+}
+
 export async function getRingCustomizationPublicConfig(
   productId: string
 ): Promise<RingCustomizationPublicConfigDto | null> {

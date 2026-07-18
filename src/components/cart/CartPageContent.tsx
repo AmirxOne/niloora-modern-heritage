@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/lib/context/AppContext";
@@ -40,6 +40,7 @@ import {
   type InstallmentMonthOption,
 } from "@/lib/checkout/bnpl";
 import { trackFunnelEvent } from "@/lib/analytics/client";
+import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
 
 type CheckoutStep = "cart" | "checkout" | "success";
 
@@ -59,6 +60,48 @@ export function CartPageContent() {
   const paymentHandled = useRef(false);
   const shippingFormRef = useRef<CheckoutShippingFormState | null>(null);
   const [shippingForm, setShippingForm] = useState<CheckoutShippingInput | null>(null);
+  const [ringCustomizableProductIds, setRingCustomizableProductIds] = useState<Set<string>>(
+    () => new Set()
+  );
+
+  const catalogProductIdsKey = useMemo(() => {
+    const ids = cart.items
+      .filter((item) => item.productId && !item.customizerState)
+      .map((item) => item.productId as string);
+    return Array.from(new Set(ids)).sort().join(",");
+  }, [cart.items]);
+
+  useEffect(() => {
+    if (!catalogProductIdsKey) {
+      setRingCustomizableProductIds(new Set());
+      return;
+    }
+
+    const productIds = catalogProductIdsKey.split(",");
+    let cancelled = false;
+
+    async function loadEligibility() {
+      try {
+        const response = await fetch("/api/cart/ring-customization-eligibility", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productIds }),
+        });
+        const data = await parseJsonResponse<{ enabledProductIds?: string[] }>(response);
+        if (cancelled) return;
+        setRingCustomizableProductIds(
+          new Set(response.ok && Array.isArray(data?.enabledProductIds) ? data.enabledProductIds : [])
+        );
+      } catch {
+        if (!cancelled) setRingCustomizableProductIds(new Set());
+      }
+    }
+
+    void loadEligibility();
+    return () => {
+      cancelled = true;
+    };
+  }, [catalogProductIdsKey]);
 
   const handleShippingStateReady = useCallback((state: CheckoutShippingFormState) => {
     shippingFormRef.current = state;
@@ -212,7 +255,6 @@ export function CartPageContent() {
         animate={{ opacity: 1, y: 0 }}
         className="cart-page-header"
       >
-        <p className="page-eyebrow">{fa.nav.cart}</p>
         <h1 className="cart-page-title">{titles[step]}</h1>
         {step === "cart" ? (
           <p className="cart-page-subtitle">
@@ -284,7 +326,9 @@ export function CartPageContent() {
                       onIncrease={() => cart.updateQuantity(item.id, item.quantity + 1)}
                       onRemove={() => cart.removeItem(item.id)}
                       customizationControl={
-                        item.productId && !item.customizerState ? (
+                        item.productId &&
+                        !item.customizerState &&
+                        ringCustomizableProductIds.has(item.productId) ? (
                           <RingCustomizationEditor
                             item={item}
                             onClear={() => {
