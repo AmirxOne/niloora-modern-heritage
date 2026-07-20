@@ -102,6 +102,45 @@ export type PostUpsertInput = {
   metaDescription?: string | null;
 };
 
+export type PostPublishValidationIssue =
+  | "excerpt"
+  | "coverImage"
+  | "authorName"
+  | "metaTitle"
+  | "metaDescription";
+
+const PUBLISH_VALIDATION_LABELS: Record<PostPublishValidationIssue, string> = {
+  excerpt: "خلاصه مقاله",
+  coverImage: "تصویر کاور",
+  authorName: "نام نویسنده",
+  metaTitle: "عنوان سئو",
+  metaDescription: "توضیحات سئو",
+};
+
+export function listPrePublishIssues(input: PostUpsertInput): PostPublishValidationIssue[] {
+  const issues: PostPublishValidationIssue[] = [];
+  if (!input.excerpt?.trim()) issues.push("excerpt");
+  if (!input.coverImage?.trim()) issues.push("coverImage");
+  if (!input.authorName?.trim()) issues.push("authorName");
+  if (!input.metaTitle?.trim()) issues.push("metaTitle");
+  if (!input.metaDescription?.trim()) issues.push("metaDescription");
+  return issues;
+}
+
+export function validatePrePublishRequirements(
+  input: PostUpsertInput
+): { ok: true } | { ok: false; message: string; missing: PostPublishValidationIssue[] } {
+  if (input.status !== "published") return { ok: true };
+  const missing = listPrePublishIssues(input);
+  if (missing.length === 0) return { ok: true };
+  const labels = missing.map((key) => PUBLISH_VALIDATION_LABELS[key]).join("، ");
+  return {
+    ok: false,
+    message: `برای انتشار مقاله، تکمیل این موارد الزامی است: ${labels}.`,
+    missing,
+  };
+}
+
 export async function createPost(input: PostUpsertInput) {
   return prisma.post.create({
     data: {

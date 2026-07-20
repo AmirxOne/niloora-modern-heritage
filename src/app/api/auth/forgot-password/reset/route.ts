@@ -22,19 +22,23 @@ export async function POST(request: Request) {
     const newPassword = body.newPassword ?? "";
 
     if (!phone || !token || newPassword.length < 6) {
-      return badRequest("Invalid reset payload");
+      return badRequest("شماره موبایل، کد بازیابی و گذرواژه جدید معتبر الزامی است.", "invalid_reset_payload");
     }
 
-    const rate = assertPasswordResetRateLimit(request, phone);
+    const rate = await assertPasswordResetRateLimit(request, phone);
     if (!rate.allowed) {
-      return tooManyRequests("reset_rate_limited", rate.retryAfterSec);
+      return tooManyRequests(
+        "تلاش‌های بازیابی بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید.",
+        rate.retryAfterSec,
+        "reset_rate_limited"
+      );
     }
 
     const user = await prisma.user.findUnique({ where: { phone } });
-    if (!user) return notFound("phone_not_found");
+    if (!user) return notFound("کاربری با این شماره موبایل یافت نشد.");
 
     const tokenValid = await consumeResetToken(user.id, token);
-    if (!tokenValid) return unauthorized("invalid_reset");
+    if (!tokenValid) return unauthorized("کد بازیابی نامعتبر یا منقضی است.", "invalid_reset");
 
     const passwordHash = await hash(newPassword, 10);
     await prisma.user.update({

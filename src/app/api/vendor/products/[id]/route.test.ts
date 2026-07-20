@@ -51,6 +51,22 @@ describe("PATCH /api/vendor/products/[id]", () => {
     expect(mocks.updateVendorProduct).toHaveBeenCalledWith("user-a", "p-b", { name: "Hacked" });
   });
 
+  it("returns 400 for empty update payload", async () => {
+    mocks.readSessionUser.mockResolvedValue({ id: "user-a", role: "user" });
+
+    const response = await PATCH(
+      new Request("http://localhost/api/vendor/products/p-a", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }),
+      { params: Promise.resolve({ id: "p-a" }) }
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.updateVendorProduct).not.toHaveBeenCalled();
+  });
+
   it("returns updated product for owned listing", async () => {
     mocks.readSessionUser.mockResolvedValue({ id: "user-a", role: "user" });
     mocks.updateVendorProduct.mockResolvedValue({ id: "p-a", name: "Updated" });

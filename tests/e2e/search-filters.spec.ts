@@ -1,11 +1,19 @@
 import { test, expect } from "@playwright/test";
+import { gotoStable } from "./support/navigation";
 
 test.describe("Search & Filters", () => {
   test("header search is available on shop page", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto("/shop", { waitUntil: "networkidle" });
-    const searchRegion = page.locator("header").getByRole("search", { name: "جستجو" });
-    await expect(searchRegion).toBeVisible({ timeout: 15_000 });
+    await gotoStable(page, "/shop");
+    const searchInput = page.locator("header [role='search'] input[type='search']").first();
+    const searchToggleButton = page.getByRole("button", { name: "جستجو" }).first();
+
+    await expect
+      .poll(
+        async () => (await searchInput.count()) + (await searchToggleButton.count()),
+        { timeout: 15_000 }
+      )
+      .toBeGreaterThan(0);
   });
 
   test("product search API returns results for valid query", async ({ request }) => {

@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
     readSessionUser: vi.fn(),
     ensureAdmin: vi.fn(),
     applyPayoutAction: vi.fn(),
+    payoutFindUnique: vi.fn(),
     writeAdminAuditLog: vi.fn(),
     dispatch: vi.fn(),
     ensureHandlers: vi.fn(),
@@ -28,6 +29,13 @@ const MockPayoutTransition = mocks.MockPayoutTransition;
 vi.mock("@/lib/server/auth/session", () => ({ readSessionUser: mocks.readSessionUser }));
 vi.mock("@/lib/server/auth/guards", () => ({ ensureAdmin: mocks.ensureAdmin }));
 vi.mock("@/lib/server/audit-log", () => ({ writeAdminAuditLog: mocks.writeAdminAuditLog }));
+vi.mock("@/lib/server/prisma", () => ({
+  prisma: {
+    payout: {
+      findUnique: mocks.payoutFindUnique,
+    },
+  },
+}));
 vi.mock("@/lib/server/marketplace/payout/payout-dto", () => ({ toPayoutDto: (p: unknown) => p }));
 vi.mock("@/lib/server/marketplace/events/domain-events", () => ({
   dispatchDomainEvents: mocks.dispatch,
@@ -59,6 +67,7 @@ describe("POST /api/admin/payouts/[id]", () => {
     mocks.readSessionUser.mockResolvedValue({ id: "admin-1", role: "admin" });
     mocks.ensureAdmin.mockReturnValue(null);
     mocks.dispatch.mockResolvedValue({ processed: 0, failed: 0 });
+    mocks.payoutFindUnique.mockResolvedValue({ id: "pay-1", status: "pending" });
   });
 
   it("blocks non-admins", async () => {
@@ -71,6 +80,24 @@ describe("POST /api/admin/payouts/[id]", () => {
   it("rejects unknown actions", async () => {
     const response = await POST(req({ action: "explode" }), ctx);
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe("payout_invalid_action");
+  });
+
+  it("rejects reject/fail without reason", async () => {
+    const response = await POST(req({ action: "reject" }), ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe("payout_reason_required");
+  });
+
+  it("returns 409 on expected status mismatch", async () => {
+    mocks.payoutFindUnique.mockResolvedValue({ id: "pay-1", status: "approved" });
+    const response = await POST(req({ action: "process", expectedStatus: "pending" }), ctx);
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.code).toBe("payout_status_mismatch");
+    expect(mocks.applyPayoutAction).not.toHaveBeenCalled();
   });
 
   it("applies a valid action, audits, and dispatches events", async () => {
@@ -86,6 +113,8 @@ describe("POST /api/admin/payouts/[id]", () => {
     mocks.applyPayoutAction.mockRejectedValue(new MockPayoutTransition("bad"));
     const response = await POST(req({ action: "complete" }), ctx);
     expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.code).toBe("payout_transition_conflict");
   });
 
   it("maps not-found to 404", async () => {

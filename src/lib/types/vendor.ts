@@ -20,6 +20,8 @@ export interface VendorProfileDto {
   displayName: string;
   displayNameFa?: string;
   description?: string;
+  profileImageUrl?: string;
+  bannerImageUrl?: string;
   contactPhone?: string;
   contactEmail?: string;
   status: VendorStatus;

@@ -1005,6 +1005,22 @@
     @apply whitespace-nowrap text-xs text-[#78716C] transition-colors hover:text-turquoise-dark;
   }
 
+  .header-secondary-nav__utility-link--cta {
+    @apply rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 font-semibold text-gold-dark hover:border-gold/45 hover:bg-gold/20;
+  }
+
+  .header-secondary-nav__utility-link--cta-muted {
+    @apply rounded-full border border-[#e5e1db] bg-[#f5f3ef] px-3 py-1.5 font-semibold text-[#6b665f] hover:border-[#d8d2c9] hover:bg-[#efebe5];
+  }
+
+  .header-seller-cta {
+    @apply inline-flex h-8 items-center justify-center rounded-full border border-gold/30 bg-gold/10 px-3 text-[11px] font-semibold text-gold-dark transition-colors hover:border-gold/45 hover:bg-gold/20;
+  }
+
+  .header-seller-cta--muted {
+    @apply border-[#e5e1db] bg-[#f5f3ef] text-[#6b665f] hover:border-[#d8d2c9] hover:bg-[#efebe5];
+  }
+
   .header-glass-solid {
     background: rgba(255, 255, 255, 0.98);
     border-bottom: 1px solid rgba(184, 134, 11, 0.18);
@@ -1320,6 +1336,13 @@
 
   .auth-shell--3565 {
     @apply lg:grid-cols-[minmax(0,35fr)_minmax(0,65fr)];
+    background: linear-gradient(
+      to left,
+      #ffffff 0%,
+      #ffffff 35%,
+      transparent 35%,
+      transparent 100%
+    );
   }
 
   .auth-shell--3565 .auth-visual-slot {
@@ -1447,6 +1470,13 @@
 
   .auth-otp-sent {
     @apply text-sm text-ivory;
+  }
+
+  .auth-otp-phone {
+    display: inline-block;
+    direction: ltr;
+    unicode-bidi: isolate;
+    letter-spacing: 0.02em;
   }
 
   .auth-otp-hint {

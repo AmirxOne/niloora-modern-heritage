@@ -8,6 +8,9 @@ import {
   type CatalogProductsPage,
 } from "@/lib/server/products";
 
+const MAX_LIMIT = 100;
+const MAX_OFFSET = 20_000;
+
 function parsePositiveInt(value: string | null): number | undefined {
   if (!value) return undefined;
   const parsed = Number.parseInt(value, 10);
@@ -22,8 +25,14 @@ function parseCatalogQuery(searchParams: URLSearchParams) {
   if (searchParams.has("limit") && limit == null) {
     return { error: badRequest("limit must be a positive integer") } as const;
   }
+  if ((limit ?? 0) > MAX_LIMIT) {
+    return { error: badRequest(`limit must be <= ${MAX_LIMIT}`) } as const;
+  }
   if (searchParams.has("offset") && parsePositiveInt(searchParams.get("offset")) == null) {
     return { error: badRequest("offset must be a non-negative integer") } as const;
+  }
+  if (offset > MAX_OFFSET) {
+    return { error: badRequest(`offset must be <= ${MAX_OFFSET}`) } as const;
   }
 
   return {

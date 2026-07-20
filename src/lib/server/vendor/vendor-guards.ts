@@ -20,10 +20,26 @@ export async function requireVendorMembership(userId: string) {
   return membership;
 }
 
+export async function requireVendorOwner(userId: string) {
+  const membership = await requireVendorMembership(userId);
+  if (membership.role !== "owner") {
+    throw new Error("VENDOR_ROLE_FORBIDDEN");
+  }
+  return membership;
+}
+
 export async function requireActiveVendor(userId: string) {
   const membership = await requireVendorMembership(userId);
   if (membership.vendor.status !== ACTIVE_VENDOR) {
     throw new Error("VENDOR_NOT_ACTIVE");
+  }
+  return membership;
+}
+
+export async function requireActiveVendorOwner(userId: string) {
+  const membership = await requireActiveVendor(userId);
+  if (membership.role !== "owner") {
+    throw new Error("VENDOR_ROLE_FORBIDDEN");
   }
   return membership;
 }

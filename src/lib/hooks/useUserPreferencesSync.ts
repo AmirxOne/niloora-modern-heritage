@@ -49,8 +49,15 @@ export function useUserPreferencesSync(isLoggedIn: boolean) {
 
     let cancelled = false;
     async function sync() {
-      const response = await apiFetch("/api/user/preferences");
-      if (!response.ok || cancelled) return;
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        response = await apiFetch("/api/user/preferences").catch(() => null);
+        if (response?.ok) break;
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 80 * (attempt + 1)));
+        }
+      }
+      if (!response?.ok || cancelled) return;
 
       const data = (await response.json()) as PreferencesResponse;
       const localDesigns = store.getState().designs.designs;
@@ -89,9 +96,9 @@ export function useUserPreferencesSync(isLoggedIn: boolean) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: data.promoCode, subtotalSale }),
-      });
+      }).catch(() => null);
       if (cancelled) return;
-      if (!validateRes.ok) {
+      if (!validateRes?.ok) {
         dispatch(clearPromoCode());
         return;
       }

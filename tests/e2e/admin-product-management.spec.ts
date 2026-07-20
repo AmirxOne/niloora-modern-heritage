@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { gotoStable } from "./support/navigation";
 
 test.describe("Admin — Product Management", () => {
   test("admin products UI is protected", async ({ page }) => {
-    await page.goto("/admin/products");
+    await gotoStable(page, "/admin/products");
     await expect(page).toHaveURL(/\/auth/);
   });
 

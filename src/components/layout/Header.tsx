@@ -27,6 +27,7 @@ import { brandMarkSizes } from "@/lib/brand/assets";
 import { HeaderAccountMenuSkeleton } from "@/components/layout/HeaderAccountMenuSkeleton";
 import { HeaderPromoStrip } from "@/components/layout/HeaderPromoStrip";
 import { isHeaderStripVisible } from "@/lib/home-banner-header-strip";
+import type { VendorStatus } from "@/lib/types/vendor";
 
 const HeaderSearch = dynamic(
   () => import("@/components/layout/HeaderSearch").then((mod) => mod.HeaderSearch),
@@ -123,10 +124,11 @@ function IconBtn({
 export function Header() {
   const pathname = usePathname() ?? "/";
   const normalizedPath = stripLocalePrefix(pathname).path;
-  const { cart, compareList } = useApp();
+  const { cart, compareList, auth } = useApp();
   const site = useSiteSettings();
   const { banner } = useSiteBanner();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [vendorStatus, setVendorStatus] = useState<VendorStatus | null>(null);
   const headerRef = useRef<HTMLElement>(null);
 
   const hasPromo = isHeaderStripVisible(banner);
@@ -164,6 +166,40 @@ export function Header() {
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [searchOpen, closeSearch]);
 
+  useEffect(() => {
+    if (!auth.isLoggedIn) {
+      setVendorStatus(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/vendor/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { vendor?: { status?: VendorStatus | null } } | null) => {
+        if (cancelled) return;
+        setVendorStatus(data?.vendor?.status ?? null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setVendorStatus(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.isLoggedIn, pathname]);
+
+  const vendorCta = (() => {
+    if (!auth.isLoggedIn || !vendorStatus) {
+      return { href: "/vendor/apply", label: fa.nav.becomeVendor, cta: true };
+    }
+    if (vendorStatus === "pending_review") {
+      return { href: "/vendor/dashboard", label: fa.nav.vendorPendingReview, cta: false };
+    }
+    if (vendorStatus === "active") {
+      return { href: "/vendor/dashboard", label: fa.nav.vendorDashboard, cta: true };
+    }
+    return { href: "/vendor/dashboard", label: fa.nav.vendorApplication, cta: false };
+  })();
+
   return (
     <header
       ref={headerRef}
@@ -185,18 +221,27 @@ export function Header() {
                 </span>
               </Link>
 
-              <button
-                type="button"
-                onClick={toggleSearch}
-                className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#78716C] transition-colors active:scale-95 hover:bg-[#F5F3EF]",
-                  searchOpen && "bg-[#F5F3EF] text-[#2C2A29]"
-                )}
-                aria-label={fa.nav.search}
-                aria-expanded={searchOpen}
-              >
-                <Search size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={vendorCta.href}
+                  className={cn("header-seller-cta", !vendorCta.cta && "header-seller-cta--muted")}
+                  aria-label={vendorCta.label}
+                >
+                  {vendorCta.label}
+                </Link>
+                <button
+                  type="button"
+                  onClick={toggleSearch}
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#78716C] transition-colors active:scale-95 hover:bg-[#F5F3EF]",
+                    searchOpen && "bg-[#F5F3EF] text-[#2C2A29]"
+                  )}
+                  aria-label={fa.nav.search}
+                  aria-expanded={searchOpen}
+                >
+                  <Search size={iconSizes.md} variant={ICON_VARIANT} aria-hidden />
+                </button>
+              </div>
             </div>
 
             {/* دسکتاپ — ردیف اصلی */}
@@ -291,6 +336,17 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href={vendorCta.href}
+                className={cn(
+                  "header-secondary-nav__utility-link",
+                  vendorCta.cta
+                    ? "header-secondary-nav__utility-link--cta"
+                    : "header-secondary-nav__utility-link--cta-muted"
+                )}
+              >
+                {vendorCta.label}
+              </Link>
             </div>
           </div>
         </nav>

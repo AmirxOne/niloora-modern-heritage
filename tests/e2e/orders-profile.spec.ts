@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { gotoStable } from "./support/navigation";
 
 test.describe("Orders & Profile", () => {
   test("account page requires login", async ({ page }) => {
-    await page.goto("/account");
+    await gotoStable(page, "/account");
     await expect(page).toHaveURL(/\/auth/);
   });
 
@@ -12,7 +13,7 @@ test.describe("Orders & Profile", () => {
   });
 
   test("returns page is public", async ({ page }) => {
-    await page.goto("/returns");
+    await gotoStable(page, "/returns");
     await expect(page.locator("body")).toBeVisible();
   });
 });

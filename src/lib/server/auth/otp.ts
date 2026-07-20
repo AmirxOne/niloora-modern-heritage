@@ -24,6 +24,11 @@ export async function issueOtpCode(phone: string) {
   const codeHash = hashOtp(code);
   const expiresAt = new Date(Date.now() + otpTtlMs());
 
+  await prisma.otpVerificationCode.updateMany({
+    where: { phone, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
+
   await prisma.otpVerificationCode.create({
     data: {
       phone,
@@ -65,16 +70,23 @@ export async function verifyAndConsumeOtpCode(
   });
 
   if (!latest) return "invalid";
-  if (latest.expiresAt.getTime() <= Date.now()) return "expired";
+  if (latest.expiresAt.getTime() <= Date.now()) {
+    await prisma.otpVerificationCode.update({
+      where: { id: latest.id },
+      data: { consumedAt: new Date() },
+    });
+    return "expired";
+  }
   if (latest.attempts >= MAX_VERIFY_ATTEMPTS) return "too_many_attempts";
 
   const inputHash = hashOtp(code);
   if (inputHash !== latest.codeHash) {
+    const nextAttempts = latest.attempts + 1;
     await prisma.otpVerificationCode.update({
       where: { id: latest.id },
       data: { attempts: { increment: 1 } },
     });
-    return "invalid";
+    return nextAttempts >= MAX_VERIFY_ATTEMPTS ? "too_many_attempts" : "invalid";
   }
 
   await prisma.otpVerificationCode.update({

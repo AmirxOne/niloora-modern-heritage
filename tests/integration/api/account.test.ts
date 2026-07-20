@@ -1,4 +1,4 @@
-import { GET } from "@/app/api/account/route";
+import { GET, PATCH } from "@/app/api/account/route";
 import { regularUser } from "../../fixtures/users";
 import { parseJsonResponse } from "../../helpers/parse-response";
 
@@ -18,6 +18,9 @@ jest.mock("@/lib/server/prisma", () => ({
   prisma: {
     order: {
       aggregate: jest.fn(),
+    },
+    user: {
+      update: jest.fn(),
     },
   },
 }));
@@ -71,5 +74,41 @@ describe("Integration — GET /api/account (Profile)", () => {
     expect(json.stats.orderCount).toBe(3);
     expect(json.stats.wishlistCount).toBe(2);
     expect(json.loyalty.points).toBe(120);
+  });
+
+  it("rejects invalid national code in profile update", async () => {
+    const response = await PATCH(
+      new Request("http://localhost/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nationalCode: "123" }),
+      })
+    );
+    const { status, json } = await parseJsonResponse<{ message: string }>(response);
+
+    expect(status).toBe(400);
+    expect(json.message).toContain("کد ملی");
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it("updates account profile for authenticated user", async () => {
+    jest.mocked(prisma.user.update).mockResolvedValue({
+      ...regularUser,
+      firstName: "علی",
+      lastName: "کریمی",
+    } as never);
+
+    const response = await PATCH(
+      new Request("http://localhost/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName: "علی", lastName: "کریمی", nationalCode: "0012345678" }),
+      })
+    );
+    const { status, json } = await parseJsonResponse<{ user: { firstName: string } }>(response);
+
+    expect(status).toBe(200);
+    expect(json.user.firstName).toBe("علی");
+    expect(prisma.user.update).toHaveBeenCalled();
   });
 });

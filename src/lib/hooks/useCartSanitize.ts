@@ -35,20 +35,30 @@ export function useCartSanitize() {
   const dispatch = useAppDispatch();
   const hydrated = useAppSelector(selectCartHydrated);
   const items = useAppSelector(selectCartItems);
-  const ranRef = useRef(false);
+  const lastSignatureRef = useRef<string>("");
 
   useEffect(() => {
     if (!hydrated) return;
-    if (ranRef.current) return;
 
     const hasCatalogLine = items.some((item) => item.productId && !item.customizerState);
     if (!hasCatalogLine) {
-      ranRef.current = true;
+      lastSignatureRef.current = "";
       return;
     }
 
+    const signature = JSON.stringify(
+      items.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+        availability: item.availability,
+      }))
+    );
+    if (signature === lastSignatureRef.current) return;
+
     let cancelled = false;
-    ranRef.current = true;
+    lastSignatureRef.current = signature;
 
     async function run() {
       const result = await sanitizeCartOnServer(items);

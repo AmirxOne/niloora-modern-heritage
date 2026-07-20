@@ -1,11 +1,11 @@
 export { dynamic } from "@/lib/server/route-segment";
 
 import { readSessionUser } from "@/lib/server/auth/session";
-import { badRequest, forbidden, ok, unauthorized } from "@/lib/server/http";
+import { badRequest, ok, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { mapMarketplaceError } from "@/lib/server/marketplace/route-errors";
 import { listVendorPayouts } from "@/lib/server/marketplace/payout/vendor-payout-service";
-import { requireActiveVendor } from "@/lib/server/vendor/vendor-guards";
+import { requireActiveVendor, requireActiveVendorOwner } from "@/lib/server/vendor/vendor-guards";
 import {
   requestPayout,
   PayoutError,
@@ -53,10 +53,7 @@ export async function POST(request: Request) {
     const user = await readSessionUser();
     if (!user) return unauthorized();
 
-    const membership = await requireActiveVendor(user.id);
-    if (membership.role !== "owner") {
-      return forbidden("VENDOR_PAYOUT_FORBIDDEN");
-    }
+    const membership = await requireActiveVendorOwner(user.id);
 
     const body = (await request.json().catch(() => ({}))) as PayoutRequestBody;
     const reference = body.reference?.trim();

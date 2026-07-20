@@ -41,12 +41,16 @@ import {
 } from "@/lib/checkout/bnpl";
 import { trackFunnelEvent } from "@/lib/analytics/client";
 import { parseJsonResponse } from "@/lib/hooks/fetch-utils";
+import { sanitizeCartOnServer, validateCartItemsOnServer } from "@/lib/cart/validate-cart-client";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { setCartItemsFromServer } from "@/lib/store/slices/cartSlice";
 
 type CheckoutStep = "cart" | "checkout" | "success";
 
 export function CartPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const dispatch = useAppDispatch();
   const { cart, orders, auth } = useApp();
   const account = useAccount();
   const giftCard = useGiftCard();
@@ -60,6 +64,7 @@ export function CartPageContent() {
   const paymentHandled = useRef(false);
   const shippingFormRef = useRef<CheckoutShippingFormState | null>(null);
   const [shippingForm, setShippingForm] = useState<CheckoutShippingInput | null>(null);
+  const [isCheckingCart, setIsCheckingCart] = useState(false);
   const [ringCustomizableProductIds, setRingCustomizableProductIds] = useState<Set<string>>(
     () => new Set()
   );
@@ -107,6 +112,55 @@ export function CartPageContent() {
     shippingFormRef.current = state;
     setShippingForm(state.form);
   }, []);
+
+  const revalidateGuestCart = useCallback(async (): Promise<boolean> => {
+    if (cart.items.length === 0) return false;
+
+    setIsCheckingCart(true);
+    try {
+      const before = cart.items;
+      const sanitized = await sanitizeCartOnServer(before);
+      const changed =
+        sanitized.removed.length > 0 ||
+        sanitized.adjusted.length > 0 ||
+        sanitized.items.length !== before.length ||
+        JSON.stringify(sanitized.items) !== JSON.stringify(before);
+
+      if (changed) {
+        dispatch(setCartItemsFromServer(sanitized.items));
+        if (sanitized.removed.length > 0) {
+          toast.warning("برخی اقلام ناموجود یا فروخته‌شده از سبد حذف شدند.");
+        }
+        if (sanitized.adjusted.length > 0) {
+          toast.info("تعداد برخی اقلام بر اساس موجودی واقعی اصلاح شد.");
+        }
+        const priceChanged = sanitized.items.some((line) => {
+          const prev = before.find((i) => i.id === line.id);
+          return !!prev && (prev.price !== line.price || prev.listPrice !== line.listPrice);
+        });
+        if (priceChanged) {
+          toast.info("قیمت برخی اقلام با آخرین اطلاعات فروشگاه به‌روزرسانی شد.");
+        }
+      }
+
+      if (sanitized.items.length === 0) {
+        toast.error("سبد خرید شما خالی یا نامعتبر شد. لطفاً دوباره انتخاب کنید.");
+        setStep("cart");
+        return false;
+      }
+
+      const validation = await validateCartItemsOnServer(sanitized.items);
+      if (!validation.ok) {
+        toast.error(validation.message);
+        setStep("cart");
+        return false;
+      }
+
+      return true;
+    } finally {
+      setIsCheckingCart(false);
+    }
+  }, [cart.items, dispatch]);
 
   const { grandTotal, quote: shippingQuote } = useCheckoutGrandTotal(pricing, shippingForm);
   const installmentAmountPreview = calculateInstallmentAmount(grandTotal, installmentMonths);
@@ -176,6 +230,8 @@ export function CartPageContent() {
 
   const handlePay = async () => {
     if (cart.items.length === 0) return;
+    const ready = await revalidateGuestCart();
+    if (!ready) return;
 
     const shipping: CheckoutShippingInput | null =
       shippingFormRef.current?.validate() ?? null;
@@ -509,7 +565,15 @@ export function CartPageContent() {
                   <p className="cart-fast-checkout-title">{fa.cart.fastCheckoutTitle}</p>
                   <p className="cart-fast-checkout-hint">{fa.cart.fastCheckoutHint}</p>
                   <p className="cart-fast-checkout-address">{checkoutProfileSummary(account.user)}</p>
-                  <Button className="mt-4 w-full" size="lg" onClick={() => setStep("checkout")}>
+                  <Button
+                    className="mt-4 w-full"
+                    size="lg"
+                    onClick={async () => {
+                      const ready = await revalidateGuestCart();
+                      if (ready) setStep("checkout");
+                    }}
+                    disabled={isCheckingCart}
+                  >
                     {fa.cart.fastCheckoutCta}
                   </Button>
                   <Link
@@ -523,8 +587,20 @@ export function CartPageContent() {
 
               {step === "cart" ? (
                 <div className="mt-6 space-y-3">
-                  <Button className="w-full" size="lg" onClick={() => setStep("checkout")}>
-                    {profileReady ? fa.cart.proceedCheckout : fa.cart.guestCheckout}
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={async () => {
+                      const ready = await revalidateGuestCart();
+                      if (ready) setStep("checkout");
+                    }}
+                    disabled={isCheckingCart}
+                  >
+                    {isCheckingCart
+                      ? "در حال بررسی سبد..."
+                      : profileReady
+                        ? fa.cart.proceedCheckout
+                        : fa.cart.guestCheckout}
                   </Button>
                   {!auth.isLoggedIn ? (
                     <p className="text-center text-xs leading-relaxed text-silver">
@@ -555,7 +631,7 @@ export function CartPageContent() {
                 </div>
               ) : (
                 <div className="mt-6 space-y-3">
-                  <Button className="w-full" size="lg" onClick={handlePay} disabled={paying}>
+                  <Button className="w-full" size="lg" onClick={handlePay} disabled={paying || isCheckingCart}>
                     {paying
                       ? fa.cart.paymentProcessing
                       : paymentMethod === "bnpl"

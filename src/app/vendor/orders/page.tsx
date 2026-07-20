@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { VendorCard, VendorPageHeader, useVendorProfile } from "@/components/vendor/VendorShell";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { fa } from "@/lib/i18n/fa";
 import { formatPrice } from "@/lib/utils";
 
@@ -67,7 +68,9 @@ export default function VendorOrdersPage() {
 
   const grouped = useMemo(() => groupOrders(lines), [lines]);
 
-  if (profileLoading || loading) return <p className="text-silver">{fa.vendor.loading}</p>;
+  if (profileLoading || loading) {
+    return <LoadingState variant="vendor-orders" className="py-2" label={fa.vendor.loading} />;
+  }
 
   if (!vendor || vendor.status !== "active") {
     return (

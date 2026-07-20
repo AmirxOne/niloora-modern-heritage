@@ -90,6 +90,8 @@ export type UpdateVendorProfileInput = {
   displayName?: string;
   displayNameFa?: string | null;
   description?: string | null;
+  profileImageUrl?: string | null;
+  bannerImageUrl?: string | null;
   contactPhone?: string | null;
   contactEmail?: string | null;
 };
@@ -107,6 +109,12 @@ export async function updateVendorProfile(userId: string, input: UpdateVendorPro
         : {}),
       ...(input.description !== undefined
         ? { description: input.description?.trim() || null }
+        : {}),
+      ...(input.profileImageUrl !== undefined
+        ? { profileImageUrl: input.profileImageUrl?.trim() || null }
+        : {}),
+      ...(input.bannerImageUrl !== undefined
+        ? { bannerImageUrl: input.bannerImageUrl?.trim() || null }
         : {}),
       ...(input.contactPhone !== undefined
         ? { contactPhone: input.contactPhone?.trim() || null }

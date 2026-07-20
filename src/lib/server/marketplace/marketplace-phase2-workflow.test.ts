@@ -191,13 +191,32 @@ describe("marketplace phase 2 workflow", () => {
     });
     productFindUniqueOrThrow.mockResolvedValue(minimalAdminProduct);
 
-    const product = await submitVendorProduct("user-1", "prod-v-1");
-    expect(product.publicationStatus).toBe("pending_review");
+    const result = await submitVendorProduct("user-1", "prod-v-1");
+    expect(result.deduped).toBe(false);
+    expect(result.product.publicationStatus).toBe("pending_review");
     expect(productUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: { publicationStatus: "pending_review" },
       })
     );
+  });
+
+  it("vendor product submit is idempotent when already pending", async () => {
+    vi.mocked(requireActiveVendor).mockResolvedValue(activeMembership as never);
+    productFindUnique.mockResolvedValue({
+      id: "prod-v-1",
+      vendorId: "vendor-1",
+      publicationStatus: "pending_review",
+    });
+    productFindUniqueOrThrow.mockResolvedValue({
+      ...minimalAdminProduct,
+      publicationStatus: "pending_review",
+    });
+
+    const result = await submitVendorProduct("user-1", "prod-v-1");
+    expect(result.deduped).toBe(true);
+    expect(result.product.publicationStatus).toBe("pending_review");
+    expect(productUpdate).not.toHaveBeenCalled();
   });
 
   it("admin product approve publishes product", async () => {

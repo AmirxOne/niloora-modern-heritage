@@ -5,7 +5,7 @@ import { prisma } from "@/lib/server/prisma";
 import { badRequest, ok, notFound, serverError, tooManyRequests } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { createResetToken } from "@/lib/server/auth/password-reset";
-import { checkRateLimit, createRateLimitKey } from "@/lib/server/rate-limit";
+import { checkRateLimitSafe, createRateLimitKey } from "@/lib/server/rate-limit";
 
 type Body = {
   phone?: string;
@@ -15,15 +15,23 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as Body;
     const phone = normalizeIranPhone(body.phone ?? "");
-    if (!phone) return badRequest("Invalid phone");
+    if (!phone) return badRequest("شماره موبایل معتبر نیست.", "invalid_phone");
 
-    const rate = checkRateLimit(createRateLimitKey("auth:reset:request", request, phone), 5, 60_000);
+    const rate = await checkRateLimitSafe(
+      createRateLimitKey("auth:reset:request", request, phone),
+      5,
+      60_000
+    );
     if (!rate.allowed) {
-      return tooManyRequests("reset_rate_limited", rate.retryAfterSec);
+      return tooManyRequests(
+        "درخواست بازیابی بیش از حد مجاز است. لطفاً کمی بعد دوباره تلاش کنید.",
+        rate.retryAfterSec,
+        "reset_rate_limited"
+      );
     }
 
     const user = await prisma.user.findUnique({ where: { phone } });
-    if (!user) return notFound("phone_not_found");
+    if (!user) return notFound("کاربری با این شماره موبایل یافت نشد.");
 
     const tokenPreview = await createResetToken(user.id);
     return ok(

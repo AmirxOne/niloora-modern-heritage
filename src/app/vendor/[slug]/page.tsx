@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { ShopProductGrid } from "@/components/shop/ShopProductGrid";
@@ -52,10 +53,47 @@ export default async function VendorStorefrontPage({ params }: PageProps) {
           ]}
         />
 
-        <header className="mx-auto max-w-3xl py-8 text-center md:py-12">
-          <p className="text-xs tracking-widest text-turquoise">{fa.vendor.storefrontEyebrow}</p>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-            <h1 className="font-display text-3xl text-ivory md:text-4xl">{displayName}</h1>
+        <header className="mx-auto max-w-5xl py-8 md:py-12">
+          <div className="relative overflow-hidden rounded-[1.6rem] border border-subtle bg-matte">
+            {storefront.bannerImageUrl ? (
+              <Image
+                src={storefront.bannerImageUrl}
+                alt={fa.vendor.brandingBannerPreviewAlt}
+                width={1400}
+                height={420}
+                className="h-44 w-full object-cover md:h-60"
+                priority
+              />
+            ) : (
+              <div className="h-44 w-full bg-gradient-to-l from-[#f6e6b6] via-[#f8efe0] to-[#f5f3ee] md:h-60" />
+            )}
+            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute bottom-4 right-4 left-4 flex items-end gap-4 md:bottom-6 md:right-6 md:left-6">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-white/90 bg-white md:h-24 md:w-24">
+                {storefront.profileImageUrl ? (
+                  <Image
+                    src={storefront.profileImageUrl}
+                    alt={fa.vendor.brandingProfilePreviewAlt}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-silver">
+                    {displayName.slice(0, 1)}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 text-white">
+                <p className="text-xs tracking-widest text-white/90">{fa.vendor.storefrontEyebrow}</p>
+                <h1 className="mt-1 truncate font-display text-2xl md:text-4xl">{displayName}</h1>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <header className="mx-auto max-w-3xl pb-8 text-center md:pb-10">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <VendorTrustBadge trustScore={storefront.trustScore} />
           </div>
           {storefront.description ? (

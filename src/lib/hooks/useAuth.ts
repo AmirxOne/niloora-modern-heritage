@@ -182,6 +182,8 @@ export function useAuth() {
         body: JSON.stringify({ phone: normalizedPhone, password }),
       });
       if (!response.ok) {
+        const body = await parseJsonResponse<{ message?: string; code?: string }>(response);
+        if (body?.message) toast.error(body.message);
         dispatch(setAuthError(mapErrorStatus(response.status)));
         return;
       }
@@ -212,6 +214,8 @@ export function useAuth() {
       });
 
       if (!response.ok) {
+        const body = await parseJsonResponse<{ message?: string }>(response);
+        if (body?.message) toast.error(body.message);
         if (response.status === 409) {
           dispatch(setAuthError("phone_exists"));
           return;
@@ -267,6 +271,8 @@ export function useAuth() {
         body: JSON.stringify({ phone: normalizedPhone }),
       });
       if (!response.ok) {
+        const body = await parseJsonResponse<{ message?: string }>(response);
+        if (body?.message) toast.error(body.message);
         if (response.status === 404) {
           dispatch(setAuthError("phone_not_found"));
           return;
@@ -302,6 +308,8 @@ export function useAuth() {
         }),
       });
       if (!response.ok) {
+        const body = await parseJsonResponse<{ message?: string }>(response);
+        if (body?.message) toast.error(body.message);
         if (response.status === 401) {
           dispatch(setAuthError("invalid_reset"));
           return;
@@ -419,7 +427,11 @@ export function useAuth() {
             return;
           }
         }
-        if (response.status !== 401) {
+        if (response.status === 401) {
+          dispatch(setAuthUser(null));
+          return;
+        }
+        if (response.status < 500) {
           dispatch(setAuthUser(null));
           return;
         }

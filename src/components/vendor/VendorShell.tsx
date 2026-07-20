@@ -18,8 +18,10 @@ export function VendorShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="vendor-shell pb-24 pt-6 md:pt-8">
       <div className="site-container">
-        <VendorNav />
-        {children}
+        <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <VendorNav />
+          <div className="min-w-0">{children}</div>
+        </div>
       </div>
     </div>
   );

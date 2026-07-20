@@ -13,6 +13,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useProductSalesSync } from "../hooks/useProductSalesSync";
 import { useUserPreferencesSync } from "../hooks/useUserPreferencesSync";
 import { usePersistUserPreferences } from "../hooks/usePersistUserPreferences";
+import { useCartSanitize } from "../hooks/useCartSanitize";
 
 /**
  * Central client composition point.
@@ -55,6 +56,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const comments = useComments();
   const auth = useAuth();
   useProductSalesSync();
+  useCartSanitize();
   const { hydrated, loadSession } = auth;
   useUserPreferencesSync(auth.isLoggedIn);
   usePersistUserPreferences(auth.isLoggedIn);

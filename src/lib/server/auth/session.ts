@@ -186,7 +186,10 @@ export async function readSessionUser() {
   const cookieValue = cookieStore.get(COOKIE_NAME)?.value;
   if (!cookieValue) return null;
   const parsed = parseSessionCookie(cookieValue);
-  if (!parsed) return null;
+  if (!parsed) {
+    await clearSessionCookie();
+    return null;
+  }
 
   const refreshTokenHash = hashToken(parsed.rawRefreshToken);
 
@@ -200,11 +203,16 @@ export async function readSessionUser() {
     try {
       session = await loadSessionWithUser(sessionId);
     } catch {
+      await clearSessionCookie();
       return null;
     }
-    if (!session) return null;
+    if (!session) {
+      await clearSessionCookie();
+      return null;
+    }
     if (session.expiresAt.getTime() <= Date.now()) {
       await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
+      await clearSessionCookie();
       return null;
     }
 
@@ -233,6 +241,7 @@ export async function readSessionUser() {
 
     return sessionUser;
   } catch {
+    await clearSessionCookie();
     return null;
   }
 }

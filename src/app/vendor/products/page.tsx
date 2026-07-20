@@ -6,12 +6,14 @@ import {
   VendorProductForm,
   productToFormValues,
 } from "@/components/vendor/VendorProductForm";
+import { VendorProductBulkUpload } from "@/components/vendor/VendorProductBulkUpload";
 import { VendorProductList } from "@/components/vendor/VendorProductList";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { VendorCard, VendorPageHeader, useVendorProfile } from "@/components/vendor/VendorShell";
 import { fa } from "@/lib/i18n/fa";
 import type { Product } from "@/lib/types";
 
-type Panel = "list" | "create" | "edit";
+type Panel = "list" | "create" | "edit" | "bulk";
 
 export default function VendorProductsPage() {
   const { vendor, loading: profileLoading } = useVendorProfile();
@@ -36,7 +38,9 @@ export default function VendorProductsPage() {
     else setLoading(false);
   }, [vendor, loadProducts]);
 
-  if (profileLoading || loading) return <p className="text-silver">{fa.vendor.loading}</p>;
+  if (profileLoading || loading) {
+    return <LoadingState variant="vendor-products" className="py-2" label={fa.vendor.loading} />;
+  }
 
   if (!vendor) {
     return (
@@ -71,11 +75,17 @@ export default function VendorProductsPage() {
       <VendorPageHeader
         title={fa.vendor.productsTitle}
         action={
-          panel === "list" ? (
-            <Button type="button" onClick={() => setPanel("create")}>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant={panel === "list" ? "primary" : "outline"} onClick={() => setPanel("list")}>
+              {fa.vendor.productsManage}
+            </Button>
+            <Button type="button" variant={panel === "create" ? "primary" : "outline"} onClick={() => setPanel("create")}>
               {fa.vendor.productsNew}
             </Button>
-          ) : null
+            <Button type="button" variant={panel === "bulk" ? "primary" : "outline"} onClick={() => setPanel("bulk")}>
+              {fa.vendor.productsBulkUpload}
+            </Button>
+          </div>
         }
       />
 
@@ -99,13 +109,26 @@ export default function VendorProductsPage() {
       {panel === "list" ? (
         <VendorProductList
           products={products}
-          vendorActive={vendor.status === "active"}
           onEdit={(product) => {
             setEditing(product);
             setPanel("edit");
           }}
           onRefresh={loadProducts}
         />
+      ) : null}
+
+      {panel === "bulk" ? (
+        <VendorProductBulkUpload
+          onDone={() => {
+            void loadProducts();
+          }}
+        />
+      ) : null}
+
+      {panel !== "list" ? (
+        <VendorCard>
+          <p className="text-sm text-silver">{fa.vendor.productsPanelHint}</p>
+        </VendorCard>
       ) : null}
     </section>
   );

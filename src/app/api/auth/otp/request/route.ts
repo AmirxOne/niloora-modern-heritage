@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       return badRequest(getOtpApiMessage("invalid_phone"), "invalid_phone");
     }
 
-    const rate = assertOtpRequestRateLimit(request, phone);
+    const rate = await assertOtpRequestRateLimit(request, phone);
     if (!rate.allowed) {
       return tooManyRequests(
         getOtpApiMessage("otp_rate_limited", rate.retryAfterSec),

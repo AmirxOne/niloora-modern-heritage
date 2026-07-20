@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
+import { VendorStorefrontBrandingForm } from "@/components/vendor/VendorStorefrontBrandingForm";
 import { VendorStatusBadge } from "@/components/vendor/VendorStatusBadge";
 import {
   VendorCard,
@@ -44,7 +46,7 @@ export default function VendorDashboardPage() {
     }
   };
 
-  if (loading) return <p className="text-silver">{fa.vendor.loading}</p>;
+  if (loading) return <LoadingState variant="vendor-dashboard" className="py-2" label={fa.vendor.loading} />;
 
   const vendor = dashboard?.vendor ?? null;
 
@@ -72,7 +74,10 @@ export default function VendorDashboardPage() {
         title={fa.vendor.dashboardTitle}
         action={
           vendor.status === "active" ? (
-            <VendorLinkButton href="/vendor/products">{fa.vendor.dashboardViewProducts}</VendorLinkButton>
+            <div className="flex flex-wrap gap-2">
+              <VendorLinkButton href={`/vendor/${vendor.slug}`}>{fa.vendor.dashboardStorefrontCta}</VendorLinkButton>
+              <VendorLinkButton href="/vendor/products">{fa.vendor.dashboardViewProducts}</VendorLinkButton>
+            </div>
           ) : null
         }
       />
@@ -105,6 +110,21 @@ export default function VendorDashboardPage() {
           >
             {fa.vendor.dashboardSubmitReview}
           </Button>
+        </VendorCard>
+      )}
+
+      {(vendor.status === "active" || vendor.status === "pending_review") && (
+        <VendorCard>
+          <h3 className="font-semibold text-ivory">{fa.vendor.dashboardBrandingTitle}</h3>
+          <p className="mt-2 text-sm text-silver">{fa.vendor.dashboardBrandingHint}</p>
+          <div className="mt-4">
+            <VendorStorefrontBrandingForm
+              vendor={vendor}
+              onSaved={async () => {
+                await loadDashboard();
+              }}
+            />
+          </div>
         </VendorCard>
       )}
 

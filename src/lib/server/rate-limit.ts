@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/server/prisma";
+
 const WINDOW_MS = 60_000;
 const LIMIT = 15;
 
@@ -42,4 +44,73 @@ export function checkRateLimit(
   current.count += 1;
   store.set(key, current);
   return { allowed: true };
+}
+
+type RateLimitResult = { allowed: true } | { allowed: false; retryAfterSec: number };
+
+function computeRateLimitResult(
+  count: number,
+  limit: number,
+  resetAt: Date
+): RateLimitResult {
+  if (count <= limit) return { allowed: true };
+  const retryAfterSec = Math.max(1, Math.ceil((resetAt.getTime() - Date.now()) / 1000));
+  return { allowed: false, retryAfterSec };
+}
+
+async function checkRateLimitDistributed(
+  key: string,
+  limit = LIMIT,
+  windowMs = WINDOW_MS
+): Promise<RateLimitResult> {
+  const db = prisma as unknown as {
+    $queryRawUnsafe?: (
+      query: string,
+      ...params: unknown[]
+    ) => Promise<Array<{ count: number; resetAt: Date }>>;
+  };
+  if (typeof db.$queryRawUnsafe !== "function") {
+    return checkRateLimit(key, limit, windowMs);
+  }
+
+  const nextResetAt = new Date(Date.now() + windowMs);
+  const rows = await db.$queryRawUnsafe(
+    `
+      INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "createdAt", "updatedAt")
+      VALUES ($1, 1, $2, NOW(), NOW())
+      ON CONFLICT ("key")
+      DO UPDATE SET
+        "count" = CASE
+          WHEN "RateLimitBucket"."resetAt" <= NOW() THEN 1
+          ELSE "RateLimitBucket"."count" + 1
+        END,
+        "resetAt" = CASE
+          WHEN "RateLimitBucket"."resetAt" <= NOW() THEN $2
+          ELSE "RateLimitBucket"."resetAt"
+        END,
+        "updatedAt" = NOW()
+      RETURNING "count", "resetAt"
+    `,
+    key,
+    nextResetAt
+  );
+
+  const row = rows[0];
+  if (!row) return { allowed: true };
+  return computeRateLimitResult(Number(row.count), limit, new Date(row.resetAt));
+}
+
+export async function checkRateLimitSafe(
+  key: string,
+  limit = LIMIT,
+  windowMs = WINDOW_MS
+): Promise<RateLimitResult> {
+  if (process.env.RATE_LIMIT_STORE === "memory") {
+    return checkRateLimit(key, limit, windowMs);
+  }
+  try {
+    return await checkRateLimitDistributed(key, limit, windowMs);
+  } catch {
+    return checkRateLimit(key, limit, windowMs);
+  }
 }

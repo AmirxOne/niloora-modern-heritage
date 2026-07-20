@@ -8,6 +8,12 @@ import { toSessionUser } from "@/lib/server/auth/dto";
 import { readUserPreferences } from "@/lib/server/preferences";
 import { getUserLoyaltySummary } from "@/lib/server/loyalty/loyalty";
 import type { ShopBudgetBand, RingStyle, StoneType } from "@/lib/types";
+import {
+  createCriticalFlowContext,
+  logCriticalOutcome,
+  logCriticalStart,
+  withCorrelationId,
+} from "@/lib/observability/critical-flow";
 
 type PatchBody = {
   firstName?: string;
@@ -25,11 +31,21 @@ type PatchBody = {
   favoriteBudgetBand?: ShopBudgetBand;
 };
 
-export async function GET() {
+export async function GET(request: Request = new Request("http://localhost/api/account")) {
   // PURPOSE: provide account page core payload (user + computed stats).
+  const critical = createCriticalFlowContext(request, {
+    route: "/api/account",
+    role: "user",
+    journey: "account",
+    action: "account_read",
+  });
+  logCriticalStart(critical);
   try {
     const user = await readSessionUser();
-    if (!user) return unauthorized();
+    if (!user) {
+      logCriticalOutcome(critical, "blocked", { code: "unauthorized" });
+      return withCorrelationId(unauthorized(), critical.correlationId);
+    }
 
     const [prefs, orderStats, loyalty] = await Promise.all([
       readUserPreferences(user.id),
@@ -41,7 +57,9 @@ export async function GET() {
       getUserLoyaltySummary(user.id),
     ]);
 
-    return ok({
+    logCriticalOutcome(critical, "success", { userId: user.id });
+    return withCorrelationId(
+      ok({
       user: toSessionUser(user),
       stats: {
         orderCount: orderStats._count.id,
@@ -51,17 +69,40 @@ export async function GET() {
         cartItemsCount: prefs.cartItems.reduce((sum, item) => sum + item.quantity, 0),
       },
       loyalty,
-    });
+      }),
+      critical.correlationId
+    );
   } catch (error) {
-    return handleRouteError(error, { route: "/api/account" });
+    logCriticalOutcome(critical, "failed");
+    return handleRouteError(error, {
+      route: "/api/account",
+      request,
+      role: "user",
+      journey: "account",
+      action: "account_read",
+    });
   }
 }
 
 export async function PATCH(request: Request) {
   // FLOW: validate editable profile fields -> normalize -> persist user profile.
+  const critical = createCriticalFlowContext(request, {
+    route: "/api/account",
+    role: "user",
+    journey: "account",
+    action: "account_update",
+  });
+  logCriticalStart(critical);
   try {
     const user = await readSessionUser();
-    if (!user) return unauthorized();
+    if (!user) {
+      logCriticalOutcome(critical, "blocked", { code: "unauthorized" });
+      return withCorrelationId(unauthorized(), critical.correlationId);
+    }
+    const reject = (message: string, code = "bad_request") => {
+      logCriticalOutcome(critical, "blocked", { code, userId: user.id });
+      return withCorrelationId(badRequest(message, code), critical.correlationId);
+    };
 
     const body = (await request.json()) as PatchBody;
     const firstName = body.firstName?.trim() ?? "";
@@ -77,23 +118,23 @@ export async function PATCH(request: Request) {
     const favoriteStyle = body.favoriteStyle;
     const favoriteBudgetBand = body.favoriteBudgetBand;
 
-    if (firstName && (firstName.length < 2 || firstName.length > 50)) return badRequest("invalid_first_name");
-    if (lastName && (lastName.length < 2 || lastName.length > 60)) return badRequest("invalid_last_name");
-    if (addressLine && addressLine.length > 240) return badRequest("invalid_address");
-    if (province && province.length > 60) return badRequest("invalid_province");
-    if (city && city.length > 60) return badRequest("invalid_city");
+    if (firstName && (firstName.length < 2 || firstName.length > 50)) return reject("نام باید بین ۲ تا ۵۰ کاراکتر باشد.");
+    if (lastName && (lastName.length < 2 || lastName.length > 60)) return reject("نام خانوادگی باید بین ۲ تا ۶۰ کاراکتر باشد.");
+    if (addressLine && addressLine.length > 240) return reject("آدرس بیش از حد طولانی است.");
+    if (province && province.length > 60) return reject("نام استان معتبر نیست.");
+    if (city && city.length > 60) return reject("نام شهر معتبر نیست.");
 
     const postalDigits = postalCodeRaw.replace(/\D/g, "");
-    if (postalDigits && postalDigits.length !== 10) return badRequest("invalid_postal_code");
+    if (postalDigits && postalDigits.length !== 10) return reject("کد پستی باید دقیقاً ۱۰ رقم باشد.");
 
     const nationalDigits = nationalCodeRaw.replace(/\D/g, "");
-    if (nationalDigits && nationalDigits.length !== 10) return badRequest("invalid_national_code");
+    if (nationalDigits && nationalDigits.length !== 10) return reject("کد ملی باید دقیقاً ۱۰ رقم باشد.");
 
     const landlineDigits = landlineRaw.replace(/\D/g, "");
-    if (landlineDigits && !/^0\d{10}$/.test(landlineDigits)) return badRequest("invalid_landline");
+    if (landlineDigits && !/^0\d{10}$/.test(landlineDigits)) return reject("شماره تلفن ثابت معتبر نیست.");
 
     if (gender && gender !== "male" && gender !== "female" && gender !== "other") {
-      return badRequest("invalid_gender");
+      return reject("جنسیت انتخاب‌شده معتبر نیست.");
     }
     if (
       favoriteStone &&
@@ -110,24 +151,24 @@ export async function PATCH(request: Request) {
         "moral",
       ].includes(favoriteStone)
     ) {
-      return badRequest("invalid_favorite_stone");
+      return reject("سنگ مورد علاقه انتخاب‌شده معتبر نیست.");
     }
     if (
       favoriteStyle &&
       !["solitaire", "halo", "vintage", "signet", "eternity", "stackable"].includes(favoriteStyle)
     ) {
-      return badRequest("invalid_favorite_style");
+      return reject("سبک مورد علاقه انتخاب‌شده معتبر نیست.");
     }
     if (favoriteBudgetBand && !["entry", "mid", "premium", "luxury"].includes(favoriteBudgetBand)) {
-      return badRequest("invalid_favorite_budget");
+      return reject("بازه بودجه مورد علاقه معتبر نیست.");
     }
 
     let birthDate: Date | null = null;
     if (body.birthDate) {
       const parsed = new Date(body.birthDate);
-      if (Number.isNaN(parsed.getTime())) return badRequest("invalid_birth_date");
+      if (Number.isNaN(parsed.getTime())) return reject("تاریخ تولد معتبر نیست.");
       const now = new Date();
-      if (parsed.getTime() > now.getTime()) return badRequest("invalid_birth_date");
+      if (parsed.getTime() > now.getTime()) return reject("تاریخ تولد نمی‌تواند در آینده باشد.");
       birthDate = parsed;
     }
 
@@ -154,8 +195,16 @@ export async function PATCH(request: Request) {
       },
     });
 
-    return ok({ user: toSessionUser(updated) });
+    logCriticalOutcome(critical, "success", { userId: user.id });
+    return withCorrelationId(ok({ user: toSessionUser(updated) }), critical.correlationId);
   } catch (error) {
-    return handleRouteError(error, { route: "/api/account" });
+    logCriticalOutcome(critical, "failed");
+    return handleRouteError(error, {
+      route: "/api/account",
+      request,
+      role: "user",
+      journey: "account",
+      action: "account_update",
+    });
   }
 }

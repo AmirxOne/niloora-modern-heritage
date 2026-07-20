@@ -7,6 +7,8 @@ import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { LastPathTracker } from "@/components/navigation/LastPathTracker";
 import { stripLocalePrefix } from "@/lib/i18n/locales";
+import { isVendorPortalPath } from "@/lib/vendor/portal-paths";
+import { cn } from "@/lib/utils";
 
 const AUTH_ROUTES = new Set(["/auth", "/login", "/register", "/forgot-password"]);
 
@@ -18,6 +20,11 @@ export function ConditionalLayoutChrome({
   const pathname = usePathname();
   const normalizedPath = pathname ? stripLocalePrefix(pathname).path : "/";
   const isAuthPage = AUTH_ROUTES.has(normalizedPath);
+  const isAdminPanel = normalizedPath === "/admin" || normalizedPath.startsWith("/admin/");
+  const isVendorPanel =
+    normalizedPath === "/vendor" ||
+    (normalizedPath.startsWith("/vendor/") && isVendorPortalPath(normalizedPath));
+  const isBackofficePanel = isAdminPanel || isVendorPanel;
 
   const isHome = normalizedPath === "/";
 
@@ -50,12 +57,22 @@ export function ConditionalLayoutChrome({
       </Suspense>
       <Header />
       <div className="site-shell pt-[var(--header-height)] pb-[var(--mobile-nav-height-safe)] lg:pb-0">
-        <main className="min-h-screen">{children}</main>
+        <main
+          className={cn(
+            isBackofficePanel
+              ? "min-h-[calc(100dvh-var(--header-height))]"
+              : "min-h-screen"
+          )}
+        >
+          {children}
+        </main>
       </div>
       {/* فوتر سنتی فقط در دسکتاپ نمایش داده می‌شود تا حس اپ موبایل حفظ شود */}
-      <div className="hidden lg:block">
-        <Footer />
-      </div>
+      {!isBackofficePanel ? (
+        <div className="hidden lg:block">
+          <Footer />
+        </div>
+      ) : null}
       <MobileBottomNav />
     </>
   );

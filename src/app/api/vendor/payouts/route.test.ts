@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => {
   return {
     readSessionUser: vi.fn(),
     requireActiveVendor: vi.fn(),
+    requireActiveVendorOwner: vi.fn(),
     listVendorPayouts: vi.fn(),
     requestPayout: vi.fn(),
     MockPayoutError,
@@ -19,6 +20,7 @@ vi.mock("@/lib/server/auth/session", () => ({
 
 vi.mock("@/lib/server/vendor/vendor-guards", () => ({
   requireActiveVendor: mocks.requireActiveVendor,
+  requireActiveVendorOwner: mocks.requireActiveVendorOwner,
 }));
 
 vi.mock("@/lib/server/marketplace/payout/vendor-payout-service", () => ({
@@ -72,7 +74,7 @@ describe("POST /api/vendor/payouts (request payout)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.readSessionUser.mockResolvedValue({ id: "user-1", role: "user" });
-    mocks.requireActiveVendor.mockResolvedValue({
+    mocks.requireActiveVendorOwner.mockResolvedValue({
       vendorId: "vendor-1",
       userId: "user-1",
       role: "owner",
@@ -87,6 +89,7 @@ describe("POST /api/vendor/payouts (request payout)", () => {
   });
 
   it("returns 403 for non-owner members", async () => {
+    mocks.requireActiveVendorOwner.mockRejectedValue(new Error("VENDOR_ROLE_FORBIDDEN"));
     mocks.requireActiveVendor.mockResolvedValue({
       vendorId: "vendor-1",
       userId: "user-1",

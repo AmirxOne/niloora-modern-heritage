@@ -5,6 +5,14 @@ import { handleRouteError } from "@/lib/server/route-errors";
 import { buildSearchSuggestions, searchProductsFuzzy } from "@/lib/catalog/product-catalog";
 import { findProductByPieceCode, isValidPieceCode, normalizePieceCode } from "@/lib/products/piece-code";
 import { getCatalogProducts } from "@/lib/server/products";
+import {
+  createCriticalFlowContext,
+  logCriticalOutcome,
+  logCriticalStart,
+  withCorrelationId,
+} from "@/lib/observability/critical-flow";
+
+const MAX_SEARCH_QUERY_LENGTH = 120;
 
 function normalizeQueryForResponse(input: string): string {
   return input
@@ -22,10 +30,28 @@ function normalizeQueryForResponse(input: string): string {
 }
 
 export async function GET(request: Request) {
+  const critical = createCriticalFlowContext(request, {
+    route: "/api/products/search",
+    role: "guest",
+    journey: "browse_search",
+    action: "catalog_search",
+  });
+  logCriticalStart(critical);
   try {
     const url = new URL(request.url);
-    const query = (url.searchParams.get("q") ?? "").trim();
-    if (!query) return badRequest("q is required");
+    const rawQuery = (url.searchParams.get("q") ?? "").trim();
+    const query = rawQuery.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+    if (!query) {
+      logCriticalOutcome(critical, "blocked", { code: "missing_query" });
+      return withCorrelationId(badRequest("q is required"), critical.correlationId);
+    }
+    if (query.length > MAX_SEARCH_QUERY_LENGTH) {
+      logCriticalOutcome(critical, "blocked", { code: "query_too_long", queryLength: query.length });
+      return withCorrelationId(
+        badRequest(`q must be <= ${MAX_SEARCH_QUERY_LENGTH} characters`),
+        critical.correlationId
+      );
+    }
 
     const catalog = await getCatalogProducts();
 
@@ -41,15 +67,26 @@ export async function GET(request: Request) {
       }
     }
 
-    return ok({
+    logCriticalOutcome(critical, "success", { queryLength: query.length, resultCount: catalogProducts.length });
+    return withCorrelationId(
+      ok({
       query,
       normalizedQuery: normalizeQueryForResponse(query),
       suggestions: buildSearchSuggestions(catalog, query),
       products: {
         catalog: catalogProducts,
       },
-    });
+      }),
+      critical.correlationId
+    );
   } catch (error) {
-    return handleRouteError(error, { route: "/api/products/search" });
+    logCriticalOutcome(critical, "failed");
+    return handleRouteError(error, {
+      route: "/api/products/search",
+      request,
+      role: "guest",
+      journey: "browse_search",
+      action: "catalog_search",
+    });
   }
 }

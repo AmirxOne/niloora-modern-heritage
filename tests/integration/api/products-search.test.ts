@@ -18,6 +18,14 @@ describe("Integration — GET /api/products/search", () => {
     expect(response.status).toBe(400);
   });
 
+  it("rejects overlong query", async () => {
+    const longQ = "a".repeat(121);
+    const response = await GET(
+      new Request(`http://localhost/api/products/search?q=${encodeURIComponent(longQ)}`)
+    );
+    expect(response.status).toBe(400);
+  });
+
   it("returns fuzzy catalog matches", async () => {
     const response = await GET(
       new Request("http://localhost/api/products/search?q=هاله")
@@ -30,5 +38,15 @@ describe("Integration — GET /api/products/search", () => {
     expect(status).toBe(200);
     expect(json.query).toBe("هاله");
     expect(json.products.catalog.some((p) => p.id === haloProduct.id)).toBe(true);
+  });
+
+  it("sanitizes control characters in query", async () => {
+    const response = await GET(
+      new Request(`http://localhost/api/products/search?q=${encodeURIComponent("هاله\u0000\u0001")}`)
+    );
+    const { status, json } = await parseJsonResponse<{ query: string }>(response);
+
+    expect(status).toBe(200);
+    expect(json.query).toBe("هاله");
   });
 });

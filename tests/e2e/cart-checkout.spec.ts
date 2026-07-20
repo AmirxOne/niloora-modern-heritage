@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { gotoStable } from "./support/navigation";
 
 test.describe("Cart & Checkout", () => {
   test("cart page loads", async ({ page }) => {
-    await page.goto("/cart");
+    await gotoStable(page, "/cart");
     await expect(page).toHaveURL(/\/cart/);
     await expect(page.locator("body")).toBeVisible();
   });

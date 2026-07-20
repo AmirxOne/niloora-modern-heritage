@@ -1,14 +1,15 @@
 import { test, expect } from "@playwright/test";
+import { gotoStable } from "./support/navigation";
 
 test.describe("Product Browsing", () => {
   test("shop gallery page loads", async ({ page }) => {
-    await page.goto("/shop");
+    await gotoStable(page, "/shop");
     await expect(page).toHaveURL(/\/shop/);
     await expect(page.locator("body")).toBeVisible();
   });
 
   test("home page loads storefront", async ({ page }) => {
-    await page.goto("/");
+    await gotoStable(page, "/");
     await expect(page).toHaveURL("/");
     await expect(page.locator("body")).toBeVisible();
   });

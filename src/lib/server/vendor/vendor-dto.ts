@@ -28,6 +28,8 @@ export function toVendorProfileDto(
     displayName: vendor.displayName,
     displayNameFa: vendor.displayNameFa ?? undefined,
     description: vendor.description ?? undefined,
+    profileImageUrl: vendor.profileImageUrl ?? undefined,
+    bannerImageUrl: vendor.bannerImageUrl ?? undefined,
     contactPhone: vendor.contactPhone ?? undefined,
     contactEmail: vendor.contactEmail ?? undefined,
     status: vendor.status as VendorStatus,

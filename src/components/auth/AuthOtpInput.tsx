@@ -79,7 +79,6 @@ export function AuthOtpInput({
     const normalized = toEnglishDigits(val);
     if (!/^\d*$/.test(normalized)) return;
     onChange(normalized);
-    if (normalized.length === 6 && onComplete) onComplete(normalized);
   };
 
   return (

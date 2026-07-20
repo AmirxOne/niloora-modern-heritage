@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { fa } from "@/lib/i18n/fa";
 import {
@@ -10,6 +11,12 @@ import {
 } from "@/lib/vendor/product-form-options";
 import type { Product } from "@/lib/types";
 import type { MetalType, RingStyle, StoneType } from "@/lib/types";
+import {
+  VENDOR_PRODUCT_PRICE_MAX,
+  VENDOR_PRODUCT_PRICE_MIN,
+  VENDOR_PRODUCT_STOCK_MAX,
+  VENDOR_PRODUCT_STOCK_MIN,
+} from "@/lib/vendor/vendor-product-validation";
 
 export type VendorProductFormValues = {
   name: string;
@@ -61,6 +68,10 @@ export function VendorProductForm({ mode, initial, onCancel, onSaved, productId 
   const [form, setForm] = useState<VendorProductFormValues>(initial ?? emptyForm());
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
   const update = <K extends keyof VendorProductFormValues>(key: K, value: VendorProductFormValues[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -103,6 +114,45 @@ export function VendorProductForm({ mode, initial, onCancel, onSaved, productId 
     }
   };
 
+  const uploadSelectedImage = async () => {
+    if (!selectedImage) {
+      setUploadError("ابتدا فایل تصویر را انتخاب کنید.");
+      return;
+    }
+    setUploadError(null);
+    setUploadSuccess(null);
+    setUploadingImage(true);
+    try {
+      const body = new FormData();
+      body.set("file", selectedImage);
+      const res = await fetch("/api/vendor/media", {
+        method: "POST",
+        credentials: "include",
+        body,
+      });
+      const data = (await res.json()) as {
+        message?: string;
+        asset?: { canonicalUrl?: string; url?: string };
+      };
+      if (!res.ok) {
+        setUploadError(data.message ?? fa.vendor.errorGeneric);
+        return;
+      }
+      const uploadedUrl = data.asset?.canonicalUrl ?? data.asset?.url;
+      if (!uploadedUrl) {
+        setUploadError("پاسخ آپلود تصویر معتبر نبود.");
+        return;
+      }
+      update("image", uploadedUrl);
+      setUploadSuccess("تصویر با موفقیت آپلود شد.");
+      setSelectedImage(null);
+    } catch {
+      setUploadError(fa.vendor.errorGeneric);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <form
       onSubmit={submit}
@@ -131,6 +181,9 @@ export function VendorProductForm({ mode, initial, onCancel, onSaved, productId 
           required
           type="number"
           dir="ltr"
+          min={VENDOR_PRODUCT_PRICE_MIN}
+          max={VENDOR_PRODUCT_PRICE_MAX}
+          step={1}
         />
         <Field
           label={fa.vendor.productStock}
@@ -138,6 +191,10 @@ export function VendorProductForm({ mode, initial, onCancel, onSaved, productId 
           onChange={(v) => update("stock", v)}
           type="number"
           dir="ltr"
+          required
+          min={VENDOR_PRODUCT_STOCK_MIN}
+          max={VENDOR_PRODUCT_STOCK_MAX}
+          step={1}
         />
         <SelectField
           label={fa.vendor.productCategory}
@@ -167,13 +224,50 @@ export function VendorProductForm({ mode, initial, onCancel, onSaved, productId 
           }))}
         />
       </div>
-      <Field
-        label={fa.vendor.productImage}
-        value={form.image}
-        onChange={(v) => update("image", v)}
-        required
-        dir="ltr"
-      />
+      <div className="space-y-3 rounded-heritage border border-subtle bg-white/40 p-4">
+        <label className="mb-1 block text-sm text-silver">{fa.vendor.productImage}</label>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif"
+            onChange={(e) => {
+              const file = e.currentTarget.files?.[0] ?? null;
+              setSelectedImage(file);
+              setUploadError(null);
+              setUploadSuccess(null);
+            }}
+            className="w-full rounded-heritage border border-subtle bg-white px-4 py-3 text-sm"
+          />
+          <Button
+            type="button"
+            isLoading={uploadingImage}
+            onClick={uploadSelectedImage}
+            disabled={!selectedImage || loading}
+          >
+            آپلود تصویر
+          </Button>
+        </div>
+        {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
+        {uploadSuccess ? <p className="text-sm text-emerald-700">{uploadSuccess}</p> : null}
+        <Field
+          label="لینک نهایی تصویر"
+          value={form.image}
+          onChange={(v) => update("image", v)}
+          required
+          dir="ltr"
+        />
+        {form.image ? (
+          <div className="overflow-hidden rounded-heritage border border-subtle bg-white p-2">
+            <Image
+              src={form.image}
+              alt={form.namePersian || form.name || "تصویر محصول"}
+              width={320}
+              height={160}
+              className="h-40 w-auto rounded-md object-cover"
+            />
+          </div>
+        ) : null}
+      </div>
       <Field
         label={fa.vendor.productHeadline}
         value={form.listingHeadline}
@@ -181,7 +275,7 @@ export function VendorProductForm({ mode, initial, onCancel, onSaved, productId 
       />
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <div className="flex flex-wrap gap-3">
-        <Button type="submit" isLoading={loading}>
+        <Button type="submit" isLoading={loading} disabled={uploadingImage}>
           {fa.vendor.productSave}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
@@ -199,6 +293,9 @@ function Field({
   required,
   type = "text",
   dir,
+  min,
+  max,
+  step,
 }: {
   label: string;
   value: string;
@@ -206,6 +303,9 @@ function Field({
   required?: boolean;
   type?: string;
   dir?: "ltr" | "rtl";
+  min?: number;
+  max?: number;
+  step?: number;
 }) {
   return (
     <div>
@@ -216,6 +316,9 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         dir={dir}
+        min={min}
+        max={max}
+        step={step}
         className="w-full rounded-heritage border border-subtle bg-white px-4 py-3 text-sm"
       />
     </div>

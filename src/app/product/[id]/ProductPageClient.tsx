@@ -45,6 +45,7 @@ import { trackFunnelEvent } from "@/lib/analytics/client";
 import { RingCustomizationEditor } from "@/components/cart/RingCustomizationEditor";
 import { ProductDetailTrustCards } from "@/components/product/ProductDetailTrustCards";
 import { ProductPageSkeleton } from "@/components/product/ProductPageSkeleton";
+import { UnifiedEmptyState } from "@/components/ui/UnifiedEmptyState";
 
 type Props = {
   productId: string;
@@ -83,6 +84,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   );
   const [isLoading, setIsLoading] = useState(!initialPayload);
   const [isMissing, setIsMissing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { cart, wishlist, recentlyViewed } = useApp();
   const trackRecentlyViewed = recentlyViewed.trackView;
   const productCategory = product?.category;
@@ -95,15 +97,22 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
 
     async function load() {
       if (!hasInitial) setIsLoading(true);
-      const payload = await fetchProductPayload(productId);
+      const response = await fetchProductPayload(productId);
       if (cancelled) return;
-      if (!payload) {
+      if (response.status === "not_found") {
         setIsMissing(true);
+        setLoadError(null);
+        setIsLoading(false);
+        return;
+      }
+      if (response.status === "error" || !response.payload) {
+        setLoadError("در بارگذاری اطلاعات محصول مشکلی رخ داد. دوباره تلاش کنید.");
+        setIsMissing(false);
         setIsLoading(false);
         return;
       }
       applyPayload(
-        payload,
+        response.payload,
         setProduct,
         setVendorProducts,
         setSmartRecommendations,
@@ -111,6 +120,7 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
         setRingCustomizationEnabled
       );
       setIsMissing(false);
+      setLoadError(null);
       setIsLoading(false);
     }
 
@@ -154,6 +164,24 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   }
 
   if (isLoading || !product) {
+    if (loadError) {
+      return (
+        <UnifiedEmptyState
+          visual="shop"
+          title="بارگذاری محصول ناموفق بود"
+          description={loadError}
+          action={
+            <button
+              type="button"
+              className="shop-filter-reset"
+              onClick={() => window.location.reload()}
+            >
+              تلاش دوباره
+            </button>
+          }
+        />
+      );
+    }
     return <ProductPageSkeleton />;
   }
 
@@ -446,8 +474,12 @@ export function ProductPageClient({ productId, initialPayload }: Props) {
   );
 }
 
-async function fetchProductPayload(id: string): Promise<ProductPagePayload | null> {
+async function fetchProductPayload(id: string): Promise<{
+  status: "ok" | "not_found" | "error";
+  payload: ProductPagePayload | null;
+}> {
   const response = await fetch(`/api/products/${encodeURIComponent(id)}`);
-  if (!response.ok) return null;
-  return (await response.json()) as ProductPagePayload;
+  if (response.status === 404) return { status: "not_found", payload: null };
+  if (!response.ok) return { status: "error", payload: null };
+  return { status: "ok", payload: (await response.json()) as ProductPagePayload };
 }

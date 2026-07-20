@@ -31,12 +31,12 @@ export async function POST(request: Request) {
     const referralCode = body.referralCode?.trim() ?? "";
 
     if (!name || !phone || password.length < 6) {
-      return badRequest("Invalid registration payload");
+      return badRequest("نام، شماره موبایل معتبر و گذرواژه حداقل ۶ کاراکتری الزامی است.", "invalid_registration_payload");
     }
 
     const existing = await prisma.user.findUnique({ where: { phone } });
     if (existing) {
-      return conflict("phone_exists");
+      return conflict("این شماره موبایل قبلاً ثبت شده است.");
     }
 
     const passwordHash = await hash(password, 10);

@@ -101,6 +101,16 @@ model OtpVerificationCode {
   @@index([expiresAt])
 }
 
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
+}
+
 model Collection {
   id          String    @id
   name        String
@@ -149,6 +159,8 @@ model Vendor {
   displayName     String
   displayNameFa   String?
   description     String?
+  profileImageUrl String?
+  bannerImageUrl  String?
   contactPhone    String?
   contactEmail    String?
   status          VendorStatus @default(draft)

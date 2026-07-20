@@ -99,6 +99,26 @@ export async function middleware(request: NextRequest) {
   const { locale, path } = stripLocalePrefix(pathname);
   const hasLocalePrefix = pathname !== path;
   const prefix = hasLocalePrefix ? `/${locale}` : "";
+  const correlationId =
+    request.headers.get("x-correlation-id")?.trim() ||
+    request.headers.get("x-request-id")?.trim() ||
+    crypto.randomUUID();
+  const forwardedHeaders = new Headers(request.headers);
+  forwardedHeaders.set("x-correlation-id", correlationId);
+
+  const finalize = (response: NextResponse): NextResponse => {
+    response.headers.set("x-correlation-id", correlationId);
+    return applySecurityHeaders(response, request);
+  };
+
+  const nextWithCorrelation = (): NextResponse =>
+    finalize(
+      NextResponse.next({
+        request: {
+          headers: forwardedHeaders,
+        },
+      })
+    );
 
   if (path === "/dashboard" || path.startsWith("/dashboard/")) {
     const dest = new URL(`${prefix}/account`, request.url);
@@ -106,12 +126,13 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.searchParams.forEach((value, key) => {
       dest.searchParams.set(key, value);
     });
-    return applySecurityHeaders(NextResponse.redirect(dest, 308), request);
+    return finalize(NextResponse.redirect(dest, 308));
   }
 
   const needsAuth =
     path === "/account" ||
     path.startsWith("/account/") ||
+    path === "/admin" ||
     path.startsWith("/admin/") ||
     (path.startsWith("/vendor/") && isVendorPortalPath(path));
 
@@ -122,7 +143,7 @@ export async function middleware(request: NextRequest) {
   const needsPostsWorkflowApi = path === "/api/admin/posts" || path.startsWith("/api/admin/posts/");
 
   if (!needsAuth && !needsAdminApi && !needsVendorApi) {
-    return applySecurityHeaders(NextResponse.next(), request);
+    return nextWithCorrelation();
   }
 
   const jwtSession = await getEdgeSessionFromRequest(request);
@@ -135,46 +156,47 @@ export async function middleware(request: NextRequest) {
 
   if (needsVendorApi) {
     if (!jwtSession) {
-      return applySecurityHeaders(jsonUnauthorized(), request);
+      return finalize(jsonUnauthorized());
     }
-    return applySecurityHeaders(NextResponse.next(), request);
+    return nextWithCorrelation();
   }
 
   if (needsAdminApi) {
     if (!session) {
-      return applySecurityHeaders(jsonUnauthorized(), request);
+      return finalize(jsonUnauthorized());
     }
     if (needsPostsWorkflowApi) {
       if (!canAccessContentWorkflow(session.role)) {
-        return applySecurityHeaders(jsonForbidden(), request);
+        return finalize(jsonForbidden());
       }
-      return applySecurityHeaders(NextResponse.next(), request);
+      return nextWithCorrelation();
     }
     if (session.role !== "admin") {
-      return applySecurityHeaders(jsonForbidden(), request);
+      return finalize(jsonForbidden());
     }
-    return applySecurityHeaders(NextResponse.next(), request);
+    return nextWithCorrelation();
   }
 
   if (!session) {
-    return applySecurityHeaders(redirectToAuth(request, prefix), request);
+    return finalize(redirectToAuth(request, prefix));
   }
 
   if (needsPostsWorkflowPage && !canAccessContentWorkflow(session.role)) {
-    return applySecurityHeaders(redirectAccessDenied(request, prefix, "/account"), request);
+    return finalize(redirectAccessDenied(request, prefix, "/account"));
   }
 
   if (needsAdminPage && session.role !== "admin") {
-    return applySecurityHeaders(redirectAccessDenied(request, prefix, "/account"), request);
+    return finalize(redirectAccessDenied(request, prefix, "/account"));
   }
 
-  return applySecurityHeaders(NextResponse.next(), request);
+  return nextWithCorrelation();
 }
 
 export const config = {
   matcher: [
     "/account",
     "/account/:path*",
+    "/admin",
     "/admin/:path*",
     "/vendor/:path*",
     "/dashboard",

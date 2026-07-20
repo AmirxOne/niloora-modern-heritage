@@ -21,7 +21,6 @@ function mapVendorOrderLine(item: {
   quantity: number;
   price: number;
   order: {
-    id: string;
     status: string;
     total: number;
     createdAt: Date;
@@ -48,7 +47,6 @@ export async function listVendorOrderLines(vendorId: string, limit = 100): Promi
     include: {
       order: {
         select: {
-          id: true,
           status: true,
           total: true,
           createdAt: true,

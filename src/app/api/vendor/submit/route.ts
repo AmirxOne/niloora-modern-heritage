@@ -5,11 +5,13 @@ import { ok, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { mapMarketplaceError } from "@/lib/server/marketplace/route-errors";
 import { submitVendorApplication } from "@/lib/server/vendor/vendor-service";
+import { requireVendorOwner } from "@/lib/server/vendor/vendor-guards";
 
 export async function POST() {
   try {
     const user = await readSessionUser();
     if (!user) return unauthorized();
+    await requireVendorOwner(user.id);
 
     const vendor = await submitVendorApplication(user.id);
     return ok({ vendor });

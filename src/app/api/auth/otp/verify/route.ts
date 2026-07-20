@@ -79,7 +79,7 @@ export async function POST(request: Request) {
       return badRequest(getOtpApiMessage("invalid_otp_payload"), "invalid_otp_payload");
     }
 
-    const rate = assertOtpVerifyRateLimit(request, phone);
+    const rate = await assertOtpVerifyRateLimit(request, phone);
     if (!rate.allowed) {
       return tooManyRequests(
         getOtpApiMessage("otp_rate_limited", rate.retryAfterSec),

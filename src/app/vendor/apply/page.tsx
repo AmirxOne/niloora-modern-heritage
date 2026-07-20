@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { VendorApplyForm } from "@/components/vendor/VendorApplyForm";
 import { VendorPageHeader, useVendorProfile } from "@/components/vendor/VendorShell";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { fa } from "@/lib/i18n/fa";
 
 export default function VendorApplyPage() {
@@ -16,7 +17,7 @@ export default function VendorApplyPage() {
     }
   }, [loading, vendor, router]);
 
-  if (loading) return <p className="text-silver">{fa.vendor.loading}</p>;
+  if (loading) return <LoadingState variant="inline" className="py-4" label={fa.vendor.loading} />;
   if (vendor) return <p className="text-silver">{fa.vendor.applyAlreadyVendor}</p>;
 
   return (

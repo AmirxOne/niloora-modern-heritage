@@ -7,6 +7,11 @@ export type LoadingVariant =
   | "admin-metrics"
   | "admin-form"
   | "admin-detail"
+  | "vendor-dashboard"
+  | "vendor-hub"
+  | "vendor-products"
+  | "vendor-orders"
+  | "vendor-payouts"
   | "order-cards"
   | "quote-cards"
   | "receipt"
@@ -16,7 +21,7 @@ export type LoadingVariant =
 
 export interface LoadingStateProps {
   variant: LoadingVariant;
-  /** Accessible label (screen readers). Visible caption only for `inline`. */
+  /** Accessible label (screen readers). */
   label?: string;
   count?: number;
   className?: string;
@@ -198,6 +203,161 @@ function QuoteCardSkeleton() {
   );
 }
 
+function VendorDashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="sk h-8 w-44" />
+        <div className="flex gap-2">
+          <div className="sk h-11 w-36 rounded-heritage" />
+          <div className="sk h-11 w-36 rounded-heritage" />
+        </div>
+      </div>
+      <div className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="sk h-6 w-52" />
+            <div className="sk h-4 w-32" />
+          </div>
+          <div className="sk h-7 w-24 rounded-full" />
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+            <div className="sk h-3 w-24" />
+            <div className="sk mt-3 h-8 w-16" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VendorHubSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="sk h-8 w-44" />
+      <div className="sk h-4 w-[36rem] max-w-full" />
+      <div className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+        <div className="space-y-2">
+          <div className="sk h-5 w-52" />
+          <div className="sk h-4 w-full" />
+          <div className="sk h-4 w-3/4" />
+        </div>
+        <div className="sk mt-4 h-11 w-44 rounded-heritage" />
+      </div>
+      <div className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+        <div className="sk h-5 w-40" />
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="sk h-11 w-full rounded-heritage" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VendorProductsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <div className="sk h-8 w-36" />
+        <div className="flex gap-2">
+          <div className="sk h-11 w-32 rounded-heritage" />
+          <div className="sk h-11 w-32 rounded-heritage" />
+          <div className="sk h-11 w-32 rounded-heritage" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div
+            key={idx}
+            className="flex flex-col gap-4 rounded-heritage border border-subtle bg-white p-4 sm:flex-row sm:items-center"
+          >
+            <div className="sk h-20 w-20 shrink-0 rounded-heritage" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="sk h-4 w-48 max-w-full" />
+              <div className="sk h-3 w-24" />
+              <div className="sk h-3 w-32" />
+            </div>
+            <div className="flex gap-2">
+              <div className="sk h-9 w-24 rounded-heritage" />
+              <div className="sk h-9 w-28 rounded-heritage" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VendorOrdersSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="sk h-8 w-36" />
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <div key={idx} className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-subtle pb-3">
+              <div className="space-y-2">
+                <div className="sk h-3 w-20" />
+                <div className="sk h-4 w-40" />
+              </div>
+              <div className="space-y-2">
+                <div className="sk h-3 w-16" />
+                <div className="sk h-4 w-24" />
+              </div>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((__, statIdx) => (
+                <div key={statIdx} className="space-y-2">
+                  <div className="sk h-3 w-20" />
+                  <div className="sk h-4 w-24" />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2 border-t border-subtle pt-3">
+              <div className="sk h-4 w-full" />
+              <div className="sk h-4 w-10/12" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VendorPayoutsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="sk h-8 w-36" />
+      <div className="rounded-heritage border border-gold/20 bg-gold/5 p-5">
+        <div className="sk h-4 w-80 max-w-full" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <div key={idx} className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+            <div className="sk h-3 w-24" />
+            <div className="sk mt-2 h-7 w-28" />
+          </div>
+        ))}
+      </div>
+      <div className="overflow-hidden rounded-heritage border border-subtle">
+        <div className="border-b border-subtle p-3">
+          <div className="sk h-4 w-full" />
+        </div>
+        <div className="space-y-3 p-3">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div key={idx} className="sk h-10 w-full rounded-heritage" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReceiptSkeleton() {
   return (
     <div className="order-receipt-skeleton heritage-frame mx-auto max-w-3xl p-6 md:p-10">
@@ -257,8 +417,11 @@ export function LoadingState({ variant, label, count = 3, className }: LoadingSt
         aria-busy="true"
         aria-label={ariaLabel}
       >
-        <LoadingSpinner />
-        <p className="loading-inline-caption">{fa.common.loadingCaption}</p>
+        <div className="w-full max-w-sm space-y-2" aria-hidden>
+          <div className="sk h-4 w-40 rounded" />
+          <div className="sk h-3 w-full rounded" />
+        </div>
+        <span className="sr-only">{ariaLabel}</span>
       </div>
     );
   }
@@ -303,6 +466,16 @@ export function LoadingState({ variant, label, count = 3, className }: LoadingSt
         return <AdminFormSkeleton />;
       case "admin-detail":
         return <AdminDetailSkeleton />;
+      case "vendor-dashboard":
+        return <VendorDashboardSkeleton />;
+      case "vendor-hub":
+        return <VendorHubSkeleton />;
+      case "vendor-products":
+        return <VendorProductsSkeleton />;
+      case "vendor-orders":
+        return <VendorOrdersSkeleton />;
+      case "vendor-payouts":
+        return <VendorPayoutsSkeleton />;
       case "order-cards":
         return (
           <div className="order-history-list space-y-5">

@@ -61,7 +61,7 @@ async function assertVendorQuota(vendorId: string, mode: "create" | "submit") {
   const settings = vendor.settings;
 
   if (mode === "submit" && counts.pending >= settings.maxPendingSubmissions) {
-    throw new Error("VENDOR_QUOTA_PENDING");
+    throw new Error("VENDOR_QUOTA_PENDING_LIMIT");
   }
 
   if (
@@ -69,7 +69,7 @@ async function assertVendorQuota(vendorId: string, mode: "create" | "submit") {
     settings.quotaMode !== "unlimited" &&
     counts.total >= settings.maxActiveProducts + settings.maxPendingSubmissions
   ) {
-    throw new Error("VENDOR_QUOTA_PRODUCTS");
+    throw new Error("VENDOR_QUOTA_PRODUCTS_LIMIT");
   }
 }
 
@@ -209,12 +209,20 @@ export async function updateVendorProduct(
 
 export async function submitVendorProduct(userId: string, productId: string) {
   const membership = await requireActiveVendor(userId);
-  await assertVendorQuota(membership.vendorId, "submit");
 
   const existing = await prisma.product.findUnique({ where: { id: productId } });
   if (!existing) throw new Error("PRODUCT_NOT_FOUND");
   if (existing.vendorId !== membership.vendorId) throw new Error("VENDOR_PRODUCT_FORBIDDEN");
 
+  if (existing.publicationStatus === "pending_review") {
+    const current = await prisma.product.findUniqueOrThrow({
+      where: { id: productId },
+      include: adminProductInclude,
+    });
+    return { product: toAdminProductDto(current), deduped: true };
+  }
+
+  await assertVendorQuota(membership.vendorId, "submit");
   const toStatus = assertVendorSubmitTransition(existing.publicationStatus);
 
   const row = await prisma.$transaction(async (tx) => {
@@ -237,7 +245,7 @@ export async function submitVendorProduct(userId: string, productId: string) {
     });
   });
 
-  return toAdminProductDto(row);
+  return { product: toAdminProductDto(row), deduped: false };
 }
 
 export async function listVendorOrders(userId: string) {

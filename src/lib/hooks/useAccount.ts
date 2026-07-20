@@ -7,6 +7,7 @@ import { setAuthUser, type AuthUser } from "@/lib/store/slices/authSlice";
 import { apiFetch } from "@/lib/api/client-fetch";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { resolveAccountDisplayName } from "@/lib/account/display-name";
+import { parseApiErrorMessage } from "@/lib/hooks/fetch-utils";
 import type { LoyaltySummary, ReferralSummary, UserProfile } from "@/lib/types";
 
 type AccountUser = Required<
@@ -103,7 +104,7 @@ export function useAccount() {
       const response = await apiFetch("/api/account", { method: "GET" });
       if (!response.ok) {
         setError("account_load_failed");
-        toast.error("دریافت اطلاعات حساب انجام نشد.");
+        toast.error(await parseApiErrorMessage(response, "دریافت اطلاعات حساب انجام نشد."));
         return;
       }
       const data = (await response.json()) as AccountResponse;
@@ -158,7 +159,7 @@ export function useAccount() {
         });
         if (!response.ok) {
           setError("account_save_failed");
-          toast.error("ذخیره اطلاعات حساب انجام نشد.");
+          toast.error(await parseApiErrorMessage(response, "ذخیره اطلاعات حساب انجام نشد."));
           return false;
         }
         const data = (await response.json()) as { user: AccountUser };

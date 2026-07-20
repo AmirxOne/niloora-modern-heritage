@@ -34,6 +34,17 @@ describe("Integration — POST /api/cart/validate", () => {
     expect(response.status).toBe(400);
   });
 
+  it("rejects malformed cart payload", async () => {
+    const response = await POST(
+      new Request("http://localhost/api/cart/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: "bad-shape" }),
+      })
+    );
+    expect(response.status).toBe(400);
+  });
+
   it("validates full cart items", async () => {
     jest.mocked(validateCartPurchase).mockResolvedValue(undefined);
 

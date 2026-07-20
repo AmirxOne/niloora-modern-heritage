@@ -17,12 +17,11 @@ type VendorProductRow = Product & Pick<AdminProductDto, "updatedAt">;
 
 type Props = {
   products: VendorProductRow[];
-  vendorActive: boolean;
   onEdit: (product: Product) => void;
   onRefresh: () => void;
 };
 
-export function VendorProductList({ products, vendorActive, onEdit, onRefresh }: Props) {
+export function VendorProductList({ products, onEdit, onRefresh }: Props) {
   const submitForReview = async (productId: string) => {
     const res = await fetch(`/api/vendor/products/${productId}/submit`, {
       method: "POST",
@@ -71,7 +70,7 @@ export function VendorProductList({ products, vendorActive, onEdit, onRefresh }:
                   {fa.vendor.productsEdit}
                 </Button>
               ) : null}
-              {submittable && vendorActive ? (
+              {submittable ? (
                 <Button
                   type="button"
                   size="sm"

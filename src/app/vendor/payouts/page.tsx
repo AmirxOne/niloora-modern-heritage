@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { VendorCard, VendorPageHeader, useVendorProfile } from "@/components/vendor/VendorShell";
 import { Badge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/ui/Pagination";
+import { LoadingState } from "@/components/ui/loading/LoadingState";
 import { fa } from "@/lib/i18n/fa";
 import { formatPrice } from "@/lib/utils";
 import type { VendorPayoutEntryDto, VendorPayoutsDto } from "@/lib/server/marketplace/payout/vendor-payout-dto";
@@ -90,7 +91,9 @@ export default function VendorPayoutsPage() {
       .finally(() => setLoading(false));
   }, [vendor, page]);
 
-  if (profileLoading || loading) return <p className="text-silver">{fa.vendor.loading}</p>;
+  if (profileLoading || loading) {
+    return <LoadingState variant="vendor-payouts" className="py-2" label={fa.vendor.loading} />;
+  }
 
   if (!vendor || vendor.status !== "active") {
     return (

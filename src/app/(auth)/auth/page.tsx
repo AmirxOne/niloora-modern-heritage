@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useFormik } from "formik";
 import { fa } from "@/lib/i18n/fa";
@@ -36,6 +36,7 @@ function UnifiedAuthPageInner() {
   const [otpCode, setOtpCode] = useState("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const verifyInFlightRef = useRef(false);
 
   const isOtpStep = Boolean(requestState);
 
@@ -61,13 +62,19 @@ function UnifiedAuthPageInner() {
 
   const handleVerifyOtp = async () => {
     if (!requestState) return;
+    if (verifyInFlightRef.current) return;
+    verifyInFlightRef.current = true;
     setIsVerifyingOtp(true);
-    const referralCode = (phoneForm.values.referralCode ?? "").trim();
-    const result = await auth.verifyOtp(requestState.phone, otpCode, undefined, referralCode);
-    setIsVerifyingOtp(false);
-    if (!result) return;
-    await auth.syncSessionAfterLogin();
-    router.replace(redirectTo);
+    try {
+      const referralCode = (phoneForm.values.referralCode ?? "").trim();
+      const result = await auth.verifyOtp(requestState.phone, otpCode, undefined, referralCode);
+      if (!result) return;
+      await auth.syncSessionAfterLogin();
+      router.replace(redirectTo);
+    } finally {
+      setIsVerifyingOtp(false);
+      verifyInFlightRef.current = false;
+    }
   };
 
   const handleResend = async () => {
@@ -127,7 +134,9 @@ function UnifiedAuthPageInner() {
         </form>
       ) : (
         <div className="auth-form-modern">
-          <p className="auth-otp-sent">{fa.auth.otpSentTo(normalizedPhoneDisplay)}</p>
+          <p className="auth-otp-sent">
+            کد تایید برای <span className="auth-otp-phone">{normalizedPhoneDisplay}</span> ارسال شد.
+          </p>
           <p className="auth-otp-hint">{fa.auth.otpCodeHint}</p>
 
           <div className="auth-otp-wrap">

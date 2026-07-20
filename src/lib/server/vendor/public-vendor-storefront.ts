@@ -18,6 +18,8 @@ export type PublicVendorStorefront = {
   displayName: string;
   displayNameFa?: string;
   description?: string;
+  profileImageUrl?: string;
+  bannerImageUrl?: string;
   trustScore?: number;
   products: Product[];
 };
@@ -36,6 +38,8 @@ export async function getPublicVendorStorefront(
       displayName: true,
       displayNameFa: true,
       description: true,
+      profileImageUrl: true,
+      bannerImageUrl: true,
       status: true,
     },
   });
@@ -60,6 +64,8 @@ export async function getPublicVendorStorefront(
     displayName: vendor.displayName,
     displayNameFa: vendor.displayNameFa ?? undefined,
     description: vendor.description ?? undefined,
+    profileImageUrl: vendor.profileImageUrl ?? undefined,
+    bannerImageUrl: vendor.bannerImageUrl ?? undefined,
     trustScore,
     products,
   };

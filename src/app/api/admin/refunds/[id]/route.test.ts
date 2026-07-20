@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => {
     readSessionUser: vi.fn(),
     ensureAdmin: vi.fn(),
     applyRefundAction: vi.fn(),
+    refundFindUnique: vi.fn(),
     isRefundAction: vi.fn(),
     writeAdminAuditLog: vi.fn(),
     dispatch: vi.fn(),
@@ -26,6 +27,13 @@ const mocks = vi.hoisted(() => {
 vi.mock("@/lib/server/auth/session", () => ({ readSessionUser: mocks.readSessionUser }));
 vi.mock("@/lib/server/auth/guards", () => ({ ensureAdmin: mocks.ensureAdmin }));
 vi.mock("@/lib/server/audit-log", () => ({ writeAdminAuditLog: mocks.writeAdminAuditLog }));
+vi.mock("@/lib/server/prisma", () => ({
+  prisma: {
+    refund: {
+      findUnique: mocks.refundFindUnique,
+    },
+  },
+}));
 vi.mock("@/lib/server/marketplace/refund/refund-service", () => ({
   applyRefundAction: mocks.applyRefundAction,
   isRefundAction: mocks.isRefundAction,
@@ -63,6 +71,7 @@ describe("POST /api/admin/refunds/[id]", () => {
       ["review", "approve", "reject", "process", "complete", "fail"].includes(v)
     );
     mocks.dispatch.mockResolvedValue({ processed: 0, failed: 0 });
+    mocks.refundFindUnique.mockResolvedValue({ id: "ref-1", status: "requested" });
   });
 
   it("blocks non-admins", async () => {
@@ -74,6 +83,27 @@ describe("POST /api/admin/refunds/[id]", () => {
   it("rejects an invalid action", async () => {
     const response = await call("ref-1", { action: "explode" });
     expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe("refund_invalid_action");
+    expect(mocks.applyRefundAction).not.toHaveBeenCalled();
+  });
+
+  it("rejects reject/fail without reason", async () => {
+    const response = await call("ref-1", { action: "reject" });
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.code).toBe("refund_reason_required");
+  });
+
+  it("returns 409 on expected status mismatch", async () => {
+    mocks.refundFindUnique.mockResolvedValue({ id: "ref-1", status: "approved" });
+    const response = await call("ref-1", {
+      action: "process",
+      expectedStatus: "requested",
+    });
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.code).toBe("refund_status_mismatch");
     expect(mocks.applyRefundAction).not.toHaveBeenCalled();
   });
 
@@ -96,6 +126,8 @@ describe("POST /api/admin/refunds/[id]", () => {
     mocks.applyRefundAction.mockRejectedValue(new mocks.MockRefundTransitionError("bad"));
     const response = await call("ref-1", { action: "complete" });
     expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.code).toBe("refund_transition_conflict");
   });
 
   it("maps refund errors to 400", async () => {

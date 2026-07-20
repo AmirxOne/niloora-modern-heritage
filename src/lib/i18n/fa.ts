@@ -61,6 +61,10 @@ export const fa = {
     myWishlist: "علاقه‌مندی‌ها",
     myDesigns: "طرح‌های ذخیره‌شده",
     myCart: "سبد خرید",
+    becomeVendor: "فروشنده شوید",
+    vendorPendingReview: "در انتظار بررسی",
+    vendorDashboard: "پنل فروشندگی",
+    vendorApplication: "درخواست فروشندگی",
     accountSection: "حساب و سفارش‌ها",
     accountGroupProfile: "حساب من",
     accountGroupShopping: "خرید و پیگیری",
@@ -3131,6 +3135,39 @@ export const fa = {
     },
   },
   vendor: {
+    hubTitle: "مرکز فروشندگی",
+    hubSubtitle:
+      "از اینجا خیلی سریع وضعیت همکاری‌تان را ببینید و مرحله بعدی را انجام دهید.",
+    hubNotLoggedInTitle: "برای شروع فروشندگی ابتدا وارد شوید",
+    hubNotLoggedInHint:
+      "پس از ورود، می‌توانید درخواست فروشندگی ثبت کنید و روند بررسی را پیگیری کنید.",
+    hubLoginCta: "ورود و شروع فروشندگی",
+    hubApplyTitle: "هنوز درخواست فروشندگی ثبت نشده",
+    hubApplyHint:
+      "فرم همکاری را کامل کنید. بعد از ثبت، درخواست شما وارد مرحله بررسی می‌شود.",
+    hubApplyCta: "ثبت درخواست فروشندگی",
+    hubPendingTitle: "درخواست شما در حال بررسی است",
+    hubPendingHint:
+      "تیم نیلورا در حال بررسی اطلاعات کارگاه شماست. نتیجه از طریق پنل اعلام می‌شود.",
+    hubPendingCta: "مشاهده وضعیت درخواست",
+    hubRejectedTitle: "درخواست نیاز به اصلاح دارد",
+    hubRejectedHint:
+      "می‌توانید جزئیات دلیل رد را ببینید، اطلاعات را اصلاح کنید و دوباره برای بررسی ارسال کنید.",
+    hubRejectedCta: "اصلاح و ارسال مجدد",
+    hubActiveTitle: "پنل فروشندگی شما فعال است",
+    hubActiveHint:
+      "محصول ثبت کنید، سفارش‌ها را مدیریت کنید و وضعیت تسویه‌ها را بررسی کنید.",
+    hubQuickActions: "میانبرهای سریع فروشندگی",
+    hubGoProducts: "مدیریت محصولات",
+    hubGoOrders: "مشاهده سفارش‌ها",
+    hubGoPayouts: "مشاهده تسویه‌ها",
+    hubGoDashboard: "داشبورد فروشنده",
+    hubGoStorefront: "نمایش ویترین عمومی",
+    hubGuideTitle: "مسیر ساده شروع فروشندگی",
+    hubGuideStep1: "ثبت درخواست فروشندگی",
+    hubGuideStep2: "ارسال برای بررسی",
+    hubGuideStep3: "تأیید و فعال‌سازی پنل",
+    hubGuideStep4: "ثبت محصول و شروع فروش",
     sellEyebrow: "همکاری با گالری",
     sellTitle: "فروش در نیلورا",
     sellSubtitle:
@@ -3201,6 +3238,17 @@ export const fa = {
     dashboardRecentOrders: "آخرین سفارش‌ها",
     dashboardViewAllOrders: "مشاهده همه سفارش‌ها",
     dashboardViewProducts: "مدیریت محصولات",
+    dashboardBrandingTitle: "هویت بصری فروشگاه",
+    dashboardBrandingHint:
+      "برای نمایش حرفه‌ای صفحه فروشگاه، بنر و تصویر پروفایل را تنظیم کنید.",
+    dashboardStorefrontCta: "مشاهده صفحه فروشگاه",
+    brandingProfileImage: "تصویر پروفایل فروشگاه",
+    brandingBannerImage: "بنر فروشگاه",
+    brandingUploadImage: "آپلود تصویر",
+    brandingSave: "ذخیره تغییرات ویترین",
+    brandingSaveSuccess: "اطلاعات ویترین فروشگاه ذخیره شد.",
+    brandingProfilePreviewAlt: "پروفایل فروشگاه",
+    brandingBannerPreviewAlt: "بنر فروشگاه",
     dashboardRevenue30d: "فروش ۳۰ روز اخیر",
     dashboardPendingPayout: "در انتظار تسویه",
     dashboardPaidTotal: "تسویه‌شده",
@@ -3220,6 +3268,7 @@ export const fa = {
     pubRejected: "رد شده",
     pubArchived: "بایگانی",
     productsTitle: "محصولات من",
+    productsManage: "مدیریت محصولات",
     productsNew: "محصول جدید",
     productsEmpty: "هنوز محصولی ثبت نکرده‌اید.",
     productsEdit: "ویرایش",
@@ -3242,6 +3291,28 @@ export const fa = {
     productHeadline: "عنوان لیست",
     productSave: "ذخیره",
     productCancel: "انصراف",
+    productsPanelHint:
+      "همه مدیریت محصولات فروشنده از همین بخش انجام می‌شود: ثبت تکی با فرم یا ثبت گروهی با فایل Excel.",
+    productsBulkTitle: "ثبت گروهی محصولات با Excel",
+    productsBulkHint:
+      "ابتدا قالب را دانلود کنید، ردیف‌ها را کامل کنید و فایل را بارگذاری کنید. هر ردیف نامعتبر با خطای مشخص گزارش می‌شود.",
+    productsBulkGuideTitle: "راهنمای آپلود گروهی",
+    productsBulkGuideStep1:
+      "ابتدا «دانلود قالب Excel» را بزنید تا فایل خام ستون‌ها را بگیرید.",
+    productsBulkGuideStep2:
+      "اگر نمونه لازم دارید، «دانلود فایل نمونه» را بزنید و همان ساختار را کپی کنید.",
+    productsBulkGuideStep3:
+      "تصاویر را اول از طریق آپلود تصویر فروشنده آپلود کنید و در ستون image آدرس نهایی /uploads را قرار دهید.",
+    productsBulkGuideStep4:
+      "فایل را ذخیره کنید، انتخاب فایل را بزنید و سپس روی «آپلود گروهی» کلیک کنید.",
+    productsBulkDownloadTemplate: "دانلود قالب Excel",
+    productsBulkDownloadSample: "دانلود فایل نمونه",
+    productsBulkSelectFile: "انتخاب فایل Excel",
+    productsBulkUpload: "آپلود گروهی",
+    productsBulkReport: (total: number, created: number, failed: number) =>
+      `تعداد کل ردیف‌ها: ${total.toLocaleString("fa-IR")} · موفق: ${created.toLocaleString("fa-IR")} · ناموفق: ${failed.toLocaleString("fa-IR")}`,
+    productsBulkRowError: (row: number, message: string) =>
+      `ردیف ${row.toLocaleString("fa-IR")}: ${message}`,
     ordersTitle: "سفارش‌های مرتبط",
     ordersEmpty: "سفارشی با محصولات شما یافت نشد.",
     ordersOrderId: "شماره سفارش",
