@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BagHappy, Category, LayoutDashboard, Receipt } from "@/components/icons";
+import { BagHappy, Category, LayoutDashboard, People, Receipt } from "@/components/icons";
 import { fa } from "@/lib/i18n/fa";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/vendor/products", label: fa.vendor.navProducts, icon: Category },
   { href: "/vendor/orders", label: fa.vendor.navOrders, icon: BagHappy },
   { href: "/vendor/payouts", label: fa.vendor.navPayouts, icon: Receipt },
+  { href: "/vendor/team", label: fa.vendor.navTeam, icon: People },
 ] as const;
 
 export function VendorNav() {

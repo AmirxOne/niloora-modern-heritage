@@ -12,6 +12,7 @@ export {
   BagHappy,
   Calendar,
   Category,
+  People,
   ArrowSwapHorizontal as Compare,
   Check,
   Clock as History,

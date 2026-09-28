@@ -5,6 +5,7 @@ export const VENDOR_PORTAL_SEGMENTS = new Set([
   "products",
   "orders",
   "payouts",
+  "team",
 ]);
 
 export function isVendorPortalPath(pathname: string): boolean {

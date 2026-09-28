@@ -12,6 +12,7 @@ export type LoadingVariant =
   | "vendor-products"
   | "vendor-orders"
   | "vendor-payouts"
+  | "vendor-team"
   | "order-cards"
   | "quote-cards"
   | "receipt"
@@ -476,6 +477,26 @@ export function LoadingState({ variant, label, count = 3, className }: LoadingSt
         return <VendorOrdersSkeleton />;
       case "vendor-payouts":
         return <VendorPayoutsSkeleton />;
+      case "vendor-team":
+        return (
+          <div className="space-y-6">
+            <div className="sk h-8 w-36" />
+            <div className="rounded-heritage border border-subtle bg-matte-elevated p-5">
+              <div className="sk h-4 w-full max-w-xl" />
+              <div className="mt-3 flex gap-3">
+                <div className="sk h-11 flex-1 rounded-heritage" />
+                <div className="sk h-11 w-28 rounded-heritage" />
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-heritage border border-subtle">
+              {Array.from({ length: 4 }).map((_, idx) => (
+                <div key={idx} className="border-b border-subtle/60 p-3 last:border-0">
+                  <div className="sk h-10 w-full rounded-heritage" />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
       case "order-cards":
         return (
           <div className="order-history-list space-y-5">
