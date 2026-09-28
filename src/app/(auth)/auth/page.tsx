@@ -17,6 +17,21 @@ import { safeRedirectPath } from "@/lib/auth/safe-redirect";
 
 type OtpRequestState = { phone: string; otpPreview?: string };
 
+/**
+ * حساب‌های آزمایشی — فقط در dev (NODE_ENV !== production) نمایش داده می‌شوند.
+ * مثل الگوی پروژه MeetingHub: کلیک = پر کردن شماره + درخواست خودکار OTP.
+ */
+const DEV_TEST_ACCOUNTS = [
+  { label: "ادمین", phone: "09123456789", hint: "دسترسی کامل admin" },
+  { label: "ادیتور", phone: "09120000001", hint: "بلاگ: ساخت/ویرایش پیش‌نویس" },
+  { label: "بازبین", phone: "09120000002", hint: "بلاگ: تأیید/انتشار" },
+  { label: "فروشنده (مالک)", phone: "09120000004", hint: "پنل فروشنده atelier-test" },
+  { label: "فروشنده (کارمند)", phone: "09120000005", hint: "دسترسی محدود فروشنده" },
+  { label: "کاربر عادی", phone: "09120000003", hint: "خریدار بدون پنل فروشنده" },
+] as const;
+
+const SHOW_DEV_ACCOUNTS = process.env.NODE_ENV !== "production";
+
 export default function UnifiedAuthPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-matte" aria-hidden />}>
@@ -55,8 +70,26 @@ function UnifiedAuthPageInner() {
         phone: result.phone,
         otpPreview: result.otpPreview,
       });
+      // در dev کد پیش‌نمایش را خودکار تایپ می‌کنیم تا ورود سریع باشد
+      if (result.otpPreview) {
+        setOtpCode(result.otpPreview);
+      }
     },
   });
+
+  const handleDevAccountClick = async (phone: string) => {
+    if (isSendingOtp) return;
+    phoneForm.setFieldValue("phone", phone);
+    setIsSendingOtp(true);
+    const result = await auth.requestOtp(phone);
+    setIsSendingOtp(false);
+    if (!result) return;
+    setOtpCode(result.otpPreview ?? "");
+    setRequestState({
+      phone: result.phone,
+      otpPreview: result.otpPreview,
+    });
+  };
 
   const errorMessage = getAuthErrorMessage(auth.error);
 
@@ -131,6 +164,26 @@ function UnifiedAuthPageInner() {
           <Button type="submit" size="lg" className="w-full" isLoading={isSendingOtp}>
             {fa.auth.otpSubmitPhone}
           </Button>
+
+          {SHOW_DEV_ACCOUNTS ? (
+            <div className="rounded-heritage border border-subtle bg-matte-elevated px-4 py-3">
+              <p className="text-xs text-silver">حساب‌های آزمایشی — کلیک کنید تا کد تایید (dev) صادر شود:</p>
+              <div className="mt-2.5 flex flex-wrap gap-1.5" data-testid="dev-test-accounts">
+                {DEV_TEST_ACCOUNTS.map((acc) => (
+                  <button
+                    key={acc.phone}
+                    type="button"
+                    onClick={() => handleDevAccountClick(acc.phone)}
+                    disabled={isSendingOtp}
+                    title={`${acc.phone} · ${acc.hint}`}
+                    className="rounded-full border border-subtle bg-matte px-2.5 py-1 text-xs text-ivory transition hover:border-gold/40 hover:bg-gold/10 disabled:opacity-50"
+                  >
+                    {acc.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </form>
       ) : (
         <div className="auth-form-modern">
