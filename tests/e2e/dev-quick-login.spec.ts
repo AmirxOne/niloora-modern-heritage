@@ -78,7 +78,9 @@ test.describe("Become-a-seller journey (entry points & guards)", () => {
   });
 
   test("logged-in non-vendor sees the apply form", async ({ page }) => {
-    await loginViaChip(page, "کاربر عادی");
+    // 09120000006 (کاربر بدون دسترسی) never gains a vendor membership in any
+    // suite — using it keeps this test independent of the vendor-apply spec.
+    await loginViaChip(page, "کاربر بدون دسترسی");
     await submitAutofilledOtp(page);
 
     await gotoStable(page, "/vendor/apply");

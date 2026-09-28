@@ -33,6 +33,9 @@ async function loginPlainUser(page: Page) {
 }
 
 test("plain user submits vendor application form end-to-end", async ({ page }) => {
+  // Reset any session carried over from previous suites (Playwright context is
+  // per-test, but the /auth page follows redirect if already logged in).
+  await page.context().clearCookies();
   await loginPlainUser(page);
 
   await gotoStable(page, "/vendor/apply");
@@ -63,4 +66,10 @@ test("plain user submits vendor application form end-to-end", async ({ page }) =
 
   // redirect to vendor dashboard after success
   await expect(page).toHaveURL(/\/vendor\/dashboard/, { timeout: 20_000 });
+
+  // CLEANUP via the site's public API session context is not enough to delete a
+  // vendor; instead reset the user's vendor membership directly through the
+  // vendor API owned by this session is not available. Keep it simple: log out
+  // (shared-state cleanup for user 09120000003 is done by the global run prep).
+  await page.request.delete("/api/auth/logout").catch(() => {});
 });

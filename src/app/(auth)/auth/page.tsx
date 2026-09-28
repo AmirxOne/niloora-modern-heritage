@@ -28,6 +28,7 @@ const DEV_TEST_ACCOUNTS = [
   { label: "فروشنده (مالک)", phone: "09120000004", hint: "پنل فروشنده atelier-test" },
   { label: "فروشنده (کارمند)", phone: "09120000005", hint: "دسترسی محدود فروشنده" },
   { label: "کاربر عادی", phone: "09120000003", hint: "خریدار بدون پنل فروشنده" },
+  { label: "کاربر بدون دسترسی", phone: "09120000006", hint: "همیشه بدون نقش اضافه — برای تست‌های منفی" },
 ] as const;
 
 const SHOW_DEV_ACCOUNTS = process.env.NODE_ENV !== "production";
