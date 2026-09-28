@@ -70,5 +70,65 @@
     "height": 464,
     "url": "/uploads/vendor-media/cmrtew7ce00077wtu7f0a2x76/1784563867197-zc5cdgok.webp",
     "createdAt": "2026-07-20T16:11:07.330Z"
+  },
+  {
+    "id": "1790621984415-85cad9rr",
+    "vendorId": "cmulm3gjx0018mwtugxbcv87g",
+    "uploadedByUserId": "cmulm3enc0016mwtuzztqxyxc",
+    "originalName": "vendor-image.png",
+    "mimeType": "image/png",
+    "sizeBytes": 7625,
+    "width": 640,
+    "height": 640,
+    "url": "/uploads/vendor-media/cmulm3gjx0018mwtugxbcv87g/1790621984415-85cad9rr.webp",
+    "createdAt": "2026-09-28T18:59:44.451Z"
+  },
+  {
+    "id": "1790625689388-a5w36qku",
+    "vendorId": "cmuloavtm0043mwtumzvjvshs",
+    "uploadedByUserId": "cmuloav2q0040mwtuui8xx30e",
+    "originalName": "vendor-image.png",
+    "mimeType": "image/png",
+    "sizeBytes": 7625,
+    "width": 640,
+    "height": 640,
+    "url": "/uploads/vendor-media/cmuloavtm0043mwtumzvjvshs/1790625689388-a5w36qku.webp",
+    "createdAt": "2026-09-28T20:01:29.418Z"
+  },
+  {
+    "id": "1790626200538-1bg85o47",
+    "vendorId": "cmuloltzo0055mwtu8r2yfzj8",
+    "uploadedByUserId": "cmulolsvi0052mwtuehj7df6t",
+    "originalName": "vendor-image.png",
+    "mimeType": "image/png",
+    "sizeBytes": 7625,
+    "width": 640,
+    "height": 640,
+    "url": "/uploads/vendor-media/cmuloltzo0055mwtu8r2yfzj8/1790626200538-1bg85o47.webp",
+    "createdAt": "2026-09-28T20:10:00.561Z"
+  },
+  {
+    "id": "1790628061544-40o4qttl",
+    "vendorId": "cmulppq1k0072mwtu0zs4k22d",
+    "uploadedByUserId": "cmulppp5g006zmwtutwq6r254",
+    "originalName": "vendor-image.png",
+    "mimeType": "image/png",
+    "sizeBytes": 7625,
+    "width": 640,
+    "height": 640,
+    "url": "/uploads/vendor-media/cmulppq1k0072mwtu0zs4k22d/1790628061544-40o4qttl.webp",
+    "createdAt": "2026-09-28T20:41:01.564Z"
+  },
+  {
+    "id": "1790628582753-yhp661bq",
+    "vendorId": "cmulq0w4q008qmwtuqnric2bn",
+    "uploadedByUserId": "cmulq0w3v008nmwtu2nerhxec",
+    "originalName": "vendor-image.png",
+    "mimeType": "image/png",
+    "sizeBytes": 7625,
+    "width": 640,
+    "height": 640,
+    "url": "/uploads/vendor-media/cmulq0w4q008qmwtuqnric2bn/1790628582753-yhp661bq.webp",
+    "createdAt": "2026-09-28T20:49:42.772Z"
   }
 ]
