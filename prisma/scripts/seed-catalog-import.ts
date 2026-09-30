@@ -108,7 +108,7 @@ async function main() {
     if (!groups.has(num)) groups.set(num, []);
     groups.get(num)!.push(f);
   }
-  const nums = [...groups.keys()].sort((a, b) => a - b).slice(0, limit === Infinity ? undefined : limit);
+  const nums: number[] = Array.from(groups.keys()).sort((a, b) => a - b).slice(0, limit === Infinity ? undefined : limit);
   console.log(`found ${files.length} images → ${nums.length} products`);
 
   let created = 0, skipped = 0;
