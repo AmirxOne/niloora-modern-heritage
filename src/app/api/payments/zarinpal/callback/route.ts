@@ -130,7 +130,7 @@ export async function GET(request: Request) {
         meta: { refId: verified.refId, code: verified.code },
       });
 
-      notifyOrderPlaced(payment.orderId);
+      await notifyOrderPlaced(payment.orderId);
     }
 
     // SECURITY: only guest/OTP-only accounts (no usable password) may be

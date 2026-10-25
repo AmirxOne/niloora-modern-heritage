@@ -215,8 +215,10 @@ async function dispatchOrderNotification(
 }
 
 /** پس از پرداخت موفق — سفارش ثبت شد */
-export function notifyOrderPlaced(orderId: string): void {
-  void dispatchOrderNotification(orderId, "order_placed", (ctx) => ({
+export function notifyOrderPlaced(orderId: string): Promise<void> {
+  // Awaited by the payment callback so serverless runtimes don't freeze the
+  // pending promise before the SMS/email is actually sent.
+  return dispatchOrderNotification(orderId, "order_placed", (ctx) => ({
     sms: buildOrderPlacedSms(ctx),
     email: buildOrderPlacedEmail(ctx),
     template: serverEnv.kavenegarTemplateOrderPlaced || undefined,
