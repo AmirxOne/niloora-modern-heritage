@@ -11,6 +11,7 @@ import {
   isZarinpalConfigured,
   tomanToRial,
   zarinpalRequestPayment,
+  zarinpalStartPayUrl,
 } from "@/lib/server/payment/zarinpal";
 import { prisma } from "@/lib/server/prisma";
 import type { CartItem } from "@/lib/types";
@@ -20,6 +21,56 @@ type Body = {
   promoCode?: string | null;
   shipping?: unknown;
 };
+
+/**
+ * A (very likely accidental) duplicate submission: the same user, with a
+ * pending payment younger than IDEMPOTENCY_WINDOW_MS, is treated as a retry
+ * of that payment instead of creating a second order.
+ */
+const IDEMPOTENCY_WINDOW_MS = 5 * 60_000;
+
+function stableCartSignature(items: CartItem[]): string {
+  const parts = items
+    .map((item) => `${item.productId ?? "custom"}:${item.name}:${item.quantity}`)
+    .sort();
+  return parts.join("|");
+}
+
+async function findReusablePendingPayment(input: {
+  userId: string;
+  signature: string;
+  promoCode: string | null;
+}): Promise<{ orderId: string; authority: string; total: number } | null> {
+  const since = new Date(Date.now() - IDEMPOTENCY_WINDOW_MS);
+  const candidates = await prisma.order.findMany({
+    where: {
+      userId: input.userId,
+      status: "pending_payment",
+      createdAt: { gte: since },
+    },
+    include: { payment: true, items: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  for (const order of candidates) {
+    const payment = order.payment;
+    if (!payment || payment.status !== "pending" || !payment.authority) continue;
+    if (order.promoCode !== input.promoCode) continue;
+
+    const signature = stableCartSignature(
+      order.items.map((item) => ({
+        productId: item.productId ?? undefined,
+        name: item.name,
+        quantity: item.quantity,
+      })) as CartItem[]
+    );
+    if (signature !== input.signature) continue;
+
+    return { orderId: order.id, authority: payment.authority, total: order.total };
+  }
+  return null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -67,6 +118,30 @@ export async function POST(request: Request) {
       } catch {
         return badRequest("شماره موبایل برای ثبت سفارش معتبر نیست.");
       }
+    }
+
+    // IDEMPOTENCY: an accidental double submission (double-click / retry)
+    // within the window reuses the still-pending payment instead of
+    // creating a duplicate order + gateway request.
+    const reusable = await findReusablePendingPayment({
+      userId: checkoutUser.id,
+      signature: stableCartSignature(items),
+      promoCode: payload.promoCode ?? null,
+    });
+    if (reusable) {
+      await logPaymentEvent({
+        orderId: reusable.orderId,
+        level: "info",
+        event: "payment.deduplicated",
+        message: "Reusing pending payment for duplicate checkout submission",
+        meta: { authority: reusable.authority },
+      });
+      return created({
+        redirectUrl: zarinpalStartPayUrl(reusable.authority),
+        orderId: reusable.orderId,
+        authority: reusable.authority,
+        reused: true,
+      });
     }
 
     let orderResult;

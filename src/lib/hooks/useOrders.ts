@@ -31,7 +31,9 @@ export function useOrders() {
     }
     setIsLoading(true);
     try {
-      const response = await fetch("/api/orders");
+      // pageSize=50 (API max) keeps the client-side pagination UX intact
+      // while the endpoint stays bounded.
+      const response = await fetch("/api/orders?page=1&pageSize=50");
       if (!response.ok) {
         toast.error("دریافت سفارش‌ها انجام نشد.");
         return;

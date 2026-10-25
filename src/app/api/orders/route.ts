@@ -4,18 +4,52 @@ import { badRequest, ok, serverError, unauthorized } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { orderInclude, toOrderDto } from "@/lib/server/orders/order-dto";
 
-export async function GET() {
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 50;
+
+function parsePagination(searchParams: URLSearchParams): {
+  page: number;
+  pageSize: number;
+  skip: number;
+} {
+  const rawPage = Number(searchParams.get("page") ?? "1");
+  const rawPageSize = Number(searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE));
+  const page = Number.isFinite(rawPage) && rawPage >= 1 ? Math.floor(rawPage) : 1;
+  const pageSize =
+    Number.isFinite(rawPageSize) && rawPageSize >= 1
+      ? Math.min(MAX_PAGE_SIZE, Math.floor(rawPageSize))
+      : DEFAULT_PAGE_SIZE;
+  return { page, pageSize, skip: (page - 1) * pageSize };
+}
+
+export async function GET(request: Request) {
   try {
     const user = await readSessionUser();
     if (!user) return unauthorized();
 
-    const orders = await prisma.order.findMany({
-      where: { userId: user.id },
-      include: orderInclude,
-      orderBy: { createdAt: "desc" },
-    });
+    const { searchParams } = new URL(request.url);
+    const { page, pageSize, skip } = parsePagination(searchParams);
 
-    return ok({ orders: orders.map(toOrderDto) });
+    const [orders, total] = await prisma.$transaction([
+      prisma.order.findMany({
+        where: { userId: user.id },
+        include: orderInclude,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: pageSize,
+      }),
+      prisma.order.count({ where: { userId: user.id } }),
+    ]);
+
+    return ok({
+      orders: orders.map(toOrderDto),
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      },
+    });
   } catch (error) {
     return handleRouteError(error, { route: "/api/orders" });
   }

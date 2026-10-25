@@ -45,6 +45,11 @@ export function getZarinpalCallbackUrl(): string {
   return `${getAppBaseUrl()}/api/payments/zarinpal/callback`;
 }
 
+/** Build the customer-facing payment page URL from a stored authority. */
+export function zarinpalStartPayUrl(authority: string): string {
+  return `${startPayBase()}/${authority}`;
+}
+
 export function isZarinpalConfigured(): boolean {
   return Boolean(serverEnv.zarinpalMerchantId);
 }
