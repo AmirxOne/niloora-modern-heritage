@@ -7,6 +7,18 @@ type Bucket = {
 };
 
 const store = new Map<string, Bucket>();
+let lastSweepAt = 0;
+const SWEEP_INTERVAL_MS = 5 * 60_000;
+
+function sweepExpired(now: number): void {
+  // BOUNDARY: keep the in-memory map bounded — drop expired buckets so
+  // spoofed-IP floods cannot grow it without limit.
+  if (now - lastSweepAt < SWEEP_INTERVAL_MS) return;
+  lastSweepAt = now;
+  for (const [key, bucket] of Array.from(store)) {
+    if (bucket.resetAt <= now) store.delete(key);
+  }
+}
 
 function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -27,6 +39,7 @@ export function checkRateLimit(
 ): { allowed: true } | { allowed: false; retryAfterSec: number } {
   // BOUNDARY: in-memory limiter (single runtime); suitable for dev/small deployments.
   const now = Date.now();
+  sweepExpired(now);
   const current = store.get(key);
 
   if (!current || current.resetAt <= now) {

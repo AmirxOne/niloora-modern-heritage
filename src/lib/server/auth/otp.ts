@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomInt } from "node:crypto";
 import { prisma } from "@/lib/server/prisma";
 import { serverEnv } from "@/lib/server/env";
 
@@ -14,8 +14,8 @@ function otpTtlMs(): number {
 }
 
 function generateOtpCode(): string {
-  const value = Math.floor(Math.random() * 1_000_000);
-  return value.toString().padStart(OTP_LENGTH, "0");
+  // crypto-quality randomness (Math.random is predictable)
+  return randomInt(0, 1_000_000).toString().padStart(OTP_LENGTH, "0");
 }
 
 export async function issueOtpCode(phone: string) {

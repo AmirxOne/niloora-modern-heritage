@@ -26,7 +26,10 @@ export const serverEnv = {
   otpTtlMinutes: readNumber("OTP_TTL_MINUTES", 3),
   telegramChannel: process.env.TELEGRAM_CHANNEL ?? "galleryhannan",
   zarinpalMerchantId: process.env.ZARINPAL_MERCHANT_ID?.trim() ?? "",
-  zarinpalSandbox: process.env.ZARINPAL_SANDBOX !== "false",
+  zarinpalSandbox:
+    process.env.NODE_ENV === "production"
+      ? process.env.ZARINPAL_SANDBOX === "true" // production must opt INTO sandbox explicitly
+      : process.env.ZARINPAL_SANDBOX !== "false",
   smsProvider: (process.env.SMS_PROVIDER ?? "kavenegar").trim().toLowerCase(),
   kavenegarApiKey: process.env.KAVENEGAR_API_KEY?.trim() ?? "",
   kavenegarOtpTemplate: process.env.KAVENEGAR_OTP_TEMPLATE?.trim() ?? "verify",

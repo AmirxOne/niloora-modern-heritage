@@ -1,10 +1,11 @@
 import { resolveCheckoutUser } from "@/lib/server/auth/checkout-user";
 import { readSessionUser } from "@/lib/server/auth/session";
-import { badRequest, created, serverError } from "@/lib/server/http";
+import { badRequest, created, serverError, tooManyRequests } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { CartPurchaseError, createOrderFromCart } from "@/lib/server/orders/create-order";
 import { toOrderDto } from "@/lib/server/orders/order-dto";
 import { parseAndValidateShippingPayload } from "@/lib/server/orders/validate-shipping";
+import { checkRateLimit, createRateLimitKey } from "@/lib/server/rate-limit";
 import { logPaymentEvent } from "@/lib/server/payment/log";
 import {
   isZarinpalConfigured,
@@ -23,6 +24,21 @@ type Body = {
 export async function POST(request: Request) {
   try {
     const sessionUser = await readSessionUser();
+
+    // Payment initiation mutates DB and talks to the gateway — throttle it.
+    const rateKey = createRateLimitKey(
+      "payment:request",
+      request,
+      sessionUser?.id ?? ""
+    );
+    const rate = checkRateLimit(rateKey, 10, 60_000);
+    if (!rate.allowed) {
+      return tooManyRequests(
+        "درخواست‌های پرداخت زیاد است. کمی بعد تلاش کنید.",
+        rate.retryAfterSec,
+        "payment_rate_limited"
+      );
+    }
 
     if (!isZarinpalConfigured()) {
       return badRequest("درگاه پرداخت پیکربندی نشده است.");

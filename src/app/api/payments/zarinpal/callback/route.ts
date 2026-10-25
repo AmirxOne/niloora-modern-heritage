@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
-import { createSession, setSessionCookie } from "@/lib/server/auth/session";
 import { getAppBaseUrl } from "@/lib/server/payment/app-url";
 import { logPaymentEvent } from "@/lib/server/payment/log";
 import { zarinpalVerifyPayment } from "@/lib/server/payment/zarinpal";
 import { logRouteError } from "@/lib/server/route-errors";
 import { notifyOrderPlaced } from "@/lib/server/notifications/order-notify";
+import { maybeCreatePostCheckoutSession } from "@/lib/server/auth/post-checkout-session";
+import {
+  claimVerifiedPayment,
+  deductStockForOrder,
+} from "@/lib/server/orders/finalize-order";
 import { prisma } from "@/lib/server/prisma";
 
 function redirect(path: string) {
   return NextResponse.redirect(`${getAppBaseUrl()}${path}`);
+}
+
+function successRedirect(orderId: string) {
+  return redirect(`/cart?payment=success&orderId=${encodeURIComponent(orderId)}`);
 }
 
 export async function GET(request: Request) {
@@ -35,18 +43,26 @@ export async function GET(request: Request) {
     return redirect("/cart?payment=failed&reason=unknown_payment");
   }
 
+  // GUARD: a payment already marked paid stays paid regardless of the
+  // (user-controlled, unreliable) Status param — a retried/refreshed callback
+  // with Status=NOK must NOT flip a settled payment to failed.
+  if (payment.status === "paid") {
+    await maybeCreatePostCheckoutSession(payment.order.userId);
+    return successRedirect(payment.orderId);
+  }
+
   const fail = async (reason: string, extra?: { code?: string; message?: string }) => {
     await prisma.$transaction([
-      prisma.payment.update({
-        where: { id: payment.id },
+      prisma.payment.updateMany({
+        where: { id: payment.id, status: "pending" },
         data: {
           status: "failed",
           errorCode: extra?.code ?? reason,
           errorMessage: extra?.message ?? reason,
         },
       }),
-      prisma.order.update({
-        where: { id: payment.orderId },
+      prisma.order.updateMany({
+        where: { id: payment.orderId, status: "pending_payment" },
         data: { status: "payment_failed" },
       }),
     ]);
@@ -69,12 +85,6 @@ export async function GET(request: Request) {
     return fail("user_cancelled", { message: "کاربر پرداخت را لغو کرد" });
   }
 
-  if (payment.status === "paid") {
-    const sessionToken = await createSession(payment.order.userId);
-    await setSessionCookie(sessionToken);
-    return redirect(`/cart?payment=success&orderId=${encodeURIComponent(payment.orderId)}`);
-  }
-
   try {
     const verified = await zarinpalVerifyPayment({
       authority,
@@ -88,40 +98,46 @@ export async function GET(request: Request) {
       });
     }
 
-    await prisma.$transaction([
-      prisma.payment.update({
-        where: { id: payment.id },
-        data: {
-          status: "paid",
-          refId: verified.refId ?? null,
-          cardPan: verified.cardPan ?? null,
-          fee: verified.fee ?? null,
-          verifiedAt: new Date(),
-          errorCode: null,
-          errorMessage: null,
-        },
-      }),
-      prisma.order.update({
-        where: { id: payment.orderId },
-        data: { status: "processing" },
-      }),
-    ]);
-
-    await logPaymentEvent({
-      paymentId: payment.id,
-      orderId: payment.orderId,
-      level: "info",
-      event: "payment.verified",
-      message: verified.message,
-      meta: { refId: verified.refId, code: verified.code },
+    // ATOMIC CLAIM: pending→paid + order→processing, exactly once.
+    // Concurrent/duplicate callbacks that lose the race no-op here.
+    const claimed = await claimVerifiedPayment(payment.id, {
+      refId: verified.refId,
+      cardPan: verified.cardPan,
+      fee: verified.fee,
     });
+    if (claimed.ok && !claimed.alreadyFinalized) {
+      // Stock deduction runs only for the claim winner — once per order.
+      const stock = await deductStockForOrder(payment.orderId);
+      if (!stock.ok) {
+        // Money was taken but stock ran out in between: log for manual
+        // handling (refund/replenish). Payment/order stay settled.
+        await logPaymentEvent({
+          paymentId: payment.id,
+          orderId: payment.orderId,
+          level: "error",
+          event: "payment.stock_conflict",
+          message: "پرداخت موفق اما موجودی کافی نیست — نیاز به رسیدگی دستی",
+          meta: { authority, productId: stock.productId },
+        });
+      }
 
-    notifyOrderPlaced(payment.orderId);
+      await logPaymentEvent({
+        paymentId: payment.id,
+        orderId: payment.orderId,
+        level: "info",
+        event: "payment.verified",
+        message: verified.message,
+        meta: { refId: verified.refId, code: verified.code },
+      });
 
-    const sessionToken = await createSession(payment.order.userId);
-    await setSessionCookie(sessionToken);
+      notifyOrderPlaced(payment.orderId);
+    }
 
-    return redirect(`/cart?payment=success&orderId=${encodeURIComponent(payment.orderId)}`);
+    // SECURITY: only guest/OTP-only accounts (no usable password) may be
+    // auto-logged-in here; real account holders must sign in via OTP.
+    await maybeCreatePostCheckoutSession(payment.order.userId);
+
+    return successRedirect(payment.orderId);
   } catch (error) {
     logRouteError(error, {
       route: "/api/payments/zarinpal/callback",

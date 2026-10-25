@@ -19,16 +19,16 @@ export async function GET(request: Request) {
 
     if (!productId) return badRequest("Missing productId");
 
+    // only "approved" is public; other statuses are for the admin panel
+    // (which goes through /api/comments/pending with ensureAdmin)
+    if (status && status !== "approved") {
+      return badRequest("Invalid status filter");
+    }
+
     const where: {
       productId: string;
       status?: string;
-    } = { productId };
-
-    if (status) {
-      where.status = status;
-    } else {
-      where.status = "approved";
-    }
+    } = { productId, status: "approved" };
 
     const comments = await prisma.productComment.findMany({
       where,
