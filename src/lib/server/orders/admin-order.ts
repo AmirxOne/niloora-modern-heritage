@@ -13,6 +13,7 @@ export const ADMIN_ORDER_FILTER_STATUSES = [
   "all",
   "pending_payment",
   "payment_failed",
+  "cancelled",
   ...ADMIN_ORDER_STATUSES,
 ] as const;
 

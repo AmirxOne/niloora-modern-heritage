@@ -160,7 +160,8 @@ export interface Order {
     | "processing"
     | "crafting"
     | "shipped"
-    | "delivered";
+    | "delivered"
+    | "cancelled";
   total: number;
   subtotalList?: number;
   totalFurooh?: number;

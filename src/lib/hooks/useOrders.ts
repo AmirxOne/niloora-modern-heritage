@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { fa } from "@/lib/i18n/fa";
 import type { CheckoutShippingInput } from "@/lib/checkout/shipping";
 import type { CartItem, Order } from "../types";
 import { useAuth } from "./useAuth";
@@ -84,12 +85,34 @@ export function useOrders() {
     [dispatch, loadOrders]
   );
 
+  const cancelOrder = useCallback(
+    async (orderId: string): Promise<boolean> => {
+      const response = await fetch(`/api/orders/${encodeURIComponent(orderId)}/cancel`, {
+        method: "POST",
+      });
+      const data = await parseResponse<{ refund?: string; message?: string }>(response);
+      if (!response.ok) {
+        toast.error(data?.message ?? fa.dashboard.cancelOrderFailed);
+        return false;
+      }
+      toast.success(
+        data?.refund === "refund_pending"
+          ? fa.dashboard.cancelOrderRefundPending
+          : fa.dashboard.cancelOrderSuccess
+      );
+      await loadOrders();
+      return true;
+    },
+    [loadOrders]
+  );
+
   return {
     orders,
     hydrated,
     isLoading,
     startZarinpalPayment,
     completePaidOrder,
+    cancelOrder,
     loadOrders,
   };
 }

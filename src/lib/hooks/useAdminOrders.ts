@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { fa } from "@/lib/i18n/fa";
 import type { AdminOrder } from "@/lib/types";
 import type { AdminOrderFilterStatus, AdminSettableOrderStatus } from "@/lib/server/orders/admin-order";
 import { useAuth } from "./useAuth";
@@ -76,6 +77,30 @@ export function useAdminOrders() {
     [isAdmin]
   );
 
+  const settleRefund = useCallback(
+    async (orderId: string) => {
+      if (!isAdmin) return false;
+      setIsSaving(true);
+      try {
+        const response = await fetch(
+          `/api/admin/orders/${encodeURIComponent(orderId)}/refund`,
+          { method: "POST" }
+        );
+        const data = await parseJson<{ ok?: boolean; message?: string }>(response);
+        if (!response.ok) {
+          toast.error(data?.message ?? fa.admin.orders.refundFailed);
+          return false;
+        }
+        toast.success(fa.admin.orders.refundDone);
+        await loadOrders();
+        return true;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [isAdmin, loadOrders]
+  );
+
   return {
     isAdmin,
     orders,
@@ -85,5 +110,6 @@ export function useAdminOrders() {
     setStatusFilter,
     loadOrders,
     updateOrder,
+    settleRefund,
   };
 }

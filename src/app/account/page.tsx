@@ -197,7 +197,11 @@ export default function AccountPage() {
           title={fa.dashboard.purchaseHistory}
           subtitle={fa.dashboard.ordersCount(orders.orders.length)}
         >
-          <OrderHistory orders={orders.orders} isLoading={orders.isLoading} />
+          <OrderHistory
+            orders={orders.orders}
+            isLoading={orders.isLoading}
+            onCancelOrder={(id) => void orders.cancelOrder(id)}
+          />
         </AccountSectionContainer>
       );
     }

@@ -664,6 +664,12 @@ export const fa = {
     viewPurchaseHistory: "مشاهدهٔ تاریخچه خرید",
     viewInvoice: "مشاهده فاکتور",
     submitSupportRequest: "درخواست پشتیبانی / مرجوعی",
+    cancelOrder: "لغو سفارش",
+    cancelOrderConfirm:
+      "این سفارش لغو شود؟ اگر پرداخت کرده‌اید، مبلغ پس از تأیید کارگاه به حساب شما برمی‌گردد.",
+    cancelOrderSuccess: "سفارش لغو شد.",
+    cancelOrderRefundPending: "سفارش لغو شد — بازگشت وجه پس از بررسی کارگاه انجام می‌شود.",
+    cancelOrderFailed: "لغو سفارش انجام نشد.",
     commentModeration: "مدیریت نظرات",
     commentModerationHint: "نظرات در انتظار تأیید — پس از بررسی، برای همه نمایش داده می‌شوند.",
     commentModerationEmpty: "نظری در انتظار تأیید نیست.",
@@ -682,6 +688,7 @@ export const fa = {
       crafting: "در حال ساخت کارگاه",
       shipped: "تحویل به پست",
       delivered: "تحویل‌شده",
+      cancelled: "لغو شده",
     },
     orderTimeline: {
       title: "پیگیری وضعیت سفارش",
@@ -761,6 +768,10 @@ export const fa = {
       empty: "سفارشی با این فیلتر یافت نشد.",
       itemsCount: (n: number) => `${n.toLocaleString("fa-IR")} قلم`,
       navLabel: "مدیریت سفارش‌ها",
+      refundLabel: "ثبت بازگشت وجه",
+      refundHint: "پرداخت لغو‌شده — پس از انتقال وجه در درگاه، اینجا ثبت کنید.",
+      refundDone: "بازگشت وجه ثبت شد.",
+      refundFailed: "ثبت بازگشت وجه انجام نشد.",
     },
     products: {
       title: "مدیریت محصولات",

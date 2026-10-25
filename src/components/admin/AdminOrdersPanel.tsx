@@ -24,6 +24,7 @@ const statusLabels: Record<Order["status"], string> = {
   crafting: fa.dashboard.orderStatus.crafting,
   shipped: fa.dashboard.orderStatus.shipped,
   delivered: fa.dashboard.orderStatus.delivered,
+  cancelled: fa.dashboard.orderStatus.cancelled,
 };
 
 const statusVariant: Record<Order["status"], "gold" | "turquoise" | "royal" | "default"> = {
@@ -33,6 +34,7 @@ const statusVariant: Record<Order["status"], "gold" | "turquoise" | "royal" | "d
   crafting: "turquoise",
   shipped: "gold",
   delivered: "default",
+  cancelled: "default",
 };
 
 const filterOptions = ADMIN_ORDER_FILTER_STATUSES.map((value) => ({
@@ -63,6 +65,7 @@ function AdminOrderCard({
   index,
   isSaving,
   onSave,
+  onSettleRefund,
 }: {
   order: AdminOrder;
   index: number;
@@ -71,6 +74,7 @@ function AdminOrderCard({
     orderId: string,
     payload: { status?: AdminSettableOrderStatus; trackingCode?: string | null }
   ) => Promise<boolean>;
+  onSettleRefund: (orderId: string) => Promise<boolean>;
 }) {
   const canEditStatus = ADMIN_ORDER_STATUSES.includes(
     order.status as AdminSettableOrderStatus
@@ -94,6 +98,8 @@ function AdminOrderCard({
   const dirty =
     (canEditStatus && status !== order.status) ||
     (trackingCode.trim() || "") !== (order.trackingCode ?? "");
+  const needsRefundSettlement =
+    order.status === "cancelled" && order.payment?.status === "refund_pending";
 
   return (
     <motion.article
@@ -126,6 +132,20 @@ function AdminOrderCard({
           <Link href={orderReceiptPath(order.id)} className="admin-order-invoice-link">
             {fa.dashboard.viewInvoice}
           </Link>
+        ) : null}
+        {needsRefundSettlement ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="text-xs text-gold-dark">{fa.admin.orders.refundHint}</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isSaving}
+              onClick={() => void onSettleRefund(order.id)}
+            >
+              {fa.admin.orders.refundLabel}
+            </Button>
+          </span>
         ) : null}
       </div>
 
@@ -229,6 +249,7 @@ export function AdminOrdersPanel() {
               index={i}
               isSaving={admin.isSaving}
               onSave={admin.updateOrder}
+              onSettleRefund={admin.settleRefund}
             />
           ))}
         </div>

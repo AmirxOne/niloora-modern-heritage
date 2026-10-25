@@ -22,6 +22,7 @@ const statusLabels: Record<Order["status"], string> = {
   crafting: fa.dashboard.orderStatus.crafting,
   shipped: fa.dashboard.orderStatus.shipped,
   delivered: fa.dashboard.orderStatus.delivered,
+  cancelled: fa.dashboard.orderStatus.cancelled,
 };
 
 const statusVariant: Record<Order["status"], "gold" | "turquoise" | "royal" | "default"> = {
@@ -31,7 +32,14 @@ const statusVariant: Record<Order["status"], "gold" | "turquoise" | "royal" | "d
   crafting: "turquoise",
   shipped: "gold",
   delivered: "default",
+  cancelled: "default",
 };
+
+const CANCELLABLE_STATUSES = new Set<Order["status"]>([
+  "pending_payment",
+  "payment_failed",
+  "processing",
+]);
 
 function formatOrderDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fa-IR", {
@@ -43,8 +51,17 @@ function formatOrderDate(iso: string): string {
   });
 }
 
-function OrderCard({ order, index }: { order: Order; index: number }) {
+function OrderCard({
+  order,
+  index,
+  onCancel,
+}: {
+  order: Order;
+  index: number;
+  onCancel: (orderId: string) => void;
+}) {
   const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
+  const canCancel = CANCELLABLE_STATUSES.has(order.status);
 
   return (
     <motion.article
@@ -153,6 +170,19 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
             >
               {fa.dashboard.submitSupportRequest}
             </Link>
+            {canCancel ? (
+              <button
+                type="button"
+                className="order-history-invoice-link text-gold-dark hover:text-gold"
+                onClick={() => {
+                  if (window.confirm(fa.dashboard.cancelOrderConfirm)) {
+                    onCancel(order.id);
+                  }
+                }}
+              >
+                {fa.dashboard.cancelOrder}
+              </button>
+            ) : null}
           </div>
         </div>
         <span className="font-display text-xl font-semibold text-gold-dark">{formatPrice(order.total)}</span>
@@ -164,9 +194,10 @@ function OrderCard({ order, index }: { order: Order; index: number }) {
 interface OrderHistoryProps {
   orders: Order[];
   isLoading?: boolean;
+  onCancelOrder?: (orderId: string) => void;
 }
 
-export function OrderHistory({ orders, isLoading = false }: OrderHistoryProps) {
+export function OrderHistory({ orders, isLoading = false, onCancelOrder }: OrderHistoryProps) {
   const sortedOrders = useMemo(
     () => [...orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [orders]
@@ -252,7 +283,12 @@ export function OrderHistory({ orders, isLoading = false }: OrderHistoryProps) {
     <>
       <div className="order-history-list">
         {pagedOrders.map((order, i) => (
-          <OrderCard key={order.id} order={order} index={i} />
+          <OrderCard
+            key={order.id}
+            order={order}
+            index={i}
+            onCancel={(id) => void onCancelOrder?.(id)}
+          />
         ))}
       </div>
       <Pagination
