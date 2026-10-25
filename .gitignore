@@ -7,3 +7,6 @@ build/
 .env.*
 !.env.example
 !.env*.example
+e2e-results/
+e2e-report/
+/test-results/

@@ -27,9 +27,7 @@ export type CancelOrderResult =
   | { ok: true; status: "cancelled"; refunded: "none" | "refund_pending" }
   | { ok: false; reason: "not_found" | "not_cancellable" | "already_cancelled" };
 
-export async function isOrderCancellableByCustomer(
-  status: string
-): Promise<boolean> {
+export function isOrderCancellableByCustomer(status: string): boolean {
   return (CUSTOMER_CANCELLABLE_STATUSES as readonly string[]).includes(status);
 }
 

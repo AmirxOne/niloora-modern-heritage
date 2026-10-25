@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:test": "dotenv -e .env.test -- next dev -p 3100",
+    "seed:e2e": "dotenv -e .env.test -- tsx prisma/seed-e2e.ts",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -51,11 +55,13 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^20.17.10",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/three": "^0.184.1",
     "autoprefixer": "^10.4.20",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.21",
     "postcss": "^8.4.49",
