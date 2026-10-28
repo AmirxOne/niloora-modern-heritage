@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   ChevronDown,
   Gem,
+  IdCard,
   LayoutDashboard,
   LogOut,
   PenTool,
@@ -111,6 +112,11 @@ export function HeaderAccountMenu() {
             href: "/admin/support-requests",
             label: fa.admin.supportRequests.navLabel,
             icon: <PenTool size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+          },
+          {
+            href: "/admin/users",
+            label: fa.admin.users.navLabel,
+            icon: <IdCard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
           },
           {
             href: "/admin/promo-codes",

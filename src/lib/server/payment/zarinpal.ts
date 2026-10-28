@@ -134,3 +134,42 @@ export async function zarinpalVerifyPayment(input: {
     message: data.message,
   };
 }
+
+type RefundSuccess = {
+  code: number;
+  message: string;
+  id?: number;
+};
+
+/**
+ * Reverse (refund) a VERIFIED payment via Zarinpal v4 refund endpoint.
+ * Requires the payment to have been verified (code 100); the gateway
+ * returns code 100 on success / 101 if already reversed.
+ */
+export async function zarinpalReversePayment(input: {
+  authority: string;
+  amountRial: number;
+}): Promise<{
+  ok: boolean;
+  refundId?: string;
+  code: number;
+  message: string;
+}> {
+  if (!serverEnv.zarinpalMerchantId) {
+    throw new Error("Zarinpal merchant id is not configured");
+  }
+
+  const data = await postZarinpal<RefundSuccess>("refund.json", {
+    merchant_id: serverEnv.zarinpalMerchantId,
+    amount: input.amountRial,
+    authority: input.authority,
+  });
+
+  const ok = data.code === 100 || data.code === 101;
+  return {
+    ok,
+    refundId: data.id != null ? String(data.id) : undefined,
+    code: data.code,
+    message: data.message,
+  };
+}
