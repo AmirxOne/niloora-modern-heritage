@@ -103,6 +103,13 @@ export interface Product {
   bestseller: boolean;
   collection?: string;
   collectionId?: string;
+  /** Marketplace seller — null/undefined = platform (gallery) product */
+  seller?: {
+    id: string;
+    shopName: string;
+    slug: string;
+    status: string;
+  } | null;
   initialSalesCount?: number;
   condition: ProductCondition;
   preOwned?: PreOwnedInfo;

@@ -2,6 +2,7 @@ import { badRequest, ok, serverError } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { getCatalogProducts } from "@/lib/server/products";
 import { listTelegramProducts } from "@/lib/server/telegram/sync";
+import { normalizePersianSearch } from "@/lib/persian-normalize";
 
 function matchesCatalogQuery(product: {
   name: string;
@@ -9,17 +10,17 @@ function matchesCatalogQuery(product: {
   listing: { details: string[]; headline: string };
   collection?: string;
 }, query: string): boolean {
-  const q = query.toLowerCase();
-  const haystack = [
+  const q = normalizePersianSearch(query);
+  const haystackRaw = [
     product.name,
     product.namePersian,
     product.listing.headline,
     ...product.listing.details,
     product.collection ?? "",
   ]
-    .join(" ")
-    .toLowerCase();
-  return haystack.includes(q);
+    .join(" ");
+  const hay = normalizePersianSearch(haystackRaw);
+  return hay.includes(q);
 }
 
 export async function GET(request: Request) {

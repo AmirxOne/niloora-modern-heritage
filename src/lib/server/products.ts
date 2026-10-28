@@ -10,6 +10,9 @@ const productInclude = {
     orderBy: { sortOrder: "asc" as const },
   },
   collection: true,
+  seller: {
+    select: { id: true, shopName: true, slug: true, status: true },
+  },
 } satisfies Prisma.ProductInclude;
 
 type DbProduct = Prisma.ProductGetPayload<{ include: typeof productInclude }>;
@@ -24,7 +27,14 @@ function merchandiseScore(product: Product): number {
   return (product.featured ? 4 : 0) + (product.bestseller ? 2 : 0);
 }
 
-export function mapDbProduct(product: DbProduct): Product {
+// Accepts any product row whose include-graph is a subset/superset of
+// productInclude — seller is optional (callers without marketplace data
+// simply get seller: null).
+type MappableProduct = DbProduct & {
+  seller?: { id: string; shopName: string; slug: string; status: string } | null;
+};
+
+export function mapDbProduct(product: MappableProduct): Product {
   // PURPOSE: isolate DB-to-domain mapping so UI never depends on Prisma shapes.
   const preOwnedGrade = product.preOwnedInfo?.grade ?? "good";
   return {
@@ -55,6 +65,14 @@ export function mapDbProduct(product: DbProduct): Product {
     bestseller: product.bestseller,
     collection: product.collection?.name,
     collectionId: product.collectionId ?? undefined,
+    seller: product.seller
+      ? {
+          id: product.seller.id,
+          shopName: product.seller.shopName,
+          slug: product.seller.slug,
+          status: product.seller.status,
+        }
+      : null,
     initialSalesCount: product.initialSalesCount ?? 0,
     condition: product.condition as Product["condition"],
     preOwned: product.preOwnedInfo

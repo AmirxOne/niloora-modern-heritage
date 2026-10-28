@@ -7,6 +7,7 @@ const productInclude = {
   preOwnedInfo: true,
   images: { orderBy: { sortOrder: "asc" as const } },
   collection: true,
+  seller: { select: { id: true, shopName: true, slug: true, status: true } },
 } satisfies Prisma.ProductInclude;
 
 export type DbProductAdmin = Prisma.ProductGetPayload<{ include: typeof productInclude }>;

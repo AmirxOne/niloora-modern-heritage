@@ -3,7 +3,6 @@ import { serverLogger } from "@/lib/observability/logger";
 import { absoluteUrl } from "@/lib/seo/site";
 import { listPublishedPosts } from "@/lib/server/blog/post-service";
 import { listProductIdsForSitemap } from "@/lib/server/products/product-page";
-import { prisma } from "@/lib/server/prisma";
 
 const STATIC_PATHS: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[0]["changeFrequency"] }[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
@@ -36,25 +35,25 @@ async function listBlogSitemapEntries(): Promise<MetadataRoute.Sitemap> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, collections, blogEntries] = await Promise.all([
+  const [products, blogEntries] = await Promise.all([
     listProductIdsForSitemap(),
-    prisma.collection.findMany({ select: { id: true } }),
     listBlogSitemapEntries(),
   ]);
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((entry) => ({
     url: absoluteUrl(entry.path),
-    lastModified: new Date(),
+    // stable timestamp: blog list reflects the newest published post
+    lastModified:
+      blogEntries[0]?.lastModified ??
+      products[0]?.updatedAt ??
+      new Date(),
     changeFrequency: entry.changeFrequency,
     priority: entry.priority,
   }));
 
-  const collectionEntries: MetadataRoute.Sitemap = collections.map((collection) => ({
-    url: absoluteUrl(`/shop?collection=${encodeURIComponent(collection.id)}`),
-    lastModified: new Date(),
-    changeFrequency: "weekly",
-    priority: 0.65,
-  }));
+  // NOTE: collection filter URLs (`/shop?collection=…`) are intentionally
+  // NOT in the sitemap: they are filter permutations of /shop with a
+  // canonical pointing to /shop. Only the canonical /shop is listed above.
 
   const productEntries: MetadataRoute.Sitemap = products.map((product) => ({
     url: absoluteUrl(`/product/${product.id}`),
@@ -63,5 +62,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticEntries, ...collectionEntries, ...productEntries, ...blogEntries];
+  return [...staticEntries, ...productEntries, ...blogEntries];
 }
