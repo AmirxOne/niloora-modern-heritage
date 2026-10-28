@@ -3,6 +3,7 @@ import { readSessionUser } from "@/lib/server/auth/session";
 import { badRequest, created, serverError, tooManyRequests } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { CartPurchaseError, createOrderFromCart } from "@/lib/server/orders/create-order";
+import { validateCartPurchase } from "@/lib/server/products/validate-cart-purchase";
 import { toOrderDto } from "@/lib/server/orders/order-dto";
 import { parseAndValidateShippingPayload } from "@/lib/server/orders/validate-shipping";
 import { checkRateLimit, createRateLimitKey } from "@/lib/server/rate-limit";
@@ -91,10 +92,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isZarinpalConfigured()) {
-      return badRequest("درگاه پرداخت پیکربندی نشده است.");
-    }
-
+    // ORDER OF CHECKS: payload validation FIRST (cart, shipping, stock),
+    // gateway configuration LAST — so clients get meaningful errors and
+    // stock problems never depend on whether the gateway is configured.
     const payload = (await request.json()) as Body;
     const items = payload.items ?? [];
     if (items.length === 0) {
@@ -118,6 +118,22 @@ export async function POST(request: Request) {
       } catch {
         return badRequest("شماره موبایل برای ثبت سفارش معتبر نیست.");
       }
+    }
+
+    // stock/availability validation happens inside createOrderFromCart
+    // (repriceOrderItems → validateCartPurchase). Run it as a pre-check by
+    // validating the cart BEFORE the gateway check so meaningful errors win.
+    try {
+      await validateCartPurchase(items);
+    } catch (error) {
+      if (error instanceof CartPurchaseError) {
+        return badRequest(error.message);
+      }
+      throw error;
+    }
+
+    if (!isZarinpalConfigured()) {
+      return badRequest("درگاه پرداخت پیکربندی نشده است.");
     }
 
     // IDEMPOTENCY: an accidental double submission (double-click / retry)
