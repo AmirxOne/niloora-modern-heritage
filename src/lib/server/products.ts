@@ -75,7 +75,12 @@ export function mapDbProduct(product: DbProduct): Product {
 
 export async function getCatalogProducts(): Promise<Product[]> {
   // FLOW: read full catalog with include graph, then map to shared Product type.
+  // Marketplace rule: suspended/pending sellers' products are hidden from the
+  // public catalog (platform products have sellerId=null and always show).
   const rows = await prisma.product.findMany({
+    where: {
+      OR: [{ sellerId: null }, { seller: { status: "active" } }],
+    },
     include: productInclude,
   });
   return rows.map(mapDbProduct);

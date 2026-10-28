@@ -9,6 +9,7 @@ import {
   claimVerifiedPayment,
   deductStockForOrder,
 } from "@/lib/server/orders/finalize-order";
+import { creditSellersForOrder } from "@/lib/server/sellers/seller-service";
 import { prisma } from "@/lib/server/prisma";
 
 function redirect(path: string) {
@@ -118,6 +119,16 @@ export async function GET(request: Request) {
           event: "payment.stock_conflict",
           message: "پرداخت موفق اما موجودی کافی نیست — نیاز به رسیدگی دستی",
           meta: { authority, productId: stock.productId },
+        });
+      }
+
+      // Marketplace: credit each seller's share (idempotent per order)
+      try {
+        await creditSellersForOrder(payment.orderId);
+      } catch (error) {
+        logRouteError(error, {
+          route: "/api/payments/zarinpal/callback",
+          context: { orderId: payment.orderId, step: "seller_credit" },
         });
       }
 

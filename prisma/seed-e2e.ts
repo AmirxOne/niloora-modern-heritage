@@ -18,6 +18,8 @@ const prisma = new PrismaClient({ adapter });
 export const TEST_ADMIN_PHONE = "09990000001";
 export const TEST_CUSTOMER_PHONE = "09990000002";
 export const TEST_CUSTOMER2_PHONE = "09990000003";
+export const TEST_SELLER_PHONE = "09990000004";
+export const TEST_SELLER2_PHONE = "09990000005";
 const TEST_PASSWORD = "Test@1234";
 
 const TEST_PRODUCTS = [
@@ -86,12 +88,51 @@ async function main() {
     update: { role: "user", passwordHash },
   });
 
+  // marketplace sellers
+  const sellerUser = await prisma.user.upsert({
+    where: { phone: TEST_SELLER_PHONE },
+    create: { name: "E2E فروشنده یک", phone: TEST_SELLER_PHONE, role: "user", passwordHash },
+    update: { passwordHash },
+  });
+  const seller2User = await prisma.user.upsert({
+    where: { phone: TEST_SELLER2_PHONE },
+    create: { name: "E2E فروشنده دو", phone: TEST_SELLER2_PHONE, role: "user", passwordHash },
+    update: { passwordHash },
+  });
+
+  const seller = await prisma.seller.upsert({
+    where: { userId: sellerUser.id },
+    create: {
+      userId: sellerUser.id,
+      shopName: "غرفه تست الف",
+      slug: "e2e-shop-a",
+      status: "active",
+      commissionPercent: 10,
+    },
+    update: { status: "active", commissionPercent: 10 },
+  });
+  const seller2 = await prisma.seller.upsert({
+    where: { userId: seller2User.id },
+    create: {
+      userId: seller2User.id,
+      shopName: "غرفه تست ب",
+      slug: "e2e-shop-b",
+      status: "active",
+      commissionPercent: 15,
+    },
+    update: { status: "active", commissionPercent: 15 },
+  });
+
   // clean slate for transactional entities created by previous runs
   await prisma.orderNotification.deleteMany();
   await prisma.paymentLog.deleteMany();
   await prisma.payment.deleteMany();
+  await prisma.sellerLedgerEntry.deleteMany();
+  await prisma.sellerPayout.deleteMany();
   await prisma.order.deleteMany({ where: { userId: { in: [admin.id, customer.id, customer2.id] } } });
   await prisma.session.deleteMany({ where: { userId: { in: [admin.id, customer.id, customer2.id] } } });
+  // seller-owned test products from previous runs
+  await prisma.product.deleteMany({ where: { sellerId: { in: [seller.id, seller2.id] } } });
 
   // catalog
   for (const p of TEST_PRODUCTS) {
@@ -113,7 +154,7 @@ async function main() {
   }
 
   console.log(
-    `E2E seed done: 3 users (admin=${TEST_ADMIN_PHONE}, customer=${TEST_CUSTOMER_PHONE}, customer2=${TEST_CUSTOMER2_PHONE}), ${TEST_PRODUCTS.length} products`
+    `E2E seed done: 5 users (admin=${TEST_ADMIN_PHONE}, customer=${TEST_CUSTOMER_PHONE}, customer2=${TEST_CUSTOMER2_PHONE}), ${TEST_PRODUCTS.length} products`
   );
 }
 

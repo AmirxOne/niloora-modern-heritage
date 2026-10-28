@@ -32,8 +32,66 @@ model User {
   customizerQuoteRequests CustomizerQuoteRequest[]
   comments               ProductComment[]
   preferences   UserPreference?
+  sellerAccount Seller?
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
+}
+
+/**
+ * Marketplace seller — a shop operating under the gallery's brand.
+ * Owner identity = the linked User (role "seller" users must have one).
+ * The platform (gallery's own Zarinpal account) collects all payments;
+ * seller share is recorded in SellerLedger and settled by an admin.
+ */
+model Seller {
+  id                String        @id @default(cuid())
+  userId            String        @unique
+  shopName          String
+  slug              String        @unique
+  bio               String?
+  phone             String?
+  logoUrl           String?
+  status            String        @default("pending") // pending | active | suspended
+  commissionPercent Int           @default(10)
+  products          Product[]
+  payouts           SellerPayout[]
+  ledgerEntries     SellerLedgerEntry[]
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([status])
+}
+
+/** Settlement payout from the platform to a seller (manual/periodic). */
+model SellerPayout {
+  id        String   @id @default(cuid())
+  sellerId  String
+  amount    Int
+  status    String   @default("requested") // requested | approved | paid | rejected
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  seller    Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId, status])
+}
+
+/**
+ * Financial ledger: a credit entry per sold seller item (revenue share),
+ * a debit entry per payout. Balance = sum(credits) - sum(paid payouts).
+ */
+model SellerLedgerEntry {
+  id        String   @id @default(cuid())
+  sellerId  String
+  orderId   String?
+  kind      String // sale_credit | payout_debit | adjustment
+  amount    Int // positive = credit to seller, negative = debit
+  note      String?
+  createdAt DateTime @default(now())
+  seller    Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId, createdAt])
 }
 
 model Session {
@@ -99,6 +157,8 @@ model Product {
   initialSalesCount Int?
   collectionId      String?
   collection        Collection?     @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  sellerId          String?
+  seller            Seller?         @relation(fields: [sellerId], references: [id], onDelete: SetNull)
   listing           ProductListing?
   preOwnedInfo      PreOwnedInfo?
   images            ProductImage[]
@@ -112,6 +172,7 @@ model Product {
   @@index([condition])
   @@index([bestseller])
   @@index([featured])
+  @@index([sellerId, availability])
 }
 
 model ProductImage {

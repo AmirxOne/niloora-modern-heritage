@@ -3,7 +3,13 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
 export const TEST_ADMIN_PHONE = "09990000001";
 export const TEST_CUSTOMER_PHONE = "09990000002";
 export const TEST_CUSTOMER2_PHONE = "09990000003";
+export const TEST_SELLER_PHONE = "09990000004";
+export const TEST_SELLER2_PHONE = "09990000005";
 export const TEST_PASSWORD = "Test@1234";
+
+/** Active seeded seller shops (see prisma/seed-e2e.ts). */
+export const TEST_SELLER_SLUG_A = "e2e-shop-a";
+export const TEST_SELLER_SLUG_B = "e2e-shop-b";
 
 export const ALPHA_PRODUCT_ID = "e2e-ring-alpha";
 export const LASTUNIT_PRODUCT_ID = "e2e-ring-lastunit";

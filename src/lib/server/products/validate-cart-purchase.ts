@@ -24,7 +24,14 @@ export async function validateCartPurchase(items: CartItem[]): Promise<void> {
   const productIds = Array.from(totals.keys());
   const products = await prisma.product.findMany({
     where: { id: { in: productIds } },
-    select: { id: true, name: true, namePersian: true, availability: true, stock: true },
+    select: {
+      id: true,
+      name: true,
+      namePersian: true,
+      availability: true,
+      stock: true,
+      seller: { select: { status: true, shopName: true } },
+    },
   });
 
   const byId = new Map(products.map((p) => [p.id, p]));
@@ -36,6 +43,14 @@ export async function validateCartPurchase(items: CartItem[]): Promise<void> {
         productId,
         code: "not_found",
       });
+    }
+
+    // marketplace guard: suspended/pending sellers cannot sell
+    if (product.seller && product.seller.status !== "active") {
+      throw new CartPurchaseError(
+        `فروشگاه «${product.seller.shopName}» موقتاً غیرفعال است.`,
+        { productId, code: "seller_inactive" }
+      );
     }
 
     const block = getPurchaseBlockReason(
