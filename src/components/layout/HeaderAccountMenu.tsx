@@ -119,6 +119,11 @@ export function HeaderAccountMenu() {
             icon: <IdCard size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
           },
           {
+            href: "/admin/sellers",
+            label: fa.admin.sellers.navLabel,
+            icon: <Store size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+          },
+          {
             href: "/admin/promo-codes",
             label: fa.admin.promoCodes.navLabel,
             icon: <Sparkles size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
@@ -144,6 +149,11 @@ export function HeaderAccountMenu() {
           href: "/account",
           label: fa.nav.myAccount,
           icon: <User size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
+        },
+        {
+          href: "/seller",
+          label: fa.sellerPanel.title,
+          icon: <Store size={iconSizes.sm} variant={ICON_VARIANT} aria-hidden />,
         },
       ],
     },
