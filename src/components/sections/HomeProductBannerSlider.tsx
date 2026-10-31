@@ -213,7 +213,7 @@ export function HomeProductBannerSlider() {
                       aria-selected={i === index}
                       aria-label={fa.home.bannerGoToSlide(i + 1)}
                       className={cn(
-                        "h-2 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-light/60",
+                        "h-2 rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-light/60",
                         i === index
                           ? "w-8 bg-gold"
                           : "w-2 bg-white/35 hover:bg-white/55"

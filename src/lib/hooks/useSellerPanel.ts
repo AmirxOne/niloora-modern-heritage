@@ -54,6 +54,10 @@ export function useSellerPanel() {
   const [isSaving, setIsSaving] = useState(false);
 
   const isLoggedIn = auth.isLoggedIn;
+  // Wait for the auth bootstrap too: on a hard load with a session cookie,
+  // /api/auth/session may resolve after mount, flipping isLoggedIn
+  // false -> true — loadAll re-runs via this dep (fixes seller panel race).
+  const authHydrated = auth.hydrated;
   // 404 => no shop yet; 403 => shop exists but not active
   const hasShop = overview !== null;
   const shopStatus = overview?.seller.status ?? null;
@@ -92,7 +96,7 @@ export function useSellerPanel() {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, authHydrated]);
 
   useEffect(() => {
     void loadAll();

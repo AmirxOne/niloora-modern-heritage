@@ -35,7 +35,7 @@ export const CheckBox = forwardRef<HTMLInputElement, CheckBoxProps>(
         {/* visual box */}
         <span
           aria-hidden
-          className="flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-[0.3rem] border-[1.5px] border-[var(--color-border-strong)] bg-white transition-all
+          className="flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-[0.3rem] border-[1.5px] border-[var(--color-border-strong)] bg-white transition-[border-color,background-color,opacity]
             peer-checked:border-gold peer-checked:bg-gold
             peer-focus-visible:ring-2 peer-focus-visible:ring-gold/40
             after:h-[0.55rem] after:w-[0.35rem] after:-translate-y-[1px] after:rotate-45 after:border-r-2 after:border-b-2 after:border-white after:opacity-0 after:transition-opacity peer-checked:after:opacity-100"

@@ -345,14 +345,21 @@ test("FULL JOURNEY: admin discount → customer buys → cancel → refund → s
   await page.waitForLoadState("networkidle");
   // switch to the orders tab (account defaults to overview)
   const ordersTab = page.getByRole("button", { name: /^تاریخچه خرید/ }).first();
-  const tabVisible = await ordersTab.isVisible({ timeout: 8_000 }).catch(() => false);
+  // NOTE: isVisible() does NOT wait — a race with hydration made it return
+  // false before the sidebar rendered, silently skipping the click (flake).
+  // waitFor() actually polls until the element appears.
+  const tabVisible = await ordersTab
+    .waitFor({ state: "visible", timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
   if (tabVisible) await ordersTab.click();
   await expect(page.getByText(/LIVE/).first()).toBeVisible({ timeout: 20_000 });
   toast("order visible in account ✓");
 
   const cancelBtn = page.getByRole("button", { name: "لغو سفارش" }).first();
-  const canCancel = await cancelBtn.isVisible({ timeout: 6_000 }).catch(() => false);
-  expect(canCancel).toBe(true);
+  // isVisible() doesn't wait — the button renders with the orders list,
+  // so poll until it actually appears (same class of flake as the tab above).
+  await expect(cancelBtn).toBeVisible({ timeout: 15_000 });
   const cancelResponsePromise = page.waitForResponse(
     (r) => r.url().includes("/cancel") && r.request().method() === "POST",
     { timeout: 20_000 }

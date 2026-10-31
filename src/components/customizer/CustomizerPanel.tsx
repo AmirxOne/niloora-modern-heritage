@@ -101,7 +101,7 @@ export function CustomizerPanel({ state, onUpdate, labelMaps }: CustomizerPanelP
                       key={size}
                       type="button"
                       onClick={() => onUpdate("size", size)}
-                      className={`h-9 w-9 rounded-heritage border text-xs transition-all ${
+                      className={`h-9 w-9 rounded-heritage border text-xs transition-colors ${
                         state.size === size
                           ? "border-gold bg-gold/10 text-gold"
                           : "border-stone-200 text-silver hover:border-stone-300"

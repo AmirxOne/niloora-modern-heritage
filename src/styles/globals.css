@@ -72,6 +72,9 @@
     font-feature-settings: "ss01", "ss02";
     overflow-x: hidden;
   }
+  @media (pointer: fine) {
+    overscroll-behavior: none;
+  }
 
   @media (min-width: 640px) {
     body { font-size: 1rem; }
@@ -225,7 +228,7 @@
   }
 
   .heritage-card {
-    @apply overflow-hidden rounded-heritage border border-gold/10 bg-matte-elevated shadow-heritage transition-all duration-500;
+    @apply overflow-hidden rounded-heritage border border-gold/10 bg-matte-elevated shadow-heritage transition-[border-color,background-color,box-shadow,transform,opacity] duration-500;
   }
 
   .heritage-card:hover {
@@ -1125,7 +1128,7 @@
   }
 
   .shop-filter-toggle {
-    @apply inline-flex h-control min-h-control items-center gap-2.5 rounded-full border border-gold/25 bg-parchment/50 px-4 text-xs font-medium text-ivory shadow-heritage transition-all hover:border-gold/40 hover:bg-parchment md:text-sm;
+    @apply inline-flex h-control min-h-control items-center gap-2.5 rounded-full border border-gold/25 bg-parchment/50 px-4 text-xs font-medium text-ivory shadow-heritage transition-colors hover:border-gold/40 hover:bg-parchment md:text-sm;
   }
 
   .shop-filter-toggle--open {
@@ -1145,7 +1148,13 @@
   }
 
   .shop-filter-chip {
-    @apply inline-flex shrink-0 items-center gap-2 rounded-full border border-gold/20 bg-white/90 px-3.5 py-1.5 text-[11px] font-medium text-ivory-light shadow-heritage transition-all hover:border-gold/35 hover:bg-parchment;
+    /* 44px-class touch target: py-2.5 on coarse pointers, compact on fine */
+    @apply inline-flex shrink-0 items-center gap-2 rounded-full border border-gold/20 bg-white/90 px-3.5 py-1.5 text-[11px] font-medium text-ivory-light shadow-heritage transition-colors hover:border-gold/35 hover:bg-parchment;
+  }
+  @media (pointer: coarse) {
+    .shop-filter-chip {
+      @apply py-2.5;
+    }
   }
 
   .shop-filter-chip-remove {
@@ -1226,6 +1235,9 @@
 
   .filter-multi-search {
     @apply w-full bg-transparent py-1.5 pe-8 ps-2 text-sm text-ivory outline-none placeholder:text-silver/60;
+  }
+  .filter-multi-search:focus-visible {
+    @apply rounded-sm ring-2 ring-gold/30;
   }
 
   .filter-multi-search-clear {
@@ -1364,6 +1376,9 @@
   .shop-filter-search-input {
     @apply h-10 w-full bg-transparent pe-8 ps-2 text-sm text-ivory outline-none placeholder:text-silver/60;
   }
+  .shop-filter-search-input:focus-visible {
+    @apply rounded-sm ring-2 ring-gold/30;
+  }
 
   .shop-filter-search-clear {
     @apply absolute end-2 flex h-6 w-6 items-center justify-center rounded-full text-silver transition-colors hover:bg-gold/10 hover:text-ivory;
@@ -1383,7 +1398,7 @@
   }
 
   .shop-filter-segment {
-    @apply flex min-h-control-sm items-center justify-center rounded-heritage border border-stone-200/80 bg-matte-elevated/80 px-4 py-3 text-center text-xs font-medium text-silver transition-all duration-200 hover:border-gold/25 hover:text-ivory md:text-sm;
+    @apply flex min-h-control-sm items-center justify-center rounded-heritage border border-stone-200/80 bg-matte-elevated/80 px-4 py-3 text-center text-xs font-medium text-silver transition-colors duration-200 hover:border-gold/25 hover:text-ivory md:text-sm;
   }
 
   .shop-filter-segment--active {
@@ -1407,7 +1422,7 @@
   }
 
   .shop-filter-pill {
-    @apply inline-flex items-center gap-2 rounded-full border border-stone-200/90 bg-matte-elevated/90 px-3 py-2 text-[11px] text-silver transition-all duration-200 hover:border-gold/30 hover:text-ivory md:text-xs;
+    @apply inline-flex items-center gap-2 rounded-full border border-stone-200/90 bg-matte-elevated/90 px-3 py-2 text-[11px] text-silver transition-colors duration-200 hover:border-gold/30 hover:text-ivory md:text-xs;
   }
 
   .shop-filter-pill--active {
@@ -1500,13 +1515,9 @@
   }
 
   .shop-product-grid {
-    @apply grid grid-cols-2 gap-3 sm:gap-3.5 lg:grid-cols-4 lg:gap-4;
-  }
-
-  @media (max-width: 1435px) {
-    .shop-product-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    /* mobile: 2 columns (standard); the old (max-width: 1435px) override
+       forced 3 cramped columns even at 375px — restored lg: 3–4 columns */
+    @apply grid grid-cols-2 gap-3 sm:gap-3.5 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4;
   }
 
   .shop-product-range {
@@ -1816,6 +1827,7 @@
 
   .shop-product-card-price-main {
     margin: 0;
+    font-variant-numeric: tabular-nums;
     font-size: 1.08rem;
     font-weight: 700;
     color: #2f2a24;
@@ -1849,6 +1861,7 @@
   }
 
   .shop-product-card-price-old-amount {
+    font-variant-numeric: tabular-nums;
     font-size: 0.8rem;
     line-height: 1;
   }
@@ -2502,7 +2515,7 @@
   }
 
   .product-gallery-dot {
-    @apply h-1.5 w-6 rounded-full bg-gold/25 transition-all;
+    @apply h-1.5 w-6 rounded-full bg-gold/25 transition-colors;
   }
 
   .product-gallery-dot--active {
@@ -2516,7 +2529,7 @@
   }
 
   .product-gallery-thumb {
-    @apply relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-heritage border-2 border-transparent opacity-70 transition-all hover:opacity-100;
+    @apply relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-heritage border-2 border-transparent opacity-70 transition-opacity hover:opacity-100;
     scroll-snap-align: start;
   }
 
@@ -2776,7 +2789,7 @@
   }
 
   .product-comment-textarea {
-    @apply w-full resize-y rounded-heritage border border-stone-200/90 bg-white px-4 py-3 text-sm leading-relaxed text-ivory placeholder:text-silver/50 focus:border-turquoise/40 focus:outline-none focus:ring-2 focus:ring-turquoise/10;
+    @apply w-full resize-y rounded-heritage border border-stone-200/90 bg-white px-4 py-3 text-sm leading-relaxed text-ivory placeholder:text-silver/50 focus-visible:border-turquoise/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise/10;
   }
 
   .product-comment-textarea-footer {
@@ -4634,5 +4647,38 @@
   .order-receipt-line-thumb {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+}
+
+
+/* focus-visible defaults: every interactive element gets a visible ring
+   unless it draws its own (Vercel guideline: no focus traps) */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid rgba(184, 134, 11, 0.55);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Vercel Web Interface Guidelines: balance headings, prevent widows */
+h1, h2, h3, .font-display {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+
+/* Vercel Web Interface Guidelines: honor prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

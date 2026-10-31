@@ -1,4 +1,7 @@
 import type { MetadataRoute } from "next";
+// Marketplace catalog changes with seller/product status — keep the
+// sitemap dynamic instead of statically cached at build time.
+export const dynamic = "force-dynamic";
 import { serverLogger } from "@/lib/observability/logger";
 import { absoluteUrl } from "@/lib/seo/site";
 import { listPublishedPosts } from "@/lib/server/blog/post-service";

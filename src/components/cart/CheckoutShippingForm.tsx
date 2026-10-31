@@ -223,6 +223,7 @@ export function CheckoutShippingForm({ profile, onStateReady, disabled }: Checko
           error={fieldError("city")}
           touched={Boolean(touched.city || showErrors)}
           disabled={disabled}
+          autoComplete="address-level2"
         />
       </div>
 
@@ -236,6 +237,8 @@ export function CheckoutShippingForm({ profile, onStateReady, disabled }: Checko
         disabled={disabled}
         inputClassName="auth-input-ltr"
         placeholder="1234567890"
+        inputMode="numeric"
+        autoComplete="postal-code"
       />
 
       <TextAreaBox
@@ -247,6 +250,7 @@ export function CheckoutShippingForm({ profile, onStateReady, disabled }: Checko
         touched={Boolean(touched.address || showErrors)}
         disabled={disabled}
         rows={3}
+        autoComplete="street-address"
       />
 
       <fieldset className="checkout-shipping-methods">

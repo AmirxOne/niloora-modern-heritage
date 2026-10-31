@@ -3,7 +3,10 @@ import { serverEnv } from "@/lib/server/env";
 import { sendKavenegarOtpLookup, sendKavenegarPlainSms } from "@/lib/server/sms/kavenegar";
 
 export function isOtpDevPreviewMode(): boolean {
-  return process.env.NODE_ENV !== "production";
+  if (process.env.NODE_ENV !== "production") return true;
+  // E2E runs against the production build; the isolated test env file
+  // opts into otpPreview explicitly so tests can read OTP codes.
+  return process.env.E2E_OTP_PREVIEW === "1";
 }
 
 export function isSmsConfiguredForProduction(): boolean {

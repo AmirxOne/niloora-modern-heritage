@@ -15,14 +15,14 @@ export function ConditionalLayoutChrome({
   const isAuthPage = pathname ? AUTH_ROUTES.has(pathname) : false;
 
   if (isAuthPage) {
-    return <main className="h-[100dvh] overflow-hidden">{children}</main>;
+    return <main id="main-content" className="h-[100dvh] overflow-hidden">{children}</main>;
   }
 
   return (
     <>
       <Header />
       <div className="site-shell pt-[var(--header-height)]">
-        <main className="min-h-screen">{children}</main>
+        <main id="main-content" className="min-h-screen">{children}</main>
       </div>
       <Footer />
     </>

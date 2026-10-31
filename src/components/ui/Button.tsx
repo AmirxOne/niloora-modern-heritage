@@ -49,7 +49,7 @@ export function Button({
       whileTap={{ scale: disabled || isLoading ? 1 : 0.985 }}
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "inline-flex items-center justify-center gap-2 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 transition-[background-color,border-color,color,opacity,box-shadow,transform] duration-300 disabled:cursor-not-allowed disabled:opacity-50",
         variants[variant],
         sizes[size],
         className

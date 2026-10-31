@@ -45,7 +45,7 @@ export function OptionSelector<T extends string>({
               transition={{ duration: 0.2 }}
               title={disabled ? opt.disabledReason : undefined}
               className={cn(
-                "relative rounded-sm border transition-all duration-300",
+                "relative rounded-sm border transition-[border-color,background-color,color,box-shadow] duration-300",
                 variant === "swatches" && "h-10 w-10 p-0",
                 variant === "pills" && "px-4 py-2 text-xs",
                 variant === "grid" && "px-3 py-2 text-xs",

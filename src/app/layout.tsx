@@ -1,4 +1,5 @@
 import { Cormorant_Garamond, Vazirmatn } from "next/font/google";
+import type { Viewport } from "next";
 import "@/styles/globals.css";
 import { rootSiteMetadata } from "@/lib/seo/site";
 import { StoreProvider } from "@/lib/store/StoreProvider";
@@ -27,6 +28,12 @@ const vazirmatn = Vazirmatn({
 
 export const metadata = rootSiteMetadata();
 
+// Vercel Web Interface Guidelines: theme-color matches page background
+export const viewport: Viewport = {
+  themeColor: "#FAF8F5",
+  colorScheme: "light",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,6 +47,12 @@ export default function RootLayout({
       className={`${cormorant.variable} ${vazirmatn.variable} ${iranYekanFont.variable} ${iranYekanFontNum.variable}`}
     >
       <body className="font-IranYekanFontNum">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[999] focus:rounded-heritage focus:bg-gold focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+        >
+          رفتن به محتوای اصلی
+        </a>
         <MotionOffProvider>
           <StoreProvider>
             <AppProvider>

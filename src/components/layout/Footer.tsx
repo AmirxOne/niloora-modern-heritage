@@ -69,7 +69,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="اینستاگرام نیلورا"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E1DB] text-[#78716C] transition-all hover:border-[#B8860B] hover:text-[#B8860B]"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E5E1DB] text-[#78716C] transition-colors hover:border-[#B8860B] hover:text-[#B8860B]"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" aria-hidden>
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />

@@ -1388,8 +1388,8 @@ export const fa = {
     backToLogin: "بازگشت به ورود",
     invalidCredentials: "شماره موبایل یا رمز عبور نادرست است.",
     phoneExists: "این شماره موبایل قبلاً ثبت شده است.",
-    loginSuccess: "ورود موفق بود، در حال بازگشت به ادامه مسیر...",
-    registerSuccess: "ثبت‌نام موفق بود، در حال بازگشت...",
+    loginSuccess: "ورود موفق بود، در حال بازگشت به ادامه مسیر…",
+    registerSuccess: "ثبت‌نام موفق بود، در حال بازگشت…",
     validation: {
       phoneRequired: "شماره موبایل را وارد کنید.",
       phoneInvalid: "شماره موبایل معتبر نیست (مثال: ۰۹۱۲۳۴۵۶۷۸۹).",

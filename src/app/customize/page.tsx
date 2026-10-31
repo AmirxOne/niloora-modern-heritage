@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { buildQuoteRequestTitle } from "@/lib/customizer/quote-summary";
 import { useCustomizer } from "@/lib/hooks/useCustomizer";
@@ -20,6 +21,15 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import type { WizardStepId } from "@/lib/customizer/wizard";
 
 export default function CustomizePage() {
+  // useSearchParams needs a Suspense boundary for static prerendering.
+  return (
+    <Suspense fallback={<div className="py-16 text-center text-sm text-silver">در حال بارگذاری…</div>}>
+      <CustomizePageContent />
+    </Suspense>
+  );
+}
+
+function CustomizePageContent() {
   const router = useRouter();
   const { state, update, batchUpdate, loadState, reset, price, recentChanges, dismissChanges } =
     useCustomizer();

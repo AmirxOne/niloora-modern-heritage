@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -30,6 +30,15 @@ import { AccountEmptyState } from "@/components/account/AccountEmptyState";
 import { AccountResourceRow } from "@/components/account/AccountResourceRow";
 
 export default function AccountPage() {
+  // useSearchParams needs a Suspense boundary for static prerendering.
+  return (
+    <Suspense fallback={<div className="py-16 text-center text-sm text-silver">در حال بارگذاری…</div>}>
+      <AccountPageContent />
+    </Suspense>
+  );
+}
+
+function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { auth, orders, quoteRequests, wishlist, compareList, recentlyViewed, designs, comments } =

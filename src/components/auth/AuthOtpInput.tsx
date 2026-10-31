@@ -86,7 +86,8 @@ export function AuthOtpInput({
     <div dir="ltr" className="w-full">
       <OTPInput
         maxLength={6}
-        autoFocus
+        autoComplete="one-time-code"
+        inputMode="numeric"
         value={value}
         onChange={handleChange}
         onComplete={onComplete}

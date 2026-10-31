@@ -24,7 +24,9 @@ export default defineConfig({
   },
   outputDir: "e2e-results",
   webServer: {
-    command: "npm run dev:test",
+    // E2E against the PRODUCTION build — faster, no dev-mode HMR chunk
+    // corruption ("Invalid or unexpected token") that broke hydration.
+    command: "npm run start:test",
     url: `${baseURL}/api/products`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
