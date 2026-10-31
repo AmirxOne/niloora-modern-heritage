@@ -413,18 +413,21 @@ test("FULL JOURNEY: admin discount → customer buys → cancel → refund → s
   expect(shipRes.status).toBe(200);
   toast("order shipped with tracking ✓");
 
-  // customer sees tracking
-  // under full-suite load the orders API can lag behind first paint — retry
+  // customer sees tracking — waitFor actually polls (isVisible never
+  // waits, the anti-pattern that flaked this spec twice before)
   let trackingVisible = false;
   for (let attempt = 0; attempt < 3 && !trackingVisible; attempt++) {
     await page.goto(`${BASE}/account`);
     const ordersTab2 = page.getByRole("button", { name: /^تاریخچه خرید/ }).first();
-    const tabVisible2 = await ordersTab2.isVisible({ timeout: 8_000 }).catch(() => false);
-    if (tabVisible2) await ordersTab2.click();
+    await ordersTab2
+      .waitFor({ state: "visible", timeout: 10_000 })
+      .then(() => ordersTab2.click())
+      .catch(() => undefined);
     trackingVisible = await page
       .getByText(/RAH/)
       .first()
-      .isVisible({ timeout: 15_000 })
+      .waitFor({ state: "visible", timeout: 15_000 })
+      .then(() => true)
       .catch(() => false);
   }
   expect(trackingVisible).toBe(true);
