@@ -74,7 +74,7 @@ export function Modal({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="flex items-center justify-between border-b border-[#F0EDE9] px-6 py-4"
+                className="flex items-center justify-between border-b border-gold/10 px-6 py-4"
               >
                 <h2 className="font-display text-xl text-ivory">{title}</h2>
                 <button

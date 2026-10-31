@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { fa } from "@/lib/i18n/fa";
+import { CheckBox } from "@/components/inputs";
 import { useAdminHomeContent } from "@/lib/hooks/useAdminHomeContent";
 import { useAdminProducts } from "@/lib/hooks/useAdminProducts";
 import type { HomeBannerDto } from "@/lib/types/home-content";
@@ -91,14 +92,11 @@ export function AdminHomeContentPanel() {
         <p className="mb-4 text-xs text-silver">{fa.admin.home.bannerHint}</p>
         {bannerForm ? (
           <div className="grid gap-4">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={bannerForm.enabled}
-                onChange={(e) => setBannerForm({ ...bannerForm, enabled: e.target.checked })}
-              />
-              {fa.admin.home.bannerEnabled}
-            </label>
+            <CheckBox
+              label={fa.admin.home.bannerEnabled}
+              checked={bannerForm.enabled}
+              onChange={(e) => setBannerForm({ ...bannerForm, enabled: e.target.checked })}
+            />
             <TextBox
               label={fa.admin.home.badge}
               value={bannerForm.badge}

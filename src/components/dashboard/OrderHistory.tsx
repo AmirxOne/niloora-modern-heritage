@@ -219,7 +219,7 @@ export function OrderHistory({ orders, isLoading = false, onCancelOrder }: Order
         {Array.from({ length: 3 }).map((_, idx) => (
           <article
             key={idx}
-            className="order-history-card rounded-heritage-lg border border-[#F0EDE9] bg-white p-5"
+            className="order-history-card"
           >
             <header className="order-history-card-header">
               <div>
@@ -228,7 +228,7 @@ export function OrderHistory({ orders, isLoading = false, onCancelOrder }: Order
               </div>
               <div className="sk h-6 w-24 rounded-full" />
             </header>
-            <div className="order-timeline order-timeline--skeleton border-b border-[#F0EDE9] px-5 py-4 md:px-6">
+            <div className="order-timeline order-timeline--skeleton border-b border-gold/10 px-5 py-4 md:px-6">
               <div className="sk h-3 w-36" />
               <div className="mt-4 space-y-4">
                 {Array.from({ length: 5 }).map((_, stepIdx) => (

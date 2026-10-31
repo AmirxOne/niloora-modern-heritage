@@ -3,6 +3,16 @@
 import Link from "next/link";
 import { fa } from "@/lib/i18n/fa";
 
+/** Jalali (Solar Hijri) year as latin digits — NaN-safe. */
+function persianYearNow(): number {
+  const latin = new Intl.DateTimeFormat("en-u-ca-persian", {
+    year: "numeric",
+  }).format(new Date());
+  const year = Number(latin.replace(/\D/g, ""));
+  return Number.isFinite(year) && year > 1000 ? year : new Date().getFullYear();
+}
+
+
 const COLS = [
   {
     title: fa.footer.collection,
@@ -97,7 +107,7 @@ export function Footer() {
 
         {/* ── ردیف پایین ── */}
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-[#78716C] sm:flex-row">
-          <p>{fa.footer.copyright(new Date().getFullYear())}</p>
+          <p>{fa.footer.copyright(persianYearNow())}</p>
           <p className="tracking-wider opacity-60">{fa.footer.cities}</p>
         </div>
       </div>

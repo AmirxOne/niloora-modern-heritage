@@ -10,6 +10,7 @@ import {
 import { PRODUCT_AVAILABILITY_OPTIONS, getProductStatusConfig } from "@/lib/product-status";
 import type { CollectionDto } from "@/lib/server/products";
 import { fa } from "@/lib/i18n/fa";
+import { CheckBox } from "@/components/inputs";
 import { TextBox, TextAreaBox, SelectBox } from "@/components/inputs";
 import { Button } from "@/components/ui/Button";
 import type { RingStyle } from "@/lib/types";
@@ -243,24 +244,20 @@ export function AdminProductForm({
       </fieldset>
 
       <div className="admin-product-form-checks">
-        <label className="admin-product-check">
-          <input
-            type="checkbox"
-            checked={values.featured}
-            onChange={(e) => set("featured", e.target.checked)}
-            disabled={isSaving}
-          />
-          <span>{fa.admin.products.featured}</span>
-        </label>
-        <label className="admin-product-check">
-          <input
-            type="checkbox"
-            checked={values.bestseller}
-            onChange={(e) => set("bestseller", e.target.checked)}
-            disabled={isSaving}
-          />
-          <span>{fa.admin.products.bestseller}</span>
-        </label>
+        <CheckBox
+          className="admin-product-check"
+          label={<span>{fa.admin.products.featured}</span>}
+          checked={values.featured}
+          onChange={(e) => set("featured", e.target.checked)}
+          disabled={isSaving}
+        />
+        <CheckBox
+          className="admin-product-check"
+          label={<span>{fa.admin.products.bestseller}</span>}
+          checked={values.bestseller}
+          onChange={(e) => set("bestseller", e.target.checked)}
+          disabled={isSaving}
+        />
       </div>
 
       <div className="admin-product-form-actions">

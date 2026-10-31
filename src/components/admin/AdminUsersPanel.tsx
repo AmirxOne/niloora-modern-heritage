@@ -38,7 +38,7 @@ function UserCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.35 }}
-      className="admin-user-card rounded-heritage-lg border border-[#F0EDE9] bg-white p-5"
+      className="admin-user-card panel-card panel-card-pad"
     >
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -139,7 +139,7 @@ export function AdminUsersPanel() {
           {Array.from({ length: 3 }).map((_, idx) => (
             <div
               key={idx}
-              className="sk h-28 rounded-heritage-lg border border-[#F0EDE9]"
+              className="sk sk-card h-28"
             />
           ))}
         </div>

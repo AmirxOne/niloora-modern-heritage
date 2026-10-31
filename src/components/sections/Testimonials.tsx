@@ -31,7 +31,7 @@ export function Testimonials() {
                   <div className="sk h-3 w-full" />
                   <div className="sk mt-2 h-3 w-11/12" />
                   <div className="sk mt-2 h-3 w-9/12" />
-                  <footer className="mt-6 border-t border-[#F0EDE9] pt-6">
+                  <footer className="mt-6 border-t border-gold/10 pt-6">
                     <div className="sk h-4 w-28" />
                     <div className="sk mt-2 h-3 w-24" />
                   </footer>

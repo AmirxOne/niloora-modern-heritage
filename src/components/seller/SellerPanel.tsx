@@ -22,7 +22,7 @@ function RegisterShopForm({ onSubmit }: { onSubmit: (input: {
 
   return (
     <form
-      className="seller-register-form mx-auto max-w-lg space-y-4 rounded-heritage-lg border border-[#F0EDE9] bg-white p-6"
+      className="seller-register-form panel-card mx-auto max-w-lg space-y-4 p-6"
       onSubmit={async (e) => {
         e.preventDefault();
         await onSubmit({ shopName, slug, bio, phone });
@@ -77,7 +77,7 @@ function StatsCards({ overview }: { overview: SellerOverview }) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-heritage-lg border border-[#F0EDE9] bg-white p-4 text-center"
+          className="panel-card rounded-heritage-lg p-4 text-center"
         >
           <p className="text-xs text-silver">{item.label}</p>
           <p className="mt-2 font-display text-lg font-semibold text-ivory">
@@ -118,7 +118,7 @@ function AddProductForm({
 
   return (
     <form
-      className="seller-product-form grid gap-3 rounded-heritage-lg border border-[#F0EDE9] bg-white p-5 md:grid-cols-2"
+      className="seller-product-form panel-card grid gap-3 p-5 md:grid-cols-2"
       onSubmit={async (e) => {
         e.preventDefault();
         const ok = await onCreate({
@@ -169,7 +169,7 @@ function ProductRow({
   const dirty = Number(price) !== product.price || Number(stock) !== product.stock;
 
   return (
-    <li className="seller-product-row flex flex-wrap items-center gap-3 rounded-heritage-lg border border-[#F0EDE9] bg-white p-4">
+    <li className="seller-product-row flex flex-wrap items-center gap-3 rounded-heritage-lg border border-gold/10 bg-matte-elevated p-4">
       <div className="min-w-[10rem] flex-1">
         <Link href={`/product/${product.id}`} className="font-medium text-ivory hover:text-gold-dark">
           {product.name}
@@ -179,7 +179,7 @@ function ProductRow({
       <label className="flex items-center gap-2 text-xs text-silver">
         {t.editPrice}
         <input
-          className="w-32 rounded border border-[#E5E0DA] px-2 py-1 text-sm text-ivory"
+          className="field-control field-control--sm w-36 text-sm"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           inputMode="numeric"
@@ -189,7 +189,7 @@ function ProductRow({
       <label className="flex items-center gap-2 text-xs text-silver">
         {t.editStock}
         <input
-          className="w-20 rounded border border-[#E5E0DA] px-2 py-1 text-sm text-ivory"
+          className="field-control field-control--sm w-24 text-sm"
           value={stock}
           onChange={(e) => setStock(e.target.value)}
           inputMode="numeric"
@@ -233,7 +233,7 @@ function PayoutsSection({
         {t.payoutsTitle}
       </h2>
       <form
-        className="flex flex-wrap items-end gap-3 rounded-heritage-lg border border-[#F0EDE9] bg-white p-4"
+        className="flex flex-wrap items-end gap-3 rounded-heritage-lg border border-gold/10 bg-matte-elevated p-4"
         onSubmit={async (e) => {
           e.preventDefault();
           const ok = await onRequest(Number(amount), note);
@@ -254,7 +254,7 @@ function PayoutsSection({
           {payouts.map((p) => (
             <li
               key={p.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-heritage-lg border border-[#F0EDE9] bg-white p-3 text-sm"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-heritage-lg border border-gold/10 bg-matte-elevated p-3 text-sm"
             >
               <span className="font-medium text-ivory">{formatPrice(p.amount)}</span>
               <span className="text-xs text-silver">
@@ -288,8 +288,8 @@ export function SellerPanel() {
   if (panel.isLoading) {
     return (
       <div className="space-y-4" aria-busy="true">
-        <div className="sk h-24 rounded-heritage-lg" />
-        <div className="sk h-64 rounded-heritage-lg" />
+        <div className="sk sk-card h-24" />
+        <div className="sk sk-card h-64" />
       </div>
     );
   }

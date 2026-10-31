@@ -1,6 +1,7 @@
 "use client";
 
 import { fa } from "@/lib/i18n/fa";
+import { CheckBox } from "@/components/inputs";
 import type { AdminPromoFormValues } from "@/lib/admin/promo-form";
 import { SelectBox, TextAreaBox, TextBox } from "@/components/inputs";
 
@@ -65,24 +66,20 @@ export function AdminPromoCodeForm({ values, onChange, disabled }: Props) {
         placeholder={fa.admin.promoCodes.aliasesHint}
         className="auth-input-ltr"
       />
-      <label className="flex items-center gap-2 text-sm text-ivory-light">
-        <input
-          type="checkbox"
-          checked={values.replacesSiteWide}
-          onChange={(e) => set("replacesSiteWide", e.target.checked)}
-          disabled={disabled}
-        />
-        {fa.admin.promoCodes.replacesSiteWide}
-      </label>
-      <label className="flex items-center gap-2 text-sm text-ivory-light">
-        <input
-          type="checkbox"
-          checked={values.active}
-          onChange={(e) => set("active", e.target.checked)}
-          disabled={disabled}
-        />
-        {fa.admin.promoCodes.active}
-      </label>
+      <CheckBox
+        className="text-ivory-light"
+        label={fa.admin.promoCodes.replacesSiteWide}
+        checked={values.replacesSiteWide}
+        onChange={(e) => set("replacesSiteWide", e.target.checked)}
+        disabled={disabled}
+      />
+      <CheckBox
+        className="text-ivory-light"
+        label={fa.admin.promoCodes.active}
+        checked={values.active}
+        onChange={(e) => set("active", e.target.checked)}
+        disabled={disabled}
+      />
     </div>
   );
 }

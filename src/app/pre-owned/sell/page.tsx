@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { fa } from "@/lib/i18n/fa";
+import { CheckBox } from "@/components/inputs";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/Button";
 import { TextAreaBox, TextBox } from "@/components/inputs";
@@ -115,14 +116,12 @@ export default function PreOwnedSellPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
-            <label className="pre-owned-sell-checkbox">
-              <input
-                type="checkbox"
-                checked={wantsRemake}
-                onChange={(e) => setWantsRemake(e.target.checked)}
-              />
-              <span>{fa.preOwned.sellPage.wantsRemake}</span>
-            </label>
+            <CheckBox
+              className="pre-owned-sell-checkbox"
+              label={<span>{fa.preOwned.sellPage.wantsRemake}</span>}
+              checked={wantsRemake}
+              onChange={(e) => setWantsRemake(e.target.checked)}
+            />
             <Button type="submit" className="w-full" size="lg">
               {fa.preOwned.sellPage.submit}
             </Button>

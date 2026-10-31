@@ -7,6 +7,7 @@ export { default as TextAreaBox } from "./TextAreaBox";
 export { default as SelectBox } from "./SelectBox";
 export { default as SearchableSelectBox } from "./SearchableSelectBox";
 export { DatePickerBox } from "./datePicker";
+export { CheckBox } from "./CheckBox";
 
 export type {
   SelectBoxOption,

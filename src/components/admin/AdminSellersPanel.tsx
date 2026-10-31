@@ -34,7 +34,7 @@ function SellerCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.35 }}
-      className="rounded-heritage-lg border border-[#F0EDE9] bg-white p-5"
+      className="panel-card panel-card-pad"
     >
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -54,7 +54,7 @@ function SellerCard({
         <label className="flex items-center gap-2 text-xs text-silver">
           {t.commission}
           <input
-            className="w-16 rounded border border-[#E5E0DA] px-2 py-1 text-sm text-ivory"
+            className="field-control field-control--sm w-20 text-sm"
             value={commission}
             onChange={(e) => setCommission(e.target.value)}
             inputMode="numeric"
@@ -129,7 +129,7 @@ export function AdminSellersPanel() {
         {admin.isLoading ? (
           <div className="space-y-3" aria-busy="true">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="sk h-32 rounded-heritage-lg" />
+              <div key={i} className="sk sk-card h-32" />
             ))}
           </div>
         ) : admin.sellers.length === 0 ? (
@@ -160,7 +160,7 @@ export function AdminSellersPanel() {
             {admin.payouts.map((p) => (
               <li
                 key={p.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-heritage-lg border border-[#F0EDE9] bg-white p-4 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-heritage-lg border border-gold/10 bg-matte-elevated p-4 text-sm"
               >
                 <div>
                   <p className="font-medium text-ivory">{p.seller.shopName}</p>

@@ -12,7 +12,7 @@ export default function AdminSellersPage() {
     <AdminGuard redirectTo={redirectTo}>
       <PageTransition>
         <div className="pb-24 pt-6 md:pt-8">
-          <div className="site-container max-w-4xl">
+          <div className="site-container max-w-5xl">
             <header className="admin-page-header">
               <span className="heritage-eyebrow">{fa.admin.eyebrow}</span>
               <h1 className="admin-page-title">{fa.admin.sellers.title}</h1>
