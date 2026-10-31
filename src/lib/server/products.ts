@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { PreOwnedInfo, Product } from "@/lib/types";
 import { prisma } from "@/lib/server/prisma";
+import { cached } from "@/lib/server/cache";
 const preOwnedGrades = new Set(["excellent", "very-good", "good"]);
 
 const productInclude = {
@@ -95,13 +96,17 @@ export async function getCatalogProducts(): Promise<Product[]> {
   // FLOW: read full catalog with include graph, then map to shared Product type.
   // Marketplace rule: suspended/pending sellers' products are hidden from the
   // public catalog (platform products have sellerId=null and always show).
-  const rows = await prisma.product.findMany({
-    where: {
-      OR: [{ sellerId: null }, { seller: { status: "active" } }],
-    },
-    include: productInclude,
+  // Hot read path (shop + search) — Redis read-through cache, 120s TTL,
+  // invalidated on any admin/seller product write via invalidateCache.
+  return cached("catalog", "all", async () => {
+    const rows = await prisma.product.findMany({
+      where: {
+        OR: [{ sellerId: null }, { seller: { status: "active" } }],
+      },
+      include: productInclude,
+    });
+    return rows.map(mapDbProduct);
   });
-  return rows.map(mapDbProduct);
 }
 
 export async function getProductByIdFromDb(id: string): Promise<Product | null> {

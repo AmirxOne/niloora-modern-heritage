@@ -30,6 +30,10 @@ export async function GET(request: Request) {
     const products = await getCatalogProducts();
 
     const rawPage = url.searchParams.get("page");
+    // lightweight client-side cache for identical repeat reads (shop
+    // revisits, prefetch) — catalog freshness is governed by Redis TTL +
+    // invalidation server-side
+    const cacheHeaders = { "Cache-Control": "public, max-age=30, stale-while-revalidate=60" };
     if (rawPage !== null) {
       const page = Math.max(1, Math.floor(Number(rawPage) || 1));
       const rawPageSize = Number(url.searchParams.get("pageSize") ?? "24");
@@ -49,7 +53,7 @@ export async function GET(request: Request) {
           total,
           totalPages: Math.max(1, Math.ceil(total / pageSize)),
         },
-      });
+      }, { headers: cacheHeaders });
     }
 
     const telegramProducts = await listTelegramProducts({
@@ -61,7 +65,7 @@ export async function GET(request: Request) {
       products,
       maxPrice: getCatalogMaxPrice(products),
       telegramProducts,
-    } satisfies { products: Product[]; maxPrice: number; telegramProducts: unknown[] });
+    } satisfies { products: Product[]; maxPrice: number; telegramProducts: unknown[] }, { headers: cacheHeaders });
   } catch (error) {
     return handleRouteError(error, { route: "/api/products" });
   }

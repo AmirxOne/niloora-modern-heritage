@@ -1,4 +1,5 @@
 import { readActiveSeller } from "@/lib/server/sellers/guard";
+import { invalidateCache } from "@/lib/server/cache";
 import { badRequest, created, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { prisma } from "@/lib/server/prisma";
@@ -110,4 +111,5 @@ export async function POST(request: Request) {
   } catch (error) {
     return handleRouteError(error, { route: "/api/seller/products" });
   }
-}
+await invalidateCache("catalog");
+    }

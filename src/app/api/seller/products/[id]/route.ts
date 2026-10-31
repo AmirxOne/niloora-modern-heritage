@@ -1,4 +1,5 @@
 import { readActiveSeller } from "@/lib/server/sellers/guard";
+import { invalidateCache } from "@/lib/server/cache";
 import { badRequest, notFound, ok } from "@/lib/server/http";
 import { handleRouteError } from "@/lib/server/route-errors";
 import { prisma } from "@/lib/server/prisma";
@@ -84,6 +85,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       });
     }
 
+    await invalidateCache("catalog");
     return ok({ product: mapDbProduct(product) });
   } catch (error) {
     return handleRouteError(error, { route: "/api/seller/products/[id]" });

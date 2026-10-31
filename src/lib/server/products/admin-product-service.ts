@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { invalidateCache } from "@/lib/server/cache";
 import { prisma } from "@/lib/server/prisma";
 import type { AdminProductPayload } from "@/lib/server/products/admin-product";
 import {
@@ -92,6 +93,7 @@ export async function createAdminProduct(data: AdminProductPayload) {
     });
   });
 
+  await invalidateCache("catalog");
   return toAdminProductDto(row);
 }
 
@@ -155,9 +157,11 @@ export async function updateAdminProduct(id: string, data: AdminProductPayload) 
     });
   });
 
+  await invalidateCache("catalog");
   return toAdminProductDto(row);
 }
 
 export async function deleteAdminProduct(id: string) {
   await prisma.product.delete({ where: { id } });
+  await invalidateCache("catalog");
 }

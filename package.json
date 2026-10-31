@@ -40,6 +40,7 @@
     "iconsax-reactjs": "^0.0.8",
     "input": "^1.0.1",
     "input-otp": "^1.4.2",
+    "ioredis": "^6.0.0",
     "jalali-moment": "^3.3.11",
     "jose": "^6.2.3",
     "next": "^14.2.21",

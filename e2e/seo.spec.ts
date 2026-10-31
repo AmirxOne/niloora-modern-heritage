@@ -9,6 +9,19 @@ import { ALPHA_PRODUCT_ID, TEST_SELLER_PHONE, TEST_PASSWORD } from "./helpers";
 
 const BASE = process.env.E2E_BASE_URL ?? "http://localhost:3100";
 
+/** The app caches the catalog in Redis — psql-inserted rows bypass the
+ * API invalidation, so bump the version key before reading via API. */
+function flushCatalogCache(): void {
+  try {
+    execSync(
+      `docker exec meetinghub-redis-1 redis-cli INCR niloora:cache:version:catalog:catalog`,
+      { encoding: "utf8", stdio: "pipe" }
+    );
+  } catch {
+    /* redis not present in this environment — cache stays hot, TTL handles it */
+  }
+}
+
 function psql(sql: string): string {
   const oneLine = sql.replace(/\s+/g, " ").trim();
   return execSync(
@@ -126,6 +139,7 @@ test.describe("Persian search normalization", () => {
     psql(`INSERT INTO "ProductListing" (\"productId\", tier, headline, details) VALUES ('seo-norm-ring', 'premium', 'تست', '["x"]') ON CONFLICT DO NOTHING`);
 
     try {
+      flushCatalogCache();
       // query with ARABIC ي and ك
       const res = await request.get(`/api/products/search?q=${encodeURIComponent("یکتا".replace(/ی/g, "ي").replace(/ک/g, "ك"))}`);
       expect(res.status()).toBe(200);
